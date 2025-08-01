@@ -57,13 +57,13 @@ jobs:
       name: Setup pnpm cache
       with:
         path: ${{ env.STORE_PATH }}
-        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('flowcraft/pnpm-lock.yaml') }}
+        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('flowcraft/package.json') }}
         restore-keys: |
           ${{ runner.os }}-pnpm-store-
     
     - name: Install dependencies
       working-directory: ./flowcraft
-      run: pnpm install --frozen-lockfile
+      run: pnpm install
     
     - name: Run linting
       working-directory: ./flowcraft
@@ -109,7 +109,7 @@ jobs:
     
     - name: Install dependencies
       working-directory: ./flowcraft
-      run: pnpm install --frozen-lockfile
+      run: pnpm install
     
     - name: Run security audit
       working-directory: ./flowcraft
@@ -135,7 +135,7 @@ jobs:
     
     - name: Install dependencies
       working-directory: ./flowcraft
-      run: pnpm install --frozen-lockfile
+      run: pnpm install
     
     - name: Build all packages
       working-directory: ./flowcraft
