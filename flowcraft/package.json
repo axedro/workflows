@@ -12,6 +12,7 @@
     "build": "pnpm run --recursive build",
     "test": "pnpm run --recursive test",
     "lint": "pnpm run --recursive lint",
+    "lint:fix": "pnpm run --recursive lint -- --fix",
     "type-check": "pnpm run --recursive type-check",
     "clean": "pnpm run --recursive clean",
     "docker:build": "docker-compose -f infrastructure/docker/docker-compose.yml build",
