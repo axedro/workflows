@@ -1,0 +1,292 @@
+# FlowCraft - Workflow Automation Platform
+# .cursorrules
+
+## Project Overview
+FlowCraft is a workflow automation platform that combines no-code visual interface with pro-code capabilities. The platform enables users to create, execute, and monitor complex workflows through an intuitive visual interface, integrating with 200+ services.
+
+## Tech Stack
+
+### Frontend
+- React 18 + TypeScript
+- React Flow (visual workflow editor)
+- Tailwind CSS + shadcn/ui components
+- Zustand (state management)
+- React Query (data fetching)
+- Framer Motion (animations)
+
+### Backend
+- Node.js + TypeScript + Fastify
+- PostgreSQL (metadata) + Redis (cache/queues)
+- Prisma ORM
+- JWT + OAuth 2.0 authentication
+- Docker + Kubernetes deployment
+
+### Execution Engine
+- Bull/BullMQ (job queues)
+- Worker nodes (scalable)
+- Event sourcing pattern
+- Distributed locks (Redis)
+
+### Monitoring
+- Prometheus + Grafana (metrics)
+- ELK Stack (logs)
+- Jaeger (tracing)
+
+## Architecture Principles
+
+### 1. Microservices Architecture
+- Separate services for different concerns
+- API Gateway for routing and authentication
+- Event-driven communication between services
+- Independent deployment and scaling
+
+### 2. Connector System
+- Abstract BaseConnector class for all integrations
+- Registry pattern for connector management
+- Versioned connector definitions
+- Custom connector SDK
+
+### 3. Workflow Execution
+- Directed acyclic graph (DAG) execution
+- Parallel and conditional execution
+- Retry logic with exponential backoff
+- State management and persistence
+
+### 4. Security First
+- Secrets management for credentials
+- OAuth integration for third-party services
+- Audit logging for all operations
+- Encryption in transit and at rest
+
+## Code Standards
+
+### TypeScript
+- Strict mode enabled
+- Comprehensive type definitions
+- Interface-first design
+- Proper error handling with custom error types
+
+### Testing
+- Unit tests for all business logic
+- Integration tests for API endpoints
+- E2E tests for critical user flows
+- Load testing for performance validation
+
+### Code Organization
+```
+src/
+├── components/          # React components
+├── services/           # Business logic services
+├── models/             # Data models and types
+├── utils/              # Utility functions
+├── hooks/              # Custom React hooks
+├── stores/             # State management
+└── types/              # TypeScript type definitions
+```
+
+### Naming Conventions
+- PascalCase for components and classes
+- camelCase for functions and variables
+- kebab-case for files and directories
+- UPPER_SNAKE_CASE for constants
+
+## Development Guidelines
+
+### 1. Workflow Editor
+- Use React Flow for visual workflow creation
+- Implement drag-and-drop for nodes
+- Support conditional logic and loops
+- Real-time validation and error highlighting
+
+### 2. Connector Development
+- Extend BaseConnector for new integrations
+- Implement proper error handling
+- Include comprehensive validation
+- Support both sync and async operations
+
+### 3. Database Design
+- Use UUIDs for all primary keys
+- Implement soft deletes where appropriate
+- Include audit fields (created_at, updated_at)
+- Use JSONB for flexible data storage
+
+### 4. API Design
+- RESTful endpoints with consistent naming
+- Proper HTTP status codes
+- Comprehensive error responses
+- API versioning strategy
+
+## Phase 1 MVP Requirements
+
+### Core Features (Months 1-4)
+1. **Basic Workflow Editor**
+   - Visual drag-and-drop interface
+   - Node library with 20 essential connectors
+   - Basic conditional logic
+   - Workflow validation
+
+2. **Execution Engine**
+   - Single-node execution
+   - Basic error handling
+   - Execution logging
+   - Simple scheduling
+
+3. **Essential Connectors (20)**
+   - HTTP Request, Webhook, Timer, Condition, Data Transform
+   - Email (SMTP), Slack, Discord, Telegram
+   - Google Sheets, Airtable, CSV/File
+   - Google Drive, Dropbox
+   - Google Analytics, Mixpanel
+   - GitHub, GitLab
+   - Date/Time, Hash/Crypto
+
+4. **Basic Dashboard**
+   - Workflow management (CRUD)
+   - Execution history
+   - Basic metrics
+   - User authentication
+
+### Technical Implementation
+- Set up monorepo structure
+- Implement core database schema
+- Create basic API endpoints
+- Build workflow editor foundation
+- Deploy to development environment
+
+## Quality Assurance
+
+### Code Quality
+- ESLint + Prettier configuration
+- Pre-commit hooks for linting
+- Code review requirements
+- Documentation standards
+
+### Performance
+- Database query optimization
+- Caching strategies
+- Frontend bundle optimization
+- API response time monitoring
+
+### Security
+- Input validation and sanitization
+- SQL injection prevention
+- XSS protection
+- Rate limiting implementation
+
+## Deployment Strategy
+
+### Development
+- Local development with Docker Compose
+- Hot reloading for frontend and backend
+- Database migrations with Prisma
+- Environment-specific configurations
+
+### Staging
+- Kubernetes deployment
+- Automated testing pipeline
+- Performance monitoring
+- Security scanning
+
+### Production
+- Blue-green deployment strategy
+- Automated rollback capabilities
+- Comprehensive monitoring
+- Disaster recovery procedures
+
+## Documentation Requirements
+
+### Code Documentation
+- JSDoc comments for all public APIs
+- README files for each service
+- Architecture decision records (ADRs)
+- API documentation with OpenAPI/Swagger
+
+### User Documentation
+- Getting started guides
+- Connector documentation
+- Troubleshooting guides
+- Video tutorials
+
+## Success Metrics
+
+### Technical Metrics
+- 99.9% uptime SLA
+- <500ms API response time
+- <2s workflow execution time
+- Zero security vulnerabilities
+
+### Product Metrics
+- 10,000 registered users in 12 months
+- 60% MAU/MAW ratio
+- 50,000 workflows created in first year
+- 1M+ monthly executions
+
+## Development Workflow
+
+### Git Workflow
+- Feature branch workflow
+- Pull request reviews required
+- Semantic versioning
+- Automated testing on PR
+
+### Release Process
+- Weekly development releases
+- Monthly feature releases
+- Quarterly major releases
+- Hotfix process for critical issues
+
+## Team Collaboration
+
+### Communication
+- Daily standups
+- Weekly sprint planning
+- Monthly architecture reviews
+- Quarterly roadmap planning
+
+### Tools
+- GitHub for source control
+- Linear for project management
+- Slack for communication
+- Notion for documentation
+
+## Future Considerations
+
+### Scalability
+- Horizontal scaling strategy
+- Database sharding approach
+- CDN implementation
+- Global deployment strategy
+
+### AI Integration
+- Workflow suggestion engine
+- Natural language processing
+- Predictive analytics
+- Auto-optimization features
+
+### Enterprise Features
+- SSO integration
+- Advanced security features
+- White-label options
+- Custom connector marketplace
+
+## File Organization Rules
+
+### Directory Structure
+- ALWAYS verify the current working directory before creating files
+- The project root is `/Users/alejandromedina/dev/FC/workflows/workflows/flowcraft`
+- All configuration files (package.json, tsconfig.json, etc.) should be in the project root (flowcraft/)
+- Apps go in `apps/` directory
+- Packages go in `packages/` directory
+- Infrastructure configs go in `infrastructure/` directory
+- Documentation files stay in the workspace root (outside flowcraft/)
+
+### File Creation Guidelines
+- Before creating any file, check the current directory structure using `list_dir`
+- Use `list_dir` to verify the correct location
+- Ensure files are created in the appropriate subdirectories
+- Follow the established monorepo structure strictly
+- NEVER create files in the wrong directory - always verify first
+- The workspace structure is: `/Users/alejandromedina/dev/FC/workflows/workflows/` (workspace root)
+- The project structure is: `/Users/alejandromedina/dev/FC/workflows/workflows/flowcraft/` (project root)
+
+Remember: Always prioritize user experience, code quality, and system reliability. The goal is to create a platform that makes workflow automation accessible to both technical and non-technical users while maintaining enterprise-grade reliability and scalability. 

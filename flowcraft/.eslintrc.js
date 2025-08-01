@@ -43,7 +43,9 @@ module.exports = {
         'react/react-in-jsx-scope': 'off',
         'react/jsx-uses-react': 'off',
         'react/prop-types': 'off',
-        'no-undef': 'off', // Disable no-undef for React files since React is imported
+      },
+      globals: {
+        React: 'readonly',
       },
       settings: {
         react: {
