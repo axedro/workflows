@@ -30,6 +30,10 @@ module.exports = {
   overrides: [
     {
       files: ['apps/web/**/*.tsx', 'packages/ui/**/*.tsx'],
+      env: {
+        browser: true,
+        es2022: true,
+      },
       extends: [
         'plugin:react/recommended',
         'plugin:react-hooks/recommended',
@@ -39,6 +43,7 @@ module.exports = {
         'react/react-in-jsx-scope': 'off',
         'react/jsx-uses-react': 'off',
         'react/prop-types': 'off',
+        'no-undef': 'off', // Disable no-undef for React files since React is imported
       },
       settings: {
         react: {
