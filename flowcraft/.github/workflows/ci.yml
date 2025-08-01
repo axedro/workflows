@@ -1,5 +1,6 @@
 name: CI/CD Pipeline
 
+# Trigger workflow on push to main/develop and PR to main
 on:
   push:
     branches: [main, develop]
