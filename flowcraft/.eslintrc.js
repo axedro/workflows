@@ -45,6 +45,16 @@ module.exports = {
           version: 'detect',
         },
       },
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+        babelOptions: {
+          presets: [
+            ['@babel/preset-react', { runtime: 'automatic' }],
+          ],
+        },
+      },
     },
   ],
   ignorePatterns: ['dist/', 'node_modules/', '*.js', '*.cjs'],
