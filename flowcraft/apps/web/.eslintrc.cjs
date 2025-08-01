@@ -1,27 +1,12 @@
 module.exports = {
-  extends: [
-    'eslint:recommended',
-    '@typescript-eslint/recommended',
-    'plugin:react/recommended',
-    'plugin:react-hooks/recommended',
-    'prettier',
-  ],
-  parser: '@typescript-eslint/parser',
+  extends: ['../../.eslintrc.js'],
   parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
     ecmaFeatures: {
       jsx: true,
     },
   },
-  plugins: ['@typescript-eslint', 'react', 'react-hooks', 'prettier'],
+  plugins: ['react', 'react-hooks'],
   rules: {
-    'prettier/prettier': 'error',
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-    '@typescript-eslint/explicit-function-return-type': 'off',
-    '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/no-explicit-any': 'warn',
-    'no-console': 'warn',
     'react/react-in-jsx-scope': 'off',
     'react/prop-types': 'off',
   },
@@ -30,5 +15,4 @@ module.exports = {
       version: 'detect',
     },
   },
-  ignorePatterns: ['dist/', 'node_modules/'],
 }; 

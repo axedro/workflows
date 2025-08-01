@@ -27,5 +27,24 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'warn',
     'no-console': 'warn',
   },
+  overrides: [
+    {
+      files: ['**/*.tsx', '**/*.jsx'],
+      extends: [
+        'plugin:react/recommended',
+        'plugin:react-hooks/recommended',
+      ],
+      plugins: ['react', 'react-hooks'],
+      rules: {
+        'react/react-in-jsx-scope': 'off',
+        'react/prop-types': 'off',
+      },
+      settings: {
+        react: {
+          version: 'detect',
+        },
+      },
+    },
+  ],
   ignorePatterns: ['dist/', 'node_modules/', '*.js'],
 }; 
