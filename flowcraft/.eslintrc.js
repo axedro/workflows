@@ -7,7 +7,7 @@ module.exports = {
   },
   extends: [
     'eslint:recommended',
-    '@typescript-eslint/recommended',
+    'plugin:@typescript-eslint/recommended',
     'prettier',
   ],
   parser: '@typescript-eslint/parser',
@@ -27,5 +27,24 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'warn',
     'no-console': 'warn',
   },
-  ignorePatterns: ['dist/', 'node_modules/', '*.js', 'apps/*', 'packages/*'],
-}; 
+  overrides: [
+    {
+      files: ['apps/web/**/*.tsx', 'packages/ui/**/*.tsx'],
+      extends: [
+        'plugin:react/recommended',
+        'plugin:react-hooks/recommended',
+      ],
+      plugins: ['react', 'react-hooks'],
+      rules: {
+        'react/react-in-jsx-scope': 'off',
+        'react/prop-types': 'off',
+      },
+      settings: {
+        react: {
+          version: 'detect',
+        },
+      },
+    },
+  ],
+  ignorePatterns: ['dist/', 'node_modules/', '*.js', '*.cjs'],
+};
