@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: flowcraft-postgres
+    environment:
+      POSTGRES_DB: flowcraft
+      POSTGRES_USER: flowcraft
+      POSTGRES_PASSWORD: flowcraft123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flowcraft -d flowcraft"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and queues
+  redis:
+    image: redis:7-alpine
+    container_name: flowcraft-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Prisma Studio (Database GUI)
+  prisma-studio:
+    image: node:18-alpine
+    container_name: flowcraft-prisma-studio
+    working_dir: /app
+    volumes:
+      - ../../packages/database:/app
+    environment:
+      DATABASE_URL: postgresql://flowcraft:flowcraft123@postgres:5432/flowcraft
+    ports:
+      - "5555:5555"
+    command: npx prisma studio --hostname 0.0.0.0 --port 5555
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data: 
