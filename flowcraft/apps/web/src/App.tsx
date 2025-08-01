@@ -1,5 +1,5 @@
+import React, { Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
-import { Suspense } from 'react'
 import Loading from './components/Loading'
 
 // Lazy load components
