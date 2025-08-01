@@ -11,6 +11,7 @@
     "dev": "pnpm run --parallel dev",
     "build": "pnpm run --recursive build",
     "test": "pnpm run --recursive test",
+    "test:unit": "pnpm run --recursive test",
     "lint": "pnpm run --recursive lint",
     "lint:fix": "pnpm run --recursive lint -- --fix",
     "type-check": "pnpm run --recursive type-check",
