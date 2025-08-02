@@ -59,6 +59,10 @@ FlowCraft is a workflow automation platform that combines no-code visual interfa
 - Parallel and conditional execution
 - Retry logic with exponential backoff
 - State management and persistence
+- Workflow validation and versioning
+- Template system for reusable workflows
+- Import/export functionality
+- Comprehensive validation service
 
 ### 4. Security First
 - Secrets management for credentials
@@ -93,11 +97,24 @@ FlowCraft is a workflow automation platform that combines no-code visual interfa
 ```
 src/
 ├── components/          # React components
+│   ├── auth/           # Authentication components
+│   ├── dashboard/      # Dashboard components
+│   ├── workflow-editor/ # Workflow editor components
+│   ├── monitoring/     # Monitoring components
+│   ├── settings/       # Settings components
+│   └── shared/         # Shared components
 ├── services/           # Business logic services
+│   ├── auth/           # Authentication services
+│   ├── workflow/       # Workflow services
+│   ├── i18n/           # Internationalization services
+│   └── validation/     # Validation services
 ├── models/             # Data models and types
 ├── utils/              # Utility functions
 ├── hooks/              # Custom React hooks
-├── stores/             # State management
+├── stores/             # State management (Zustand)
+│   ├── authStore.ts    # Authentication state
+│   ├── workflowStore.ts # Workflow state
+│   └── templateStore.ts # Template state
 ├── types/              # TypeScript type definitions
 └── i18n/               # Internationalization
     ├── namespaces/     # Translation namespaces (auth, common, etc.)
@@ -124,6 +141,10 @@ src/
 - Implement drag-and-drop for nodes
 - Support conditional logic and loops
 - Real-time validation and error highlighting
+- Node library with 20+ essential connectors
+- Template system for reusable workflows
+- Import/export functionality
+- Version control and history
 
 ### 2. Connector Development
 - Extend BaseConnector for new integrations
@@ -136,12 +157,20 @@ src/
 - Implement soft deletes where appropriate
 - Include audit fields (created_at, updated_at)
 - Use JSONB for flexible data storage
+- Workflow versioning with changelog
+- Template system with public/private visibility
+- Comprehensive validation schemas
+- Performance-optimized indices
 
 ### 4. API Design
 - RESTful endpoints with consistent naming
 - Proper HTTP status codes
 - Comprehensive error responses
 - API versioning strategy
+- OpenAPI/Swagger documentation
+- Request/response validation with Zod
+- Pagination implementation
+- Error handling with i18n support
 
 ### 5. Internationalization Guidelines
 - Always use translation keys, never hardcoded strings
@@ -194,11 +223,16 @@ src/
 ### Technical Implementation
 - Set up monorepo structure
 - Implement core database schema (including i18n tables)
-- Create basic API endpoints (with i18n support)
+- Create comprehensive API endpoints (with i18n support)
 - Build workflow editor foundation
 - Implement React i18next with backend integration
 - Set up translation management system
 - Deploy to development environment
+- Implement workflow CRUD operations
+- Create workflow validation service
+- Build template management system
+- Add import/export functionality
+- Set up OpenAPI documentation
 
 ## Quality Assurance
 
