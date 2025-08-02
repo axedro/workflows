@@ -2,10 +2,13 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { Button } from '@flowcraft/ui';
+import LanguageSelector from './LanguageSelector';
+import { useTranslation } from '../hooks/i18n';
 
 export const Header: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const { t } = useTranslation('common');
 
   const handleLogout = () => {
     logout();
@@ -42,26 +45,27 @@ export const Header: React.FC = () => {
             </Link>
           </nav>
 
-          {/* Auth buttons */}
+          {/* Language Selector and Auth buttons */}
           <div className="flex items-center space-x-4">
+            <LanguageSelector variant="compact" />
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-600">
-                  Hello, {user?.name}
+                  {t('welcome_user', { name: user?.name || 'User' })}
                 </span>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => navigate('/dashboard')}
                 >
-                  Dashboard
+                  {t('dashboard')}
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleLogout}
                 >
-                  Logout
+                  {t('logout')}
                 </Button>
               </div>
             ) : (
@@ -71,13 +75,13 @@ export const Header: React.FC = () => {
                   size="sm"
                   onClick={() => navigate('/auth?mode=login')}
                 >
-                  Sign In
+                  {t('sign_in')}
                 </Button>
                 <Button
                   size="sm"
                   onClick={() => navigate('/auth?mode=register')}
                 >
-                  Get Started
+                  {t('get_started')}
                 </Button>
               </div>
             )}

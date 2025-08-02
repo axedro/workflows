@@ -26,6 +26,7 @@ model User {
   workflows      Workflow[]
   executions     Execution[]
   connectorConfigs ConnectorConfig[]
+  approvedTranslations Translation[]
 
   @@map("users")
 }
@@ -237,4 +238,60 @@ enum AlertStatus {
   ACTIVE
   RESOLVED
   ACKNOWLEDGED
+}
+
+// Internationalization (i18n)
+model Language {
+  id          String   @id @default(cuid())
+  code        String   @unique // 'es', 'en', 'nl'
+  name        String   // 'Spanish', 'English', 'Dutch'
+  nativeName  String   // 'Español', 'English', 'Nederlands'
+  flagEmoji   String?  // '🇪🇸', '🇺🇸', '🇳🇱'
+  isActive    Boolean  @default(true)
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  translations Translation[]
+
+  @@map("languages")
+}
+
+model TranslationKey {
+  id          String   @id @default(cuid())
+  key         String   @unique // 'auth.login.title'
+  namespace   String   // 'auth', 'common', 'dashboard'
+  category    String?  // 'buttons', 'messages', 'labels'
+  description String?  // Context for translators
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  translations Translation[]
+
+  @@index([namespace])
+  @@map("translation_keys")
+}
+
+model Translation {
+  id          String   @id @default(cuid())
+  languageId  String
+  keyId       String
+  value       String
+  isApproved  Boolean  @default(false)
+  approvedBy  String?
+  approvedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  language    Language      @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  key         TranslationKey @relation(fields: [keyId], references: [id], onDelete: Cascade)
+  approver    User?         @relation(fields: [approvedBy], references: [id])
+
+  @@unique([languageId, keyId])
+  @@index([languageId, keyId])
+  @@map("translations")
 } 

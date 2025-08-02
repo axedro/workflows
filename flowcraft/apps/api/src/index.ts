@@ -9,7 +9,9 @@ import { authRoutes } from './routes/auth.js';
 import { userRoutes } from './routes/users.js';
 import { organizationRoutes } from './routes/organizations.js';
 import { healthRoutes } from './routes/health.js';
+import { i18nRoutes } from './routes/i18n.js';
 import { authenticate } from './middleware/auth.middleware.js';
+import { i18nPlugin } from './middleware/i18n.middleware.js';
 
 // Load environment variables
 dotenv.config();
@@ -46,11 +48,15 @@ await fastify.register(jwt, {
 // Register global middleware
 fastify.decorate('authenticate', authenticate);
 
+// Register i18n plugin
+await fastify.register(i18nPlugin);
+
 // Register routes
 await fastify.register(healthRoutes, { prefix: '/health' });
 await fastify.register(authRoutes, { prefix: '/auth' });
 await fastify.register(userRoutes, { prefix: '/users' });
 await fastify.register(organizationRoutes, { prefix: '/organizations' });
+await fastify.register(i18nRoutes, { prefix: '/i18n' });
 
 // Global error handler
 fastify.setErrorHandler((error, request, reply) => {
