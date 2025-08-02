@@ -23,7 +23,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onForg
     try {
       await login(formData);
       // Redirect to dashboard on successful login
-      navigate('/');
+      navigate('/dashboard');
     } catch (error) {
       // Error is handled by the store
     }

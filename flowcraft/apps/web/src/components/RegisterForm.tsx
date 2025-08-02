@@ -46,7 +46,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
         organizationName: formData.organizationName.trim() || undefined,
       });
       // Redirect to dashboard on successful registration
-      navigate('/');
+      navigate('/dashboard');
     } catch (error) {
       // Error is handled by the store
     }

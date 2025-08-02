@@ -5,6 +5,7 @@ import { ProtectedRoute } from './components/ProtectedRoute'
 import { useAuthStore } from './stores/authStore'
 
 // Lazy load components
+const LandingPage = React.lazy(() => import('./components/LandingPage').then(module => ({ default: module.LandingPage })))
 const Dashboard = React.lazy(() => import('./components/Dashboard'))
 const WorkflowEditor = React.lazy(() => import('./components/WorkflowEditor'))
 const Auth = React.lazy(() => import('./components/Auth'))
@@ -19,15 +20,19 @@ function App() {
         <Routes>
           {/* Public routes */}
           <Route 
+            path="/" 
+            element={<LandingPage />} 
+          />
+          <Route 
             path="/auth" 
             element={
-              isAuthenticated ? <Navigate to="/" replace /> : <Auth />
+              isAuthenticated ? <Navigate to="/dashboard" replace /> : <Auth />
             } 
           />
           
           {/* Protected routes */}
           <Route 
-            path="/" 
+            path="/dashboard" 
             element={
               <ProtectedRoute fallback={<Navigate to="/auth" replace />}>
                 <Dashboard />
