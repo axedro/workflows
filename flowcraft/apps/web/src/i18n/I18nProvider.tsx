@@ -38,7 +38,7 @@ export function I18nProvider({ children }: I18nProviderProps) {
       checkAllNamespacesLoaded();
     };
 
-    const handleLanguageChanged = (lng: string) => {
+    const handleLanguageChanged = (_lng: string) => {
       setIsReady(false);
       setLoadedNamespaces(new Set());
       // Give some time for resources to load

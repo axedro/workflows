@@ -114,7 +114,7 @@ export const UserProfile: React.FC = () => {
             </label>
             <input
               type="text"
-              value={user.organization?.name || 'No organization'}
+              value="No organization" // TODO: Add organization info when type is updated
               disabled
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400"
             />

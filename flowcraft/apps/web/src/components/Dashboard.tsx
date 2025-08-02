@@ -1,13 +1,13 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../stores/authStore';
+// import { useNavigate } from 'react-router-dom'; // TODO: Use when navigation is needed
+// import { useAuthStore } from '../stores/authStore'; // TODO: Use when user info is needed
 import { Button } from '@flowcraft/ui';
 import { Header } from './Header';
 import { useTranslation } from '../hooks/i18n';
 
 const Dashboard: React.FC = () => {
-  const navigate = useNavigate();
-  const { user } = useAuthStore();
+  // const navigate = useNavigate(); // TODO: Use when navigation is needed
+  // const { user } = useAuthStore(); // TODO: Use when user info is needed
   const { t } = useTranslation('dashboard');
 
   return (
