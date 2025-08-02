@@ -2,9 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@flowcraft/ui';
 import { Header } from './Header';
+import { useTranslation } from '../hooks/i18n';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('landing');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -14,13 +16,10 @@ export const LandingPage: React.FC = () => {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
         <div className="text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Automate Your Workflows
-            <span className="block text-blue-600">Without Code</span>
+            {t('hero.title')}
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            FlowCraft is a powerful workflow automation platform that combines visual 
-            no-code interface with pro-code capabilities. Create, execute, and monitor 
-            complex workflows through an intuitive drag-and-drop interface.
+            {t('hero.subtitle')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
@@ -28,7 +27,7 @@ export const LandingPage: React.FC = () => {
               onClick={() => navigate('/auth?mode=register')}
               className="px-8 py-3 text-lg"
             >
-              Start Building Free
+              {t('hero.cta_primary')}
             </Button>
             <Button
               variant="outline"
@@ -36,7 +35,7 @@ export const LandingPage: React.FC = () => {
               onClick={() => navigate('/auth?mode=register')}
               className="px-8 py-3 text-lg"
             >
-              Watch Demo
+              {t('hero.cta_secondary')}
             </Button>
           </div>
         </div>
@@ -47,10 +46,10 @@ export const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Everything You Need to Automate
+              {t('features.title')}
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Powerful features designed to make workflow automation simple and scalable
+              {t('features.subtitle')}
             </p>
           </div>
 
@@ -62,9 +61,9 @@ export const LandingPage: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Visual Workflow Editor</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('features.visual_editor.title')}</h3>
               <p className="text-gray-600">
-                Drag-and-drop interface to create complex workflows without writing code
+                {t('features.visual_editor.description')}
               </p>
             </div>
 
@@ -75,9 +74,9 @@ export const LandingPage: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">200+ Integrations</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('features.integrations.title')}</h3>
               <p className="text-gray-600">
-                Connect with your favorite tools and services including Slack, Google Sheets, GitHub, and more
+                {t('features.integrations.description')}
               </p>
             </div>
 
@@ -88,9 +87,9 @@ export const LandingPage: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Real-time Monitoring</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('features.monitoring.title')}</h3>
               <p className="text-gray-600">
-                Monitor workflow execution, track performance, and get detailed analytics
+                {t('features.monitoring.description')}
               </p>
             </div>
 
@@ -101,9 +100,9 @@ export const LandingPage: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Scalable Architecture</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('features.scalable.title')}</h3>
               <p className="text-gray-600">
-                Built on microservices architecture that scales with your business needs
+                {t('features.scalable.description')}
               </p>
             </div>
 
@@ -115,9 +114,9 @@ export const LandingPage: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Custom Connectors</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('features.custom_connectors.title')}</h3>
               <p className="text-gray-600">
-                Build custom connectors for your specific needs with our SDK
+                {t('features.custom_connectors.description')}
               </p>
             </div>
 
@@ -128,9 +127,9 @@ export const LandingPage: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Enterprise Security</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('features.security.title')}</h3>
               <p className="text-gray-600">
-                SOC 2 compliant with encryption in transit and at rest, audit logging
+                {t('features.security.description')}
               </p>
             </div>
           </div>
@@ -141,10 +140,10 @@ export const LandingPage: React.FC = () => {
       <section className="bg-blue-600 py-16">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Ready to Automate Your Workflows?
+            {t('cta.title')}
           </h2>
           <p className="text-xl text-blue-100 mb-8">
-            Join thousands of teams already using FlowCraft to streamline their processes
+            {t('cta.subtitle')}
           </p>
           <Button
             size="lg"
@@ -169,39 +168,39 @@ export const LandingPage: React.FC = () => {
                 <span className="text-xl font-bold">FlowCraft</span>
               </div>
               <p className="text-gray-400">
-                Workflow automation platform for modern teams
+                {t('footer.description')}
               </p>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Product</h3>
+              <h3 className="font-semibold mb-4">{t('footer.product')}</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white">Features</a></li>
-                <li><a href="#" className="hover:text-white">Pricing</a></li>
-                <li><a href="#" className="hover:text-white">Integrations</a></li>
-                <li><a href="#" className="hover:text-white">API</a></li>
+                <li><a href="#" className="hover:text-white">{t('footer.features')}</a></li>
+                <li><a href="#" className="hover:text-white">{t('footer.pricing')}</a></li>
+                <li><a href="#" className="hover:text-white">{t('footer.integrations')}</a></li>
+                <li><a href="#" className="hover:text-white">{t('footer.api')}</a></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Resources</h3>
+              <h3 className="font-semibold mb-4">{t('footer.resources')}</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white">Documentation</a></li>
-                <li><a href="#" className="hover:text-white">Tutorials</a></li>
-                <li><a href="#" className="hover:text-white">Blog</a></li>
-                <li><a href="#" className="hover:text-white">Support</a></li>
+                <li><a href="#" className="hover:text-white">{t('footer.documentation')}</a></li>
+                <li><a href="#" className="hover:text-white">{t('footer.tutorials')}</a></li>
+                <li><a href="#" className="hover:text-white">{t('footer.blog')}</a></li>
+                <li><a href="#" className="hover:text-white">{t('footer.support')}</a></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Company</h3>
+              <h3 className="font-semibold mb-4">{t('footer.company')}</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white">About</a></li>
-                <li><a href="#" className="hover:text-white">Careers</a></li>
-                <li><a href="#" className="hover:text-white">Contact</a></li>
-                <li><a href="#" className="hover:text-white">Privacy</a></li>
+                <li><a href="#" className="hover:text-white">{t('footer.about')}</a></li>
+                <li><a href="#" className="hover:text-white">{t('footer.careers')}</a></li>
+                <li><a href="#" className="hover:text-white">{t('footer.contact')}</a></li>
+                <li><a href="#" className="hover:text-white">{t('footer.privacy')}</a></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 FlowCraft. All rights reserved.</p>
+            <p>{t('footer.copyright')}</p>
           </div>
         </div>
       </footer>

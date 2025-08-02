@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { Button } from '@flowcraft/ui';
 import { Header } from './Header';
+import { useTranslation } from '../hooks/i18n';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const { t } = useTranslation('dashboard');
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -17,10 +19,10 @@ const Dashboard: React.FC = () => {
         <div className="px-4 py-6 sm:px-0">
           <div className="text-center">
             <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Welcome to FlowCraft
+              {t('title')}
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">
-              Workflow Automation Platform
+              {t('welcome')}
             </p>
           </div>
 
@@ -37,7 +39,7 @@ const Dashboard: React.FC = () => {
                   <div className="ml-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                        Workflows
+                        {t('stats.workflows')}
                       </dt>
                       <dd className="text-lg font-medium text-gray-900 dark:text-white">
                         0
@@ -59,7 +61,7 @@ const Dashboard: React.FC = () => {
                   <div className="ml-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                        Executions
+                        {t('stats.executions')}
                       </dt>
                       <dd className="text-lg font-medium text-gray-900 dark:text-white">
                         0
@@ -81,7 +83,7 @@ const Dashboard: React.FC = () => {
                   <div className="ml-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                        Connectors
+                        {t('stats.connectors')}
                       </dt>
                       <dd className="text-lg font-medium text-gray-900 dark:text-white">
                         20
@@ -96,31 +98,31 @@ const Dashboard: React.FC = () => {
           {/* Quick Actions */}
           <div className="mt-8">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-              Quick Actions
+              {t('quick_actions.title')}
             </h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <Button className="h-16 text-left justify-start">
                 <div>
-                  <div className="font-medium">Create Workflow</div>
-                  <div className="text-sm opacity-70">Build a new automation</div>
+                  <div className="font-medium">{t('quick_actions.create_workflow')}</div>
+                  <div className="text-sm opacity-70">{t('quick_actions.create_workflow_desc')}</div>
                 </div>
               </Button>
               <Button variant="outline" className="h-16 text-left justify-start">
                 <div>
-                  <div className="font-medium">View Templates</div>
-                  <div className="text-sm opacity-70">Start from a template</div>
+                  <div className="font-medium">{t('quick_actions.view_templates')}</div>
+                  <div className="text-sm opacity-70">{t('quick_actions.view_templates_desc')}</div>
                 </div>
               </Button>
               <Button variant="outline" className="h-16 text-left justify-start">
                 <div>
-                  <div className="font-medium">Manage Connectors</div>
-                  <div className="text-sm opacity-70">Configure integrations</div>
+                  <div className="font-medium">{t('quick_actions.manage_connectors')}</div>
+                  <div className="text-sm opacity-70">{t('quick_actions.manage_connectors_desc')}</div>
                 </div>
               </Button>
               <Button variant="outline" className="h-16 text-left justify-start">
                 <div>
-                  <div className="font-medium">View Analytics</div>
-                  <div className="text-sm opacity-70">Monitor performance</div>
+                  <div className="font-medium">{t('quick_actions.view_analytics')}</div>
+                  <div className="text-sm opacity-70">{t('quick_actions.view_analytics_desc')}</div>
                 </div>
               </Button>
             </div>

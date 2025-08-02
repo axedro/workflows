@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { Button } from '@flowcraft/ui';
+import { useTranslation } from '../hooks/i18n';
 
 interface RegisterFormProps {
   onSwitchToLogin: () => void;
@@ -10,6 +11,7 @@ interface RegisterFormProps {
 export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
   const navigate = useNavigate();
   const { register, isLoading, error, clearError } = useAuthStore();
+  const { t } = useTranslation('auth');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -24,17 +26,17 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
     
     // Validation
     if (formData.name.trim().length < 2) {
-      alert('Name must be at least 2 characters long');
+      alert(t('validation.name_min_length'));
       return;
     }
     
     if (formData.password.length < 8) {
-      alert('Password must be at least 8 characters long');
+      alert(t('validation.password_min_length'));
       return;
     }
     
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
+      alert(t('validation.passwords_no_match'));
       return;
     }
     
@@ -63,7 +65,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4">
         <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-white">
-          Create Account
+          {t('register.title')}
         </h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -75,7 +77,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
           
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Full Name
+              {t('name')}
             </label>
             <input
               type="text"
@@ -86,13 +88,13 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
               required
               minLength={2}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Enter your full name"
+              placeholder={t('name_placeholder')}
             />
           </div>
           
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Email
+              {t('email')}
             </label>
             <input
               type="email"
@@ -102,13 +104,13 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
               onChange={handleChange}
               required
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Enter your email"
+              placeholder={t('email_placeholder')}
             />
           </div>
           
           <div>
             <label htmlFor="organizationName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Organization Name (Optional)
+              {t('organization_name')}
             </label>
             <input
               type="text"
@@ -117,13 +119,13 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
               value={formData.organizationName}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Enter organization name"
+              placeholder={t('organization_placeholder')}
             />
           </div>
           
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Password
+              {t('password')}
             </label>
             <input
               type="password"
@@ -134,13 +136,13 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
               required
               minLength={8}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Enter your password"
+              placeholder={t('password_placeholder')}
             />
           </div>
           
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Confirm Password
+              {t('confirm_password')}
             </label>
             <input
               type="password"
@@ -150,7 +152,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
               onChange={handleChange}
               required
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Confirm your password"
+              placeholder={t('confirm_password_placeholder')}
             />
           </div>
           
@@ -159,19 +161,19 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
             disabled={isLoading}
             className="w-full"
           >
-            {isLoading ? 'Creating account...' : 'Create Account'}
+            {isLoading ? t('creating_account') : t('register.title')}
           </Button>
         </form>
         
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Already have an account?{' '}
+            {t('have_account')}{' '}
             <button
               type="button"
               onClick={onSwitchToLogin}
               className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-medium"
             >
-              Sign in
+              {t('sign_in')}
             </button>
           </p>
         </div>

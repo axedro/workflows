@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { apiService } from '../services/api';
 import { Button } from '@flowcraft/ui';
+import { useTranslation } from '../hooks/i18n';
 
 interface ForgotPasswordFormProps {
   onBackToLogin: () => void;
@@ -11,6 +12,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackTo
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation('auth');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +23,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackTo
       await apiService.forgotPassword(email);
       setIsSubmitted(true);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to send reset email');
+      setError(error instanceof Error ? error.message : t('reset_email_failed'));
     } finally {
       setIsLoading(false);
     }
@@ -32,18 +34,18 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackTo
       <div className="w-full max-w-md mx-auto">
         <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4">
           <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-white">
-            Check Your Email
+            {t('check_email')}
           </h2>
           <div className="text-center">
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              If an account with that email exists, we've sent a password reset link.
+              {t('reset_email_sent')}
             </p>
             <Button
               onClick={onBackToLogin}
               variant="outline"
               className="w-full"
             >
-              Back to Login
+              {t('back_to_login')}
             </Button>
           </div>
         </div>
@@ -55,7 +57,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackTo
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4">
         <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-white">
-          Forgot Password
+          {t('forgot_password')}
         </h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -67,7 +69,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackTo
           
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Email
+              {t('email')}
             </label>
             <input
               type="email"
@@ -76,7 +78,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackTo
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Enter your email"
+              placeholder={t('email_placeholder')}
             />
           </div>
           
@@ -85,7 +87,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackTo
             disabled={isLoading}
             className="w-full"
           >
-            {isLoading ? 'Sending...' : 'Send Reset Link'}
+            {isLoading ? t('sending') : t('send_reset_link')}
           </Button>
         </form>
         
@@ -95,7 +97,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackTo
             onClick={onBackToLogin}
             className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-medium"
           >
-            Back to Login
+            {t('back_to_login')}
           </button>
         </div>
       </div>

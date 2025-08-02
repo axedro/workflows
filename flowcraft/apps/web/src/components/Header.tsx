@@ -32,16 +32,16 @@ export const Header: React.FC = () => {
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link to="/" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Home
+              {t('nav.home')}
             </Link>
             <Link to="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Features
+              {t('nav.features')}
             </Link>
             <Link to="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Pricing
+              {t('nav.pricing')}
             </Link>
             <Link to="#docs" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Docs
+              {t('nav.docs')}
             </Link>
           </nav>
 

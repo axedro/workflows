@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { Button } from '@flowcraft/ui';
+import { useTranslation } from '../hooks/i18n';
 
 interface LoginFormProps {
   onSwitchToRegister: () => void;
@@ -11,6 +12,7 @@ interface LoginFormProps {
 export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onForgotPassword }) => {
   const navigate = useNavigate();
   const { login, isLoading, error, clearError } = useAuthStore();
+  const { t } = useTranslation('auth');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -40,7 +42,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onForg
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4">
         <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-white">
-          Sign In
+          {t('login.title')}
         </h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -52,7 +54,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onForg
           
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Email
+              {t('email')}
             </label>
             <input
               type="email"
@@ -62,13 +64,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onForg
               onChange={handleChange}
               required
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Enter your email"
+              placeholder={t('email_placeholder')}
             />
           </div>
           
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Password
+              {t('password')}
             </label>
             <input
               type="password"
@@ -78,7 +80,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onForg
               onChange={handleChange}
               required
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Enter your password"
+              placeholder={t('password_placeholder')}
             />
           </div>
           
@@ -88,7 +90,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onForg
               onClick={onForgotPassword}
               className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
             >
-              Forgot password?
+              {t('forgot_password')}
             </button>
           </div>
           
@@ -97,19 +99,19 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onForg
             disabled={isLoading}
             className="w-full"
           >
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? t('signing_in') : t('login.title')}
           </Button>
         </form>
         
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Don't have an account?{' '}
+            {t('no_account')}{' '}
             <button
               type="button"
               onClick={onSwitchToRegister}
               className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-medium"
             >
-              Sign up
+              {t('sign_up')}
             </button>
           </p>
         </div>
