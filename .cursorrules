@@ -32,6 +32,14 @@ FlowCraft is a workflow automation platform that combines no-code visual interfa
 - ELK Stack (logs)
 - Jaeger (tracing)
 
+### Internationalization (i18n)
+- React i18next for frontend translations
+- Database-driven translation system
+- Redis cache for translation performance
+- Auto-detection of browser language
+- Support for ES, EN, NL (expandable)
+- Admin panel for translation management
+
 ## Architecture Principles
 
 ### 1. Microservices Architecture
@@ -58,6 +66,15 @@ FlowCraft is a workflow automation platform that combines no-code visual interfa
 - Audit logging for all operations
 - Encryption in transit and at rest
 
+### 5. Internationalization Architecture
+- Database-driven translations with fallback system
+- Namespace organization (auth, common, dashboard, etc.)
+- Lazy loading of translations by route/component
+- Redis caching for translation performance
+- Language detection: browser → geolocation → default
+- Admin interface for translation management
+- Support for RTL languages (future-ready)
+
 ## Code Standards
 
 ### TypeScript
@@ -81,7 +98,11 @@ src/
 ├── utils/              # Utility functions
 ├── hooks/              # Custom React hooks
 ├── stores/             # State management
-└── types/              # TypeScript type definitions
+├── types/              # TypeScript type definitions
+└── i18n/               # Internationalization
+    ├── namespaces/     # Translation namespaces (auth, common, etc.)
+    ├── locales/        # Language-specific configurations
+    └── hooks/          # i18n custom hooks
 ```
 
 ### Naming Conventions
@@ -89,6 +110,12 @@ src/
 - camelCase for functions and variables
 - kebab-case for files and directories
 - UPPER_SNAKE_CASE for constants
+
+### i18n Naming Conventions
+- Translation keys: dot notation (auth.login.title)
+- Namespaces: lowercase (auth, common, dashboard)
+- Language codes: ISO 639-1 (es, en, nl)
+- File naming: {namespace}.{locale}.json
 
 ## Development Guidelines
 
@@ -115,6 +142,16 @@ src/
 - Proper HTTP status codes
 - Comprehensive error responses
 - API versioning strategy
+
+### 5. Internationalization Guidelines
+- Always use translation keys, never hardcoded strings
+- Organize keys by logical namespaces (auth, common, dashboard)
+- Implement proper fallback chain: requested → English → Spanish → key
+- Use interpolation for dynamic content: t('welcome.message', { name })
+- Handle pluralization correctly with i18next rules
+- Consider cultural differences, not just language translation  
+- Test all languages in CI/CD pipeline
+- Use semantic keys: 'auth.login.button' not 'button1'
 
 ## Phase 1 MVP Requirements
 
@@ -146,11 +183,21 @@ src/
    - Basic metrics
    - User authentication
 
+5. **Internationalization (i18n)**
+   - Support for Spanish, English, Dutch
+   - Auto-detection of browser language
+   - Language selector in header with flags
+   - Database-driven translation system
+   - Admin panel for translation management
+   - Complete translation coverage for MVP
+
 ### Technical Implementation
 - Set up monorepo structure
-- Implement core database schema
-- Create basic API endpoints
+- Implement core database schema (including i18n tables)
+- Create basic API endpoints (with i18n support)
 - Build workflow editor foundation
+- Implement React i18next with backend integration
+- Set up translation management system
 - Deploy to development environment
 
 ## Quality Assurance
@@ -289,4 +336,12 @@ src/
 - The workspace structure is: `/Users/alejandromedina/dev/FC/workflows/workflows/` (workspace root)
 - The project structure is: `/Users/alejandromedina/dev/FC/workflows/workflows/flowcraft/` (project root)
 
-Remember: Always prioritize user experience, code quality, and system reliability. The goal is to create a platform that makes workflow automation accessible to both technical and non-technical users while maintaining enterprise-grade reliability and scalability. 
+### i18n File Organization
+- Translation files go in `apps/web/src/i18n/namespaces/`
+- Backend i18n services go in `apps/api/src/services/i18n/`
+- Database migrations for i18n go in `packages/database/prisma/migrations/`
+- Translation namespace files: `{namespace}.{locale}.json` (e.g., `auth.es.json`)
+- Admin components for translations: `apps/web/src/components/admin/i18n/`
+- i18n hooks and utilities: `apps/web/src/hooks/i18n/`
+
+Remember: Always prioritize user experience, code quality, and system reliability. The goal is to create a platform that makes workflow automation accessible to both technical and non-technical users while maintaining enterprise-grade reliability and scalability. **Internationalization is a core feature that enables global reach from day one.** 
