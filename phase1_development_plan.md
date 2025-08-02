@@ -2,7 +2,7 @@
 ## FlowCraft Workflow Automation Platform
 
 ### Resumen Ejecutivo
-**Objetivo:** Desarrollar el MVP de FlowCraft en 4 meses (16 semanas) con funcionalidades core que permitan a usuarios crear, ejecutar y monitorizar workflows básicos.
+**Objetivo:** Desarrollar el MVP de FlowCraft en 4.5 meses (17.5 semanas) con funcionalidades core que permitan a usuarios crear, ejecutar y monitorizar workflows básicos, incluyendo soporte multiidioma completo.
 
 **Entregables Principales:**
 - Editor visual de workflows con 20 conectores esenciales
@@ -10,6 +10,7 @@
 - Dashboard de monitorización
 - Sistema de autenticación
 - API REST funcional
+- **Soporte multiidioma completo (ES, EN, NL)**
 
 ---
 
@@ -36,7 +37,7 @@
 
 ---
 
-## Sprint Breakdown (16 semanas)
+## Sprint Breakdown (17.5 semanas)
 
 ### Sprint 1-2: Infraestructura Base (2 semanas)
 **Objetivo:** Establecer la base técnica del proyecto
@@ -103,8 +104,111 @@
 
 ---
 
-### Sprint 5-6: Core API y Workflow CRUD (2 semanas)
-**Objetivo:** API base para gestión de workflows
+### Sprint 5: Internacionalización (i18n) y Multiidioma (1.5 semanas)
+**Objetivo:** Implementar soporte multiidioma con detección automática y gestión dinámica de contenido
+
+#### Database Schema para i18n
+- [ ] Tabla `languages` (id, code, name, is_active, is_default)
+- [ ] Tabla `translation_keys` (id, key, category, description)
+- [ ] Tabla `translations` (id, language_id, key_id, value, created_at, updated_at)
+- [ ] Índices optimizados para consultas de traducción
+- [ ] Migraciones y seeds con idiomas base (es, en, nl)
+
+#### Backend i18n System
+- [ ] Service de traducción con cache Redis
+- [ ] API endpoints para gestión de traducciones
+- [ ] Middleware de detección de idioma (Accept-Language header)
+- [ ] Sistema de fallback (en → es → clave)
+- [ ] API para obtener traducciones por namespace
+- [ ] Endpoint para cambio dinámico de idioma
+
+#### Frontend i18n Implementation
+- [ ] React i18next setup y configuración
+- [ ] Hook personalizado useTranslation
+- [ ] Detector de idioma del browser/localización
+- [ ] Selector de idioma en Header
+- [ ] Namespace organization (auth, common, dashboard, etc.)
+- [ ] Lazy loading de traducciones por ruta
+
+#### Content Translation
+- [ ] Traducción completa de Landing Page (es, en, nl)
+- [ ] Traducción de formularios de autenticación
+- [ ] Traducción de mensajes de error y validación
+- [ ] Traducción de Dashboard y navegación
+- [ ] Traducción de emails y notificaciones
+
+#### Language Detection & UX
+- [ ] Detección automática por navigator.language
+- [ ] Detección por geolocalización (opcional)
+- [ ] Persistencia de preferencia en localStorage
+- [ ] Sincronización con perfil de usuario
+- [ ] Cambio de idioma sin reload de página
+
+#### Admin Panel para Traducciones
+- [ ] Interface para gestión de translation keys
+- [ ] Editor de traducciones por idioma
+- [ ] Importación/exportación de traducciones (JSON/CSV)
+- [ ] Sistema de aprobación para traducciones
+- [ ] Estadísticas de completitud por idioma
+
+**Entregables:**
+- Sistema de traducciones dinámico completo
+- Landing page y auth en 3 idiomas (ES, EN, NL)
+- Selector de idioma funcional
+- Base de datos optimizada para i18n
+- Panel de administración de traducciones
+
+**Base de Datos - Esquemas:**
+```sql
+-- Idiomas soportados
+CREATE TABLE languages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code VARCHAR(5) NOT NULL UNIQUE, -- 'es', 'en', 'nl'
+  name VARCHAR(50) NOT NULL, -- 'Español', 'English', 'Nederlands'
+  native_name VARCHAR(50) NOT NULL, -- 'Español', 'English', 'Nederlands'
+  flag_emoji VARCHAR(10), -- '🇪🇸', '🇺🇸', '🇳🇱'
+  is_active BOOLEAN DEFAULT true,
+  is_default BOOLEAN DEFAULT false,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Claves de traducción organizadas
+CREATE TABLE translation_keys (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  key VARCHAR(255) NOT NULL UNIQUE, -- 'auth.login.title'
+  namespace VARCHAR(100) NOT NULL, -- 'auth', 'common', 'dashboard'
+  category VARCHAR(100), -- 'buttons', 'messages', 'labels'
+  description TEXT, -- Contexto para traductores
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Traducciones por idioma y clave
+CREATE TABLE translations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  language_id UUID NOT NULL REFERENCES languages(id) ON DELETE CASCADE,
+  key_id UUID NOT NULL REFERENCES translation_keys(id) ON DELETE CASCADE,
+  value TEXT NOT NULL,
+  is_approved BOOLEAN DEFAULT false,
+  approved_by UUID REFERENCES users(id),
+  approved_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(language_id, key_id)
+);
+
+-- Índices para optimización
+CREATE INDEX idx_translations_language_key ON translations(language_id, key_id);
+CREATE INDEX idx_translation_keys_namespace ON translation_keys(namespace);
+CREATE INDEX idx_languages_active ON languages(is_active) WHERE is_active = true;
+```
+
+---
+
+### Sprint 6-7: Core API y Workflow CRUD (2 semanas)
+**Objetivo:** API base para gestión de workflows (renumerado)
 
 #### Workflow Service
 - [ ] CRUD endpoints para workflows
@@ -115,14 +219,14 @@
 
 #### API Design
 - [ ] RESTful API design
-- [ ] Error handling estandarizado
+- [ ] Error handling estandarizado (con i18n)
 - [ ] API documentation con OpenAPI
 - [ ] Request/response validation
 - [ ] Pagination implementation
 
 #### Frontend API Integration
 - [ ] API client con React Query
-- [ ] Error handling en frontend
+- [ ] Error handling en frontend (con traducciones)
 - [ ] Loading states
 - [ ] Optimistic updates
 
@@ -133,7 +237,7 @@
 
 ---
 
-### Sprint 7-8: Workflow Editor Foundation (2 semanas)
+### Sprint 8-9: Workflow Editor Foundation (2 semanas)
 **Objetivo:** Editor visual básico de workflows
 
 #### React Flow Implementation
@@ -164,7 +268,7 @@
 
 ---
 
-### Sprint 9-10: Conectores Esenciales (2 semanas)
+### Sprint 10-11: Conectores Esenciales (2 semanas)
 **Objetivo:** Implementar los 20 conectores esenciales
 
 #### Core Connectors (5)
@@ -214,7 +318,7 @@
 
 ---
 
-### Sprint 11-12: Motor de Ejecución (2 semanas)
+### Sprint 12-13: Motor de Ejecución (2 semanas)
 **Objetivo:** Sistema básico de ejecución de workflows
 
 #### Execution Engine
@@ -252,7 +356,7 @@
 
 ---
 
-### Sprint 13-14: Dashboard y Monitorización (2 semanas)
+### Sprint 14-15: Dashboard y Monitorización (2 semanas)
 **Objetivo:** Dashboard básico y sistema de monitorización
 
 #### Dashboard
@@ -290,7 +394,7 @@
 
 ---
 
-### Sprint 15-16: Testing, Polish y Deploy (2 semanas)
+### Sprint 16-17: Testing, Polish y Deploy (2 semanas)
 **Objetivo:** Testing completo, optimizaciones y deployment
 
 #### Testing
