@@ -91,13 +91,12 @@ export class I18nService {
     // Get from database
     const whereClause: any = {
       language: { code: languageCode },
-      key: { isActive: true },
+      key: { 
+        isActive: true,
+        ...(namespace ? { namespace } : {})
+      },
       isApproved: true
     };
-
-    if (namespace) {
-      whereClause.key.namespace = namespace;
-    }
 
     const translations = await prisma.translation.findMany({
       where: whereClause,

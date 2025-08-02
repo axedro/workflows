@@ -98,12 +98,7 @@ i18n
     // Interpolation settings
     interpolation: {
       escapeValue: false, // React already escapes values
-      format: (value, format) => {
-        if (format === 'uppercase') return value.toUpperCase();
-        if (format === 'lowercase') return value.toLowerCase();
-        if (format === 'capitalize') return value.charAt(0).toUpperCase() + value.slice(1);
-        return value;
-      }
+      // Removed legacy format function - use formatters instead
     },
 
     // React settings
