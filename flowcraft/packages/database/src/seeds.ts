@@ -345,6 +345,187 @@ async function main() {
     }
   }
 
+  // Create workflow templates
+  const workflowTemplates = await Promise.all([
+    prisma.workflowTemplate.upsert({
+      where: { id: 'template-email-notification' },
+      update: {},
+      create: {
+        id: 'template-email-notification',
+        name: 'Email Notification Workflow',
+        description: 'Send email notifications based on triggers',
+        category: 'communication',
+        isPublic: true,
+        createdBy: user.id,
+        organizationId: organization.id,
+        definition: {
+          nodes: [
+            {
+              id: 'start',
+              type: 'trigger',
+              position: { x: 100, y: 100 },
+              data: { label: 'Start' }
+            },
+            {
+              id: 'email',
+              type: 'action',
+              position: { x: 300, y: 100 },
+              data: { 
+                label: 'Send Email',
+                connector: 'email',
+                config: {
+                  to: '{{trigger.email}}',
+                  subject: 'Notification',
+                  body: '{{trigger.message}}'
+                }
+              }
+            },
+            {
+              id: 'end',
+              type: 'end',
+              position: { x: 500, y: 100 },
+              data: { label: 'End' }
+            }
+          ],
+          edges: [
+            { id: 'e1', source: 'start', target: 'email' },
+            { id: 'e2', source: 'email', target: 'end' }
+          ]
+        }
+      }
+    }),
+    prisma.workflowTemplate.upsert({
+      where: { id: 'template-data-sync' },
+      update: {},
+      create: {
+        id: 'template-data-sync',
+        name: 'Data Synchronization',
+        description: 'Sync data between different systems',
+        category: 'data',
+        isPublic: true,
+        createdBy: user.id,
+        organizationId: organization.id,
+        definition: {
+          nodes: [
+            {
+              id: 'start',
+              type: 'trigger',
+              position: { x: 100, y: 100 },
+              data: { label: 'Data Change' }
+            },
+            {
+              id: 'fetch',
+              type: 'action',
+              position: { x: 300, y: 100 },
+              data: { 
+                label: 'Fetch Data',
+                connector: 'http',
+                config: {
+                  method: 'GET',
+                  url: '{{trigger.source_url}}'
+                }
+              }
+            },
+            {
+              id: 'transform',
+              type: 'action',
+              position: { x: 500, y: 100 },
+              data: { 
+                label: 'Transform Data',
+                connector: 'data-transform',
+                config: {
+                  mapping: '{{fetch.data}}'
+                }
+              }
+            },
+            {
+              id: 'save',
+              type: 'action',
+              position: { x: 700, y: 100 },
+              data: { 
+                label: 'Save Data',
+                connector: 'http',
+                config: {
+                  method: 'POST',
+                  url: '{{trigger.target_url}}',
+                  body: '{{transform.result}}'
+                }
+              }
+            },
+            {
+              id: 'end',
+              type: 'end',
+              position: { x: 900, y: 100 },
+              data: { label: 'End' }
+            }
+          ],
+          edges: [
+            { id: 'e1', source: 'start', target: 'fetch' },
+            { id: 'e2', source: 'fetch', target: 'transform' },
+            { id: 'e3', source: 'transform', target: 'save' },
+            { id: 'e4', source: 'save', target: 'end' }
+          ]
+        }
+      }
+    }),
+    prisma.workflowTemplate.upsert({
+      where: { id: 'template-slack-notification' },
+      update: {},
+      create: {
+        id: 'template-slack-notification',
+        name: 'Slack Notification',
+        description: 'Send notifications to Slack channels',
+        category: 'communication',
+        isPublic: true,
+        createdBy: user.id,
+        organizationId: organization.id,
+        definition: {
+          nodes: [
+            {
+              id: 'start',
+              type: 'trigger',
+              position: { x: 100, y: 100 },
+              data: { label: 'Event Trigger' }
+            },
+            {
+              id: 'condition',
+              type: 'condition',
+              position: { x: 300, y: 100 },
+              data: { 
+                label: 'Check Priority',
+                condition: '{{trigger.priority}} === "high"'
+              }
+            },
+            {
+              id: 'slack',
+              type: 'action',
+              position: { x: 500, y: 100 },
+              data: { 
+                label: 'Send to Slack',
+                connector: 'slack',
+                config: {
+                  channel: '{{trigger.channel}}',
+                  message: '🚨 {{trigger.message}}'
+                }
+              }
+            },
+            {
+              id: 'end',
+              type: 'end',
+              position: { x: 700, y: 100 },
+              data: { label: 'End' }
+            }
+          ],
+          edges: [
+            { id: 'e1', source: 'start', target: 'condition' },
+            { id: 'e2', source: 'condition', target: 'slack' },
+            { id: 'e3', source: 'slack', target: 'end' }
+          ]
+        }
+      }
+    })
+  ])
+
   console.log('✅ Database seeded successfully!')
   console.log(`📊 Created:`)
   console.log(`  - Organization: ${organization.name}`)
@@ -353,6 +534,7 @@ async function main() {
   console.log(`  - Languages: ${languages.length}`)
   console.log(`  - Translation Keys: ${translationKeys.length}`)
   console.log(`  - Translations: ${translations.length}`)
+  console.log(`  - Workflow Templates: ${workflowTemplates.length}`)
 }
 
 main()

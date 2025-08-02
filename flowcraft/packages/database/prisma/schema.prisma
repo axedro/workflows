@@ -24,6 +24,8 @@ model User {
 
   // Relations
   workflows      Workflow[]
+  workflowVersions WorkflowVersion[]
+  workflowTemplates WorkflowTemplate[]
   executions     Execution[]
   connectorConfigs ConnectorConfig[]
   approvedTranslations Translation[]
@@ -42,6 +44,7 @@ model Organization {
   // Relations
   users     User[]
   workflows Workflow[]
+  workflowTemplates WorkflowTemplate[]
 
   @@map("organizations")
 }
@@ -78,19 +81,26 @@ model Workflow {
   executions     Execution[]
   versions       WorkflowVersion[]
 
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdAt])
   @@map("workflows")
 }
 
 model WorkflowVersion {
   id         String   @id @default(cuid())
   workflowId String
+  versionNumber Int
   definition Json
-  version    Int
+  changelog  String?
+  createdBy  String
   createdAt  DateTime @default(now())
 
   // Relations
   workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [createdBy], references: [id])
 
+  @@unique([workflowId, versionNumber])
   @@map("workflow_versions")
 }
 
@@ -101,8 +111,18 @@ model WorkflowTemplate {
   definition  Json
   category    String
   isPublic    Boolean  @default(false)
+  organizationId String?
+  createdBy   String
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
+  // Relations
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  user         User         @relation(fields: [createdBy], references: [id])
+
+  @@index([category])
+  @@index([isPublic])
+  @@index([organizationId])
   @@map("workflow_templates")
 }
 
