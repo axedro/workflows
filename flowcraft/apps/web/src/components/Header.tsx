@@ -69,13 +69,13 @@ export const Header: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate('/auth')}
+                  onClick={() => navigate('/auth?mode=login')}
                 >
                   Sign In
                 </Button>
                 <Button
                   size="sm"
-                  onClick={() => navigate('/auth')}
+                  onClick={() => navigate('/auth?mode=register')}
                 >
                   Get Started
                 </Button>

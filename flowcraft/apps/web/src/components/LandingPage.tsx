@@ -25,7 +25,7 @@ export const LandingPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/auth?mode=register')}
               className="px-8 py-3 text-lg"
             >
               Start Building Free
@@ -33,7 +33,7 @@ export const LandingPage: React.FC = () => {
             <Button
               variant="outline"
               size="lg"
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/auth?mode=register')}
               className="px-8 py-3 text-lg"
             >
               Watch Demo
@@ -149,7 +149,7 @@ export const LandingPage: React.FC = () => {
           <Button
             size="lg"
             variant="secondary"
-            onClick={() => navigate('/auth')}
+            onClick={() => navigate('/auth?mode=register')}
             className="px-8 py-3 text-lg bg-white text-blue-600 hover:bg-gray-100"
           >
             Start Your Free Trial

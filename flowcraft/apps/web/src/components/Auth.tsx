@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
@@ -6,7 +7,19 @@ import { ForgotPasswordForm } from './ForgotPasswordForm';
 type AuthMode = 'login' | 'register' | 'forgot-password';
 
 const Auth: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<AuthMode>('login');
+
+  useEffect(() => {
+    const modeParam = searchParams.get('mode');
+    if (modeParam === 'register') {
+      setMode('register');
+    } else if (modeParam === 'forgot-password') {
+      setMode('forgot-password');
+    } else {
+      setMode('login');
+    }
+  }, [searchParams]);
 
   const renderForm = () => {
     switch (mode) {
