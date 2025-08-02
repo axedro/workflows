@@ -12,38 +12,66 @@ interface I18nProviderProps {
  */
 export function I18nProvider({ children }: I18nProviderProps) {
   const [isReady, setIsReady] = useState(false);
+  const [loadedNamespaces, setLoadedNamespaces] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    // Wait for i18n to be initialized
-    const checkReady = () => {
-      if (i18n.isInitialized) {
+    const requiredNamespaces = ['common', 'auth', 'landing', 'dashboard'];
+    
+    // Check if all required namespaces are loaded
+    const checkAllNamespacesLoaded = () => {
+      const currentLanguage = i18n.language || 'es';
+      const allLoaded = requiredNamespaces.every(ns => 
+        i18n.hasResourceBundle(currentLanguage, ns)
+      );
+      
+      if (allLoaded && i18n.isInitialized) {
         setIsReady(true);
-      } else {
-        // Check again after a short delay
-        setTimeout(checkReady, 100);
       }
     };
 
-    checkReady();
+    // Initial check
+    checkAllNamespacesLoaded();
 
-    // Listen for language changes
-    const handleLanguageChanged = () => {
-      // Force re-render when language changes
-      setIsReady(false);
-      setTimeout(() => setIsReady(true), 100);
+    // Listen for resource loading events
+    const handleResourcesLoaded = (lng: string, ns: string) => {
+      setLoadedNamespaces(prev => new Set([...prev, `${lng}:${ns}`]));
+      checkAllNamespacesLoaded();
     };
 
+    const handleLanguageChanged = (lng: string) => {
+      setIsReady(false);
+      setLoadedNamespaces(new Set());
+      // Give some time for resources to load
+      setTimeout(checkAllNamespacesLoaded, 500);
+    };
+
+    const handleInitialized = () => {
+      checkAllNamespacesLoaded();
+    };
+
+    // Add event listeners
+    i18n.on('loaded', handleResourcesLoaded);
     i18n.on('languageChanged', handleLanguageChanged);
-    i18n.on('loaded', handleLanguageChanged);
+    i18n.on('initialized', handleInitialized);
 
     return () => {
+      i18n.off('loaded', handleResourcesLoaded);
       i18n.off('languageChanged', handleLanguageChanged);
-      i18n.off('loaded', handleLanguageChanged);
+      i18n.off('initialized', handleInitialized);
     };
   }, []);
 
   if (!isReady) {
-    return <Loading />;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loading />
+          <p className="mt-4 text-sm text-gray-600">
+            Cargando traducciones... ({loadedNamespaces.size} namespaces cargados)
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (

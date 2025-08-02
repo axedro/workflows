@@ -5,15 +5,17 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-i18n
-  // Load translations using http backend
-  .use(Backend)
-  // Detect user language
-  .use(LanguageDetector)
-  // Pass the i18n instance to react-i18next
-  .use(initReactI18next)
-  // Initialize i18next
-  .init({
+// Only initialize if not already initialized
+if (!i18n.isInitialized) {
+  i18n
+    // Load translations using http backend
+    .use(Backend)
+    // Detect user language
+    .use(LanguageDetector)
+    // Pass the i18n instance to react-i18next
+    .use(initReactI18next)
+    // Initialize i18next
+    .init({
     // Language settings
     lng: 'es', // Default language
     fallbackLng: ['en', 'es'], // Fallback languages
@@ -50,10 +52,31 @@ i18n
           const data = await response.json();
           
           // Our API returns { language, namespace, translations }
-          // i18next expects just the translations object
+          // We need to transform the keys to remove the namespace prefix
+          const translations = data.translations || {};
+          const transformedTranslations: Record<string, string> = {};
+          
+          // Extract namespace from URL (e.g., /es/common -> common)
+          const urlParts = url.split('/');
+          const namespace = urlParts[urlParts.length - 1];
+          
+          // Transform keys: "common.sign_in" -> "sign_in" for namespace "common"
+          Object.entries(translations).forEach(([key, value]) => {
+            if (typeof key === 'string' && typeof value === 'string') {
+              if (key.startsWith(`${namespace}.`)) {
+                // Remove namespace prefix: "common.sign_in" -> "sign_in"
+                const keyWithoutNamespace = key.substring(namespace.length + 1);
+                transformedTranslations[keyWithoutNamespace] = value;
+              } else {
+                // Keep key as is if it doesn't have the expected prefix
+                transformedTranslations[key] = value;
+              }
+            }
+          });
+          
           callback(null, {
             status: response.status,
-            data: data.translations || {}
+            data: transformedTranslations
           });
         } catch (error) {
           console.warn(`Failed to load translations from ${url}:`, error);
@@ -135,12 +158,15 @@ i18n
     returnEmptyString: true,
     returnNull: false,
   });
+}
 
 // Hot reload in development
 if (import.meta.env.DEV && import.meta.hot) {
   import.meta.hot.accept(() => {
     // Reload translations when files change
-    i18n.reloadResources();
+    if (i18n.isInitialized) {
+      i18n.reloadResources();
+    }
   });
 }
 

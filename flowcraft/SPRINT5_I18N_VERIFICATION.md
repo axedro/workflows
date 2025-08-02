@@ -11,39 +11,39 @@ Implementar soporte multiidioma completo con detección automática y gestión d
 
 ### 🗄️ Database Schema para i18n
 
-#### ⏳ Tabla `languages` (id, code, name, is_active, is_default)
-- **Estado:** PENDIENTE
+#### ✅ Tabla `languages` (id, code, name, is_active, is_default)
+- **Estado:** COMPLETADO
 - **Archivos objetivo:** `packages/database/prisma/schema.prisma`
 - **Criterios de aceptación:**
   - Campos: id (UUID), code (VARCHAR(5)), name, native_name, flag_emoji
   - Constraints: UNIQUE en code, solo un is_default=true
   - Seeds iniciales para ES, EN, NL
 
-#### ⏳ Tabla `translation_keys` (id, key, category, description)
-- **Estado:** PENDIENTE
+#### ✅ Tabla `translation_keys` (id, key, category, description)
+- **Estado:** COMPLETADO
 - **Archivos objetivo:** `packages/database/prisma/schema.prisma`
 - **Criterios de aceptación:**
   - Organización por namespace (auth, common, dashboard)
   - Sistema de categorías para mejor organización
   - Descripción para contexto de traductores
 
-#### ⏳ Tabla `translations` (id, language_id, key_id, value, created_at, updated_at)
-- **Estado:** PENDIENTE
+#### ✅ Tabla `translations` (id, language_id, key_id, value, created_at, updated_at)
+- **Estado:** COMPLETADO
 - **Archivos objetivo:** `packages/database/prisma/schema.prisma`
 - **Criterios de aceptación:**
   - Relaciones FK correctas con CASCADE
   - Sistema de aprobación (is_approved, approved_by)
   - Constraint UNIQUE(language_id, key_id)
 
-#### ⏳ Índices optimizados para consultas de traducción
-- **Estado:** PENDIENTE
+#### ✅ Índices optimizados para consultas de traducción
+- **Estado:** COMPLETADO
 - **Criterios de aceptación:**
   - Índice compuesto en (language_id, key_id)
   - Índice en namespace para translation_keys
   - Índice parcial en languages activos
 
-#### ⏳ Migraciones y seeds con idiomas base (es, en, nl)
-- **Estado:** PENDIENTE
+#### ✅ Migraciones y seeds con idiomas base (es, en, nl)
+- **Estado:** COMPLETADO
 - **Archivos objetivo:** `packages/database/src/seeds/`
 - **Criterios de aceptación:**
   - Datos iniciales para 3 idiomas

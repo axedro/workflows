@@ -21,11 +21,19 @@ export function useTranslation(
   namespace?: string | string[],
   options?: UseTranslationOptions<any>
 ): UseTranslationReturn {
-  const { t: originalT, i18n, ready } = useI18nextTranslation(namespace, options);
+  const { t: originalT, i18n, ready } = useI18nextTranslation(namespace, {
+    useSuspense: false,
+    ...options
+  });
 
   // Enhanced translation function with better type safety
   const t = useCallback((key: string, params?: TranslationParams): string => {
     try {
+      // If not ready, return key as fallback
+      if (!ready) {
+        return key;
+      }
+
       // Handle interpolation parameters
       const translationOptions: any = {};
       
@@ -44,6 +52,11 @@ export function useTranslation(
 
       const result = originalT(key, translationOptions);
       
+      // Check if we got a valid translation
+      if (typeof result === 'string' && result !== key) {
+        return result;
+      }
+      
       // Return the key if translation is missing and we're in development
       if (result === key && import.meta.env.DEV) {
         console.warn(`Missing translation for key: ${key} in language: ${i18n.language}`);
@@ -54,7 +67,7 @@ export function useTranslation(
       console.error(`Translation error for key "${key}":`, error);
       return key; // Fallback to key
     }
-  }, [originalT, i18n]);
+  }, [originalT, i18n, ready]);
 
   // Enhanced language change function with error handling
   const changeLanguage = useCallback(async (lng: string): Promise<void> => {
