@@ -369,7 +369,7 @@ export class WorkflowTemplateService {
       distinct: ['category'],
     });
 
-    return categories.map(c => c.category);
+    return categories.map((c: any) => c.category);
   }
 
   /**

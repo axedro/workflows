@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { Handle, Position, NodeProps } from '@reactflow/core';
 import { NodeData } from '@flowcraft/shared-types';
+import { Tooltip } from '@flowcraft/ui';
 
 interface StartNodeData extends NodeData {
   triggerType?: 'manual' | 'scheduled' | 'webhook';
@@ -8,27 +9,36 @@ interface StartNodeData extends NodeData {
   webhookUrl?: string;
 }
 
-interface StartNodeProps extends NodeProps<StartNodeData> {
-  data: StartNodeData;
-}
+const StartNode: React.FC<NodeProps<StartNodeData>> = ({ data, selected, dragging }) => {
+  const isValid = data.validation?.isValid ?? true;
+  const tooltipContent = (
+    <div>
+      <div className="font-bold mb-1">{data.label || 'Start Node'}</div>
+      <div className="text-xs">
+        <div><strong>Type:</strong> Start</div>
+        <div><strong>Trigger:</strong> {data.triggerType || 'Manual'}</div>
+        <div><strong>Status:</strong> <span className={isValid ? 'text-green-500' : 'text-red-500'}>{isValid ? 'Valid' : 'Invalid'}</span></div>
+      </div>
+    </div>
+  );
 
-const StartNode: React.FC<StartNodeProps> = ({ data, selected, dragging }) => {
   return (
-    <div
-      className={`
-        relative bg-gradient-to-br from-green-400 to-green-600 
-        rounded-lg shadow-lg border-2 p-4 min-w-[120px]
-        transition-all duration-200 ease-in-out
-        ${selected ? 'border-blue-500 shadow-xl scale-105' : 'border-green-300'}
-        ${dragging ? 'opacity-80 shadow-2xl scale-110 z-50' : 'hover:shadow-xl hover:scale-105'}
-        ${dragging ? 'cursor-grabbing' : 'cursor-grab'}
-      `}
-      style={{
-        transform: dragging ? 'rotate(2deg)' : 'rotate(0deg)',
-      }}
-    >
-      {/* Node Header */}
-      <div className="flex items-center justify-center mb-2">
+    <Tooltip content={tooltipContent}>
+      <div
+        className={`
+          relative bg-gradient-to-br from-green-400 to-green-600 
+          rounded-lg shadow-lg border-2 p-4 min-w-[120px]
+          transition-all duration-200 ease-in-out
+          ${selected ? 'border-blue-500 shadow-xl scale-105' : (isValid ? 'border-green-300' : 'border-red-500')}
+          ${dragging ? 'opacity-80 shadow-2xl scale-110 z-50' : 'hover:shadow-xl hover:scale-105'}
+          ${dragging ? 'cursor-grabbing' : 'cursor-grab'}
+        `}
+        style={{
+          transform: dragging ? 'rotate(2deg)' : 'rotate(0deg)',
+        }}
+      >
+        {/* Node Header */}
+        <div className="flex items-center justify-center mb-2">
         <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
           <span className="text-green-600 text-lg font-bold">▶</span>
         </div>
@@ -86,6 +96,7 @@ const StartNode: React.FC<StartNodeProps> = ({ data, selected, dragging }) => {
         </div>
       )}
     </div>
+    </Tooltip>
   );
 };
 

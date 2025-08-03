@@ -19,7 +19,6 @@ const Tooltip: React.FC<TooltipProps> = ({
   disabled = false,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
-  const [coords, setCoords] = useState({ x: 0, y: 0 });
   const triggerRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout>();
 
@@ -36,8 +35,6 @@ const Tooltip: React.FC<TooltipProps> = ({
     
     timeoutRef.current = setTimeout(() => {
       if (triggerRef.current) {
-        const rect = triggerRef.current.getBoundingClientRect();
-        setCoords({ x: rect.left, y: rect.top });
         setIsVisible(true);
       }
     }, delay);
@@ -53,30 +50,30 @@ const Tooltip: React.FC<TooltipProps> = ({
   const getPositionClasses = () => {
     switch (position) {
       case 'top':
-        return 'bottom-full left-1/2 transform -translate-x-1/2 mb-2';
+        return 'bottom-full left-1/2 -translate-x-1/2 mb-2';
       case 'bottom':
-        return 'top-full left-1/2 transform -translate-x-1/2 mt-2';
+        return 'top-full left-1/2 -translate-x-1/2 mt-2';
       case 'left':
-        return 'right-full top-1/2 transform -translate-y-1/2 mr-2';
+        return 'right-full top-1/2 -translate-y-1/2 mr-2';
       case 'right':
-        return 'left-full top-1/2 transform -translate-y-1/2 ml-2';
+        return 'left-full top-1/2 -translate-y-1/2 ml-2';
       default:
-        return 'bottom-full left-1/2 transform -translate-x-1/2 mb-2';
+        return 'bottom-full left-1/2 -translate-x-1/2 mb-2';
     }
   };
 
   const getArrowClasses = () => {
     switch (position) {
       case 'top':
-        return 'top-full left-1/2 transform -translate-x-1/2 border-t-gray-800';
+        return 'top-full left-1/2 -translate-x-1/2 border-t-gray-800';
       case 'bottom':
-        return 'bottom-full left-1/2 transform -translate-x-1/2 border-b-gray-800';
+        return 'bottom-full left-1/2 -translate-x-1/2 border-b-gray-800';
       case 'left':
-        return 'left-full top-1/2 transform -translate-y-1/2 border-l-gray-800';
+        return 'left-full top-1/2 -translate-y-1/2 border-l-gray-800';
       case 'right':
-        return 'right-full top-1/2 transform -translate-y-1/2 border-r-gray-800';
+        return 'right-full top-1/2 -translate-y-1/2 border-r-gray-800';
       default:
-        return 'top-full left-1/2 transform -translate-x-1/2 border-t-gray-800';
+        return 'top-full left-1/2 -translate-x-1/2 border-t-gray-800';
     }
   };
 
@@ -94,13 +91,9 @@ const Tooltip: React.FC<TooltipProps> = ({
       {isVisible && (
         <div
           className={cn(
-            'absolute z-50 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg whitespace-nowrap',
+            'absolute z-50 px-3 py-2 text-sm text-white bg-gray-900 rounded-md shadow-lg',
             getPositionClasses()
           )}
-          style={{
-            left: coords.x,
-            top: coords.y,
-          }}
         >
           {content}
           <div
@@ -115,4 +108,4 @@ const Tooltip: React.FC<TooltipProps> = ({
   );
 };
 
-export { Tooltip }; 
+export { Tooltip };

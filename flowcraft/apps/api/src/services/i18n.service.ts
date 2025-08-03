@@ -49,7 +49,7 @@ export class I18nService {
       orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
     });
 
-    const result: LanguageInfo[] = languages.map(lang => ({
+    const result: LanguageInfo[] = languages.map((lang: any) => ({
       id: lang.id,
       code: lang.code,
       name: lang.name,
@@ -111,7 +111,7 @@ export class I18nService {
 
     // Transform to key-value format
     const result: TranslationData = {};
-    translations.forEach(translation => {
+    translations.forEach((translation: any) => {
       result[translation.key.key] = translation.value;
     });
 

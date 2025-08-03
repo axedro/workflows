@@ -31,5 +31,13 @@
     "node_modules",
     "dist",
     "build"
+  ],
+  "references": [
+    { "path": "packages/shared-types" },
+    { "path": "packages/database" },
+    { "path": "packages/connectors" },
+    { "path": "packages/ui" },
+    { "path": "apps/api" },
+    { "path": "apps/web" }
   ]
 } 

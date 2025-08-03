@@ -13,15 +13,30 @@ interface ConditionNodeData extends NodeData {
 
 const ConditionNode: React.FC<NodeProps<ConditionNodeData>> = ({ data, selected }) => {
   const isValid = data.validation?.isValid ?? true;
+  const conditionText = data.condition 
+    ? `${data.condition.variable} ${data.condition.operator} ${data.condition.value}`
+    : 'Not configured';
+
+  const tooltipContent = (
+    <div>
+      <div className="font-bold mb-1">{data.label || 'Condition Node'}</div>
+      <div className="text-xs">
+        <div><strong>Type:</strong> Condition</div>
+        <div><strong>Condition:</strong> {conditionText}</div>
+        <div><strong>Status:</strong> <span className={isValid ? 'text-green-500' : 'text-red-500'}>{isValid ? 'Valid' : 'Invalid'}</span></div>
+      </div>
+    </div>
+  );
 
   return (
-    <div
-      className={`
-        relative bg-white rounded-lg shadow-md border-2 p-4 w-48
-        transition-all duration-200
-        ${selected ? 'border-yellow-500 shadow-xl' : (isValid ? 'border-gray-300' : 'border-red-500')}
-      `}
-    >
+    <Tooltip content={tooltipContent}>
+      <div
+        className={`
+          relative bg-white rounded-lg shadow-md border-2 p-4 w-48
+          transition-all duration-200
+          ${selected ? 'border-yellow-500 shadow-xl' : (isValid ? 'border-gray-300' : 'border-red-500')}
+        `}
+      >
       <Handle type="target" position={Position.Top} className="w-3 h-3 bg-gray-400" />
       
       <div className="flex items-center mb-2">
@@ -70,6 +85,7 @@ const ConditionNode: React.FC<NodeProps<ConditionNodeData>> = ({ data, selected 
         />
       </Tooltip>
     </div>
+    </Tooltip>
   );
 };
 

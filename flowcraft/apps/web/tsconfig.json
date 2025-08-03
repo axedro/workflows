@@ -15,7 +15,12 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "reactflow": ["../../node_modules/reactflow"],
+      "@flowcraft/shared-types": ["../packages/shared-types/src"],
+      "@flowcraft/ui": ["../packages/ui/src"]
+    }
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]

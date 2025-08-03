@@ -313,22 +313,22 @@ export async function organizationRoutes(fastify: FastifyInstance) {
         });
 
         const totalExecutions = executionStats.reduce(
-          (sum, stat) => sum + stat._count.status,
+          (sum: number, stat: any) => sum + stat._count.status,
           0
         );
         const successfulExecutions =
-          executionStats.find(s => s.status === 'COMPLETED')?._count.status ||
+          executionStats.find((s: any) => s.status === 'COMPLETED')?._count.status ||
           0;
         const failedExecutions =
-          executionStats.find(s => s.status === 'FAILED')?._count.status || 0;
+          executionStats.find((s: any) => s.status === 'FAILED')?._count.status || 0;
         const averageExecutionTime =
           executionStats.reduce(
-            (sum, stat) => sum + (stat._avg.executionTimeMs || 0),
+            (sum: number, stat: any) => sum + (stat._avg.executionTimeMs || 0),
             0
           ) / totalExecutions || 0;
 
         const activeWorkflows = organization.workflows.filter(
-          w => w.status === 'ACTIVE'
+          (w: any) => w.status === 'ACTIVE'
         ).length;
 
         // Define plan limits
