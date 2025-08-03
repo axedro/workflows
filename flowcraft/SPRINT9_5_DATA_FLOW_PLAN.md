@@ -137,21 +137,23 @@ pnpm build
 
 **Estado:** ✅ COMPLETADO - Archivo `data-flow.ts` creado con todas las interfaces necesarias
 
-#### 9.5.1.2 Actualizar tipos de nodos
+#### 9.5.1.2 Actualizar tipos de nodos ✅ COMPLETADO
 **Objetivo:** Integrar el sistema de datos con los tipos de nodos existentes
 
 **Subtareas:**
-- [ ] Actualizar `NodeData` interface en `shared-types`
-- [ ] Agregar `inputPorts` y `outputPorts` a `EditorNode`
-- [ ] Actualizar `EditorEdge` para incluir `DataFlow`
-- [ ] Crear tipos específicos para cada tipo de nodo
-- [ ] Implementar validación de tipos de datos
+- [x] Actualizar `NodeData` interface en `shared-types`
+- [x] Agregar `inputPorts` y `outputPorts` a `EditorNode`
+- [x] Actualizar `EditorEdge` para incluir `DataFlow`
+- [x] Crear tipos específicos para cada tipo de nodo
+- [x] Implementar validación de tipos de datos
 
 **Criterios de Aceptación:**
-- [ ] Los nodos existentes siguen funcionando
-- [ ] Los nuevos campos son opcionales para compatibilidad
-- [ ] La validación de tipos funciona correctamente
-- [ ] No hay errores de TypeScript
+- [x] Los nodos existentes siguen funcionando
+- [x] Los nuevos campos son opcionales para compatibilidad
+- [x] La validación de tipos funciona correctamente
+- [x] No hay errores de TypeScript
+
+**Estado:** ✅ COMPLETADO - Tipos de nodos actualizados con soporte completo para flujo de datos
 
 #### 9.5.1.3 Sistema de validación de datos
 **Objetivo:** Implementar validación en tiempo real del flujo de datos

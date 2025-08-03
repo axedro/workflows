@@ -4,4 +4,5 @@ export * from './workflow';
 export * from './execution';
 export * from './connector';
 export * from './api';
-export * from './data-flow'; 
+export * from './data-flow';
+export * from './node-schemas'; 
