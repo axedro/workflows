@@ -137,22 +137,22 @@ const WorkflowEditorInner: React.FC<{
       const positionX = event.clientX - reactFlowBounds.left;
       const positionY = event.clientY - reactFlowBounds.top;
 
+      // First, project the cursor position to flow coordinates
+      const projectedPosition = project({ x: positionX, y: positionY });
+
       // Get node dimensions for accurate centering
       const nodeDimensions = getNodeDimensions(nodeType);
       
       // Calculate offset to center the node on the cursor
-      // Apply offset BEFORE projection to get correct positioning
+      // The offset needs to be in flow coordinates, not viewport coordinates
       const offsetX = nodeDimensions.width / 2;
       const offsetY = nodeDimensions.height / 2;
 
-      // Apply offset to the viewport coordinates before projection
-      const adjustedPosition = {
-        x: positionX - offsetX,
-        y: positionY - offsetY,
+      // Apply offset to the projected position
+      const finalPosition = {
+        x: projectedPosition.x - offsetX,
+        y: projectedPosition.y - offsetY,
       };
-
-      // Project the adjusted position to flow coordinates
-      const finalPosition = project(adjustedPosition);
 
       // Create new node
       const newNode: EditorNode = {

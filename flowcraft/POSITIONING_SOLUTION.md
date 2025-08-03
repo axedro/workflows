@@ -28,8 +28,8 @@ Mouse Position (screen)
 ```
 Mouse Position (screen) 
 → Canvas Position (viewport) 
-→ Apply Offset (CORRECTO - antes de proyección)
 → Project to Flow Coordinates
+→ Apply Offset in Flow Coordinates
 ```
 
 ### **Paso 1: Calcular posición del cursor**
@@ -45,28 +45,29 @@ const offsetX = nodeDimensions.width / 2;
 const offsetY = nodeDimensions.height / 2;
 ```
 
-### **Paso 3: Aplicar offset ANTES de la proyección**
+### **Paso 3: Proyectar a coordenadas del flow**
 ```typescript
-const adjustedPosition = {
-  x: positionX - offsetX,
-  y: positionY - offsetY,
-};
+const projectedPosition = project({ x: positionX, y: positionY });
 ```
 
-### **Paso 4: Proyectar a coordenadas del flow**
+### **Paso 4: Aplicar offset en coordenadas del flow**
 ```typescript
-const finalPosition = project(adjustedPosition);
+const finalPosition = {
+  x: projectedPosition.x - offsetX,
+  y: projectedPosition.y - offsetY,
+};
 ```
 
 ## 🎯 **Por Qué Esta Solución Funciona**
 
 ### **1. Orden Correcto de Operaciones**
-- **Antes:** `project(position) - offset` ❌
-- **Ahora:** `project(position - offset)` ✅
+- **Antes:** `project(position - offset)` ❌
+- **Ahora:** `project(position) - offset` ✅
 
 ### **2. Consideración del Zoom y Pan**
 - La función `project()` de React Flow maneja automáticamente el zoom y pan
-- Al aplicar el offset antes de la proyección, se considera correctamente la transformación
+- Al aplicar el offset después de la proyección, se considera correctamente la transformación
+- El offset se aplica en coordenadas del flow, no del viewport
 
 ### **3. Dimensiones Dinámicas**
 - Cada tipo de nodo tiene sus propias dimensiones
