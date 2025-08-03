@@ -366,11 +366,13 @@ export const NODE_PORTS: Record<NodeType, DataPort[]> = {
     {
       ...DEFAULT_PORTS.input,
       id: 'action-input',
+      position: 'left',
       fields: [DEFAULT_FIELDS.id, DEFAULT_FIELDS.data]
     },
     {
       ...DEFAULT_PORTS.output,
       id: 'action-output',
+      position: 'bottom',
       fields: [
         DEFAULT_FIELDS.id,
         DEFAULT_FIELDS.data,
