@@ -44,7 +44,9 @@ export class WorkflowValidationService {
   /**
    * Validate complete workflow definition
    */
-  async validateWorkflow(definition: WorkflowDefinition): Promise<ValidationResult> {
+  async validateWorkflow(
+    definition: WorkflowDefinition
+  ): Promise<ValidationResult> {
     const errors: ValidationError[] = [];
     const warnings: ValidationWarning[] = [];
 
@@ -120,7 +122,8 @@ export class WorkflowValidationService {
       warnings.push({
         type: 'warning',
         code: 'LARGE_WORKFLOW',
-        message: 'Workflow has many nodes, consider breaking it into smaller workflows',
+        message:
+          'Workflow has many nodes, consider breaking it into smaller workflows',
       });
     }
   }
@@ -178,7 +181,11 @@ export class WorkflowValidationService {
       }
 
       // Validate position
-      if (!node.position || typeof node.position.x !== 'number' || typeof node.position.y !== 'number') {
+      if (
+        !node.position ||
+        typeof node.position.x !== 'number' ||
+        typeof node.position.y !== 'number'
+      ) {
         warnings.push({
           type: 'warning',
           code: 'INVALID_POSITION',
@@ -209,7 +216,8 @@ export class WorkflowValidationService {
       warnings.push({
         type: 'warning',
         code: 'MULTIPLE_START_NODES',
-        message: 'Workflow has multiple start nodes, ensure proper flow control',
+        message:
+          'Workflow has multiple start nodes, ensure proper flow control',
       });
     }
 
@@ -331,13 +339,13 @@ export class WorkflowValidationService {
     errors: ValidationError[],
     warnings: ValidationWarning[]
   ): Promise<void> {
-    const connectorNodes = nodes.filter(node => 
-      node.type === 'action' && node.data?.connector
+    const connectorNodes = nodes.filter(
+      node => node.type === 'action' && node.data?.connector
     );
 
     for (const node of connectorNodes) {
       const connectorName = node.data.connector;
-      
+
       try {
         // Check if connector exists in database
         const connector = await prisma.connector.findUnique({
@@ -365,7 +373,6 @@ export class WorkflowValidationService {
             warnings
           );
         }
-
       } catch (error) {
         warnings.push({
           type: 'warning',
@@ -393,8 +400,11 @@ export class WorkflowValidationService {
 
     for (const [key, schema] of Object.entries(connectorDefinition.config)) {
       const value = config[key];
-      
-      if ((schema as any).required && (value === undefined || value === null || value === '')) {
+
+      if (
+        (schema as any).required &&
+        (value === undefined || value === null || value === '')
+      ) {
         errors.push({
           type: 'error',
           code: 'MISSING_REQUIRED_CONFIG',
@@ -502,7 +512,11 @@ export class WorkflowValidationService {
     }
 
     for (const node of definition.nodes) {
-      if (node.type !== 'end' && node.type !== 'output' && !outgoingEdges.has(node.id)) {
+      if (
+        node.type !== 'end' &&
+        node.type !== 'output' &&
+        !outgoingEdges.has(node.id)
+      ) {
         warnings.push({
           type: 'warning',
           code: 'DEAD_END_NODE',
@@ -643,4 +657,4 @@ export class WorkflowValidationService {
 
     return maxLength;
   }
-} 
+}

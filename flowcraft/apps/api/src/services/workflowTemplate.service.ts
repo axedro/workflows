@@ -192,12 +192,14 @@ export class WorkflowTemplateService {
   /**
    * Get public templates
    */
-  async getPublicTemplates(options: {
-    page?: number;
-    limit?: number;
-    category?: string;
-    search?: string;
-  } = {}): Promise<{
+  async getPublicTemplates(
+    options: {
+      page?: number;
+      limit?: number;
+      category?: string;
+      search?: string;
+    } = {}
+  ): Promise<{
     templates: WorkflowTemplate[];
     total: number;
     page: number;
@@ -270,7 +272,8 @@ export class WorkflowTemplateService {
 
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name;
-    if (data.description !== undefined) updateData.description = data.description;
+    if (data.description !== undefined)
+      updateData.description = data.description;
     if (data.category !== undefined) updateData.category = data.category;
     if (data.isPublic !== undefined) updateData.isPublic = data.isPublic;
     if (data.definition !== undefined) updateData.definition = data.definition;
@@ -385,4 +388,4 @@ export class WorkflowTemplateService {
       throw new Error('Workflow definition must have edges array');
     }
   }
-} 
+}

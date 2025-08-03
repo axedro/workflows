@@ -1,11 +1,11 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { BrowserRouter } from 'react-router-dom'
-import App from './App.tsx'
-import './styles/globals.css'
-import './i18n/config' // Initialize i18n
-import { I18nProvider } from './i18n/I18nProvider'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App.tsx';
+import './styles/globals.css';
+import './i18n/config'; // Initialize i18n
+import { I18nProvider } from './i18n/I18nProvider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -14,7 +14,7 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
     },
   },
-})
+});
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -25,5 +25,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         </BrowserRouter>
       </I18nProvider>
     </QueryClientProvider>
-  </React.StrictMode>,
-) 
+  </React.StrictMode>
+);

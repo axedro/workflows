@@ -1,14 +1,34 @@
 import React from 'react';
-// import { useNavigate } from 'react-router-dom'; // TODO: Use when navigation is needed
+import { useNavigate } from 'react-router-dom';
 // import { useAuthStore } from '../stores/authStore'; // TODO: Use when user info is needed
 import { Button } from '@flowcraft/ui';
 import { Header } from './Header';
 import { useTranslation } from '../hooks/i18n';
 
 const Dashboard: React.FC = () => {
-  // const navigate = useNavigate(); // TODO: Use when navigation is needed
+  const navigate = useNavigate();
   // const { user } = useAuthStore(); // TODO: Use when user info is needed
   const { t } = useTranslation('dashboard');
+
+  const handleCreateWorkflow = () => {
+    // Navigate to workflow editor with a new workflow ID
+    navigate('/workflow/new');
+  };
+
+  const handleViewTemplates = () => {
+    // TODO: Navigate to templates page
+    console.log('View templates clicked');
+  };
+
+  const handleManageConnectors = () => {
+    // TODO: Navigate to connectors management page
+    console.log('Manage connectors clicked');
+  };
+
+  const handleViewAnalytics = () => {
+    // TODO: Navigate to analytics page
+    console.log('View analytics clicked');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -101,28 +121,59 @@ const Dashboard: React.FC = () => {
               {t('quick_actions.title')}
             </h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <Button className="h-16 text-left justify-start">
+              <Button
+                onClick={handleCreateWorkflow}
+                className="h-16 text-left justify-start hover:bg-blue-600 transition-colors"
+              >
                 <div>
-                  <div className="font-medium">{t('quick_actions.create_workflow')}</div>
-                  <div className="text-sm opacity-70">{t('quick_actions.create_workflow_desc')}</div>
+                  <div className="font-medium">
+                    {t('quick_actions.create_workflow')}
+                  </div>
+                  <div className="text-sm opacity-70">
+                    {t('quick_actions.create_workflow_desc')}
+                  </div>
                 </div>
               </Button>
-              <Button variant="outline" className="h-16 text-left justify-start">
+              <Button
+                variant="outline"
+                onClick={handleViewTemplates}
+                className="h-16 text-left justify-start hover:bg-gray-50 transition-colors"
+              >
                 <div>
-                  <div className="font-medium">{t('quick_actions.view_templates')}</div>
-                  <div className="text-sm opacity-70">{t('quick_actions.view_templates_desc')}</div>
+                  <div className="font-medium">
+                    {t('quick_actions.view_templates')}
+                  </div>
+                  <div className="text-sm opacity-70">
+                    {t('quick_actions.view_templates_desc')}
+                  </div>
                 </div>
               </Button>
-              <Button variant="outline" className="h-16 text-left justify-start">
+              <Button
+                variant="outline"
+                onClick={handleManageConnectors}
+                className="h-16 text-left justify-start hover:bg-gray-50 transition-colors"
+              >
                 <div>
-                  <div className="font-medium">{t('quick_actions.manage_connectors')}</div>
-                  <div className="text-sm opacity-70">{t('quick_actions.manage_connectors_desc')}</div>
+                  <div className="font-medium">
+                    {t('quick_actions.manage_connectors')}
+                  </div>
+                  <div className="text-sm opacity-70">
+                    {t('quick_actions.manage_connectors_desc')}
+                  </div>
                 </div>
               </Button>
-              <Button variant="outline" className="h-16 text-left justify-start">
+              <Button
+                variant="outline"
+                onClick={handleViewAnalytics}
+                className="h-16 text-left justify-start hover:bg-gray-50 transition-colors"
+              >
                 <div>
-                  <div className="font-medium">{t('quick_actions.view_analytics')}</div>
-                  <div className="text-sm opacity-70">{t('quick_actions.view_analytics_desc')}</div>
+                  <div className="font-medium">
+                    {t('quick_actions.view_analytics')}
+                  </div>
+                  <div className="text-sm opacity-70">
+                    {t('quick_actions.view_analytics_desc')}
+                  </div>
                 </div>
               </Button>
             </div>
@@ -133,4 +184,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard 
+export default Dashboard;

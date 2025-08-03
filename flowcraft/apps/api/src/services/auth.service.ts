@@ -39,10 +39,13 @@ export class AuthService {
 
   constructor() {
     this.jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
-    this.jwtRefreshSecret = process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key';
+    this.jwtRefreshSecret =
+      process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key';
   }
 
-  async register(data: z.infer<typeof registerSchema>): Promise<{ user: any; tokens: AuthTokens }> {
+  async register(
+    data: z.infer<typeof registerSchema>
+  ): Promise<{ user: any; tokens: AuthTokens }> {
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email: data.email },
@@ -100,7 +103,9 @@ export class AuthService {
     return { user, tokens };
   }
 
-  async login(data: z.infer<typeof loginSchema>): Promise<{ user: any; tokens: AuthTokens }> {
+  async login(
+    data: z.infer<typeof loginSchema>
+  ): Promise<{ user: any; tokens: AuthTokens }> {
     // Find user
     const user = await prisma.user.findUnique({
       where: { email: data.email },
@@ -126,7 +131,10 @@ export class AuthService {
     }
 
     // Verify password
-    const isValidPassword = await bcrypt.compare(data.password, user.passwordHash);
+    const isValidPassword = await bcrypt.compare(
+      data.password,
+      user.passwordHash
+    );
     if (!isValidPassword) {
       throw new Error('Invalid credentials');
     }
@@ -143,7 +151,10 @@ export class AuthService {
   async refreshToken(refreshToken: string): Promise<AuthTokens> {
     try {
       // Verify refresh token
-      const decoded = jwt.verify(refreshToken, this.jwtRefreshSecret) as UserPayload;
+      const decoded = jwt.verify(
+        refreshToken,
+        this.jwtRefreshSecret
+      ) as UserPayload;
 
       // Check if user still exists
       const user = await prisma.user.findUnique({
@@ -199,7 +210,11 @@ export class AuthService {
     };
   }
 
-  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<void> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { passwordHash: true },
@@ -210,7 +225,10 @@ export class AuthService {
     }
 
     // Verify current password
-    const isValidPassword = await bcrypt.compare(currentPassword, user.passwordHash);
+    const isValidPassword = await bcrypt.compare(
+      currentPassword,
+      user.passwordHash
+    );
     if (!isValidPassword) {
       throw new Error('Current password is incorrect');
     }
@@ -251,7 +269,7 @@ export class AuthService {
   async resetPassword(token: string, newPassword: string): Promise<void> {
     try {
       const decoded = jwt.verify(token, this.jwtSecret) as { userId: string };
-      
+
       // Hash new password
       const saltRounds = 12;
       const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
@@ -267,4 +285,4 @@ export class AuthService {
   }
 }
 
-export const authService = new AuthService(); 
+export const authService = new AuthService();

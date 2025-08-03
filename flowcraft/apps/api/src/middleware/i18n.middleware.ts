@@ -36,17 +36,23 @@ export async function i18nMiddleware(
   (request as I18nRequest).language = detectedLanguage;
 
   // Add translation helper function
-  (request as I18nRequest).t = async (key: string, params?: Record<string, any>) => {
+  (request as I18nRequest).t = async (
+    key: string,
+    params?: Record<string, any>
+  ) => {
     let translation = await i18nService.getTranslation(key, detectedLanguage);
-    
+
     // Simple interpolation support
     if (params) {
       Object.keys(params).forEach(param => {
         const placeholder = `{{${param}}}`;
-        translation = translation.replace(new RegExp(placeholder, 'g'), String(params[param]));
+        translation = translation.replace(
+          new RegExp(placeholder, 'g'),
+          String(params[param])
+        );
       });
     }
-    
+
     return translation;
   };
 
@@ -60,7 +66,7 @@ export async function i18nMiddleware(
 export async function i18nPlugin(fastify: any) {
   // Register the middleware for all routes
   fastify.addHook('preHandler', i18nMiddleware);
-  
+
   // Add type augmentation for TypeScript
   fastify.decorateRequest('language', '');
   fastify.decorateRequest('t', null);

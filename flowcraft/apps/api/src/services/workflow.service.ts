@@ -199,7 +199,8 @@ export class WorkflowService {
 
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name;
-    if (data.description !== undefined) updateData.description = data.description;
+    if (data.description !== undefined)
+      updateData.description = data.description;
     if (data.status !== undefined) updateData.status = data.status;
 
     // If definition changed, create new version
@@ -378,25 +379,33 @@ export class WorkflowService {
     }
 
     if (!definition.nodes || !Array.isArray(definition.nodes)) {
-      throw new Error('Invalid workflow definition: missing or invalid nodes array');
+      throw new Error(
+        'Invalid workflow definition: missing or invalid nodes array'
+      );
     }
 
     if (!definition.edges || !Array.isArray(definition.edges)) {
-      throw new Error('Invalid workflow definition: missing or invalid edges array');
+      throw new Error(
+        'Invalid workflow definition: missing or invalid edges array'
+      );
     }
 
     // Validate nodes
     for (const node of definition.nodes) {
       if (!node.id || !node.type || !node.data) {
-        throw new Error('Invalid node: missing required fields (id, type, data)');
+        throw new Error(
+          'Invalid node: missing required fields (id, type, data)'
+        );
       }
     }
 
     // Validate edges
     for (const edge of definition.edges) {
       if (!edge.id || !edge.source || !edge.target) {
-        throw new Error('Invalid edge: missing required fields (id, source, target)');
+        throw new Error(
+          'Invalid edge: missing required fields (id, source, target)'
+        );
       }
     }
   }
-} 
+}

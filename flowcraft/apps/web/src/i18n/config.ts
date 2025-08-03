@@ -16,148 +16,155 @@ if (!i18n.isInitialized) {
     .use(initReactI18next)
     // Initialize i18next
     .init({
-    // Language settings
-    lng: 'es', // Default language
-    fallbackLng: ['en', 'es'], // Fallback languages
-    supportedLngs: ['es', 'en', 'nl'], // Supported languages
-    
-    // Backend configuration
-    backend: {
-      // Load from our API endpoints
-      loadPath: `${API_BASE_URL}/i18n/translations/{{lng}}/{{ns}}`,
-      
-      // Request options
-      requestOptions: {
-        cache: 'default',
-        credentials: 'include',
-        mode: 'cors',
-      },
-      
-      // Custom request function to handle our API format
-      request: async (_options: any, url: string, _payload: any, callback: any) => {
-        try {
-          const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-          });
+      // Language settings
+      lng: 'es', // Default language
+      fallbackLng: ['en', 'es'], // Fallback languages
+      supportedLngs: ['es', 'en', 'nl'], // Supported languages
 
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
+      // Backend configuration
+      backend: {
+        // Load from our API endpoints
+        loadPath: `${API_BASE_URL}/i18n/translations/{{lng}}/{{ns}}`,
 
-          const data = await response.json();
-          
-          // Our API returns { language, namespace, translations }
-          // We need to transform the keys to remove the namespace prefix
-          const translations = data.translations || {};
-          const transformedTranslations: Record<string, string> = {};
-          
-          // Extract namespace from URL (e.g., /es/common -> common)
-          const urlParts = url.split('/');
-          const namespace = urlParts[urlParts.length - 1];
-          
-          // Transform keys: "common.sign_in" -> "sign_in" for namespace "common"
-          Object.entries(translations).forEach(([key, value]) => {
-            if (typeof key === 'string' && typeof value === 'string') {
-              if (key.startsWith(`${namespace}.`)) {
-                // Remove namespace prefix: "common.sign_in" -> "sign_in"
-                const keyWithoutNamespace = key.substring(namespace.length + 1);
-                transformedTranslations[keyWithoutNamespace] = value;
-              } else {
-                // Keep key as is if it doesn't have the expected prefix
-                transformedTranslations[key] = value;
-              }
+        // Request options
+        requestOptions: {
+          cache: 'default',
+          credentials: 'include',
+          mode: 'cors',
+        },
+
+        // Custom request function to handle our API format
+        request: async (
+          _options: any,
+          url: string,
+          _payload: any,
+          callback: any
+        ) => {
+          try {
+            const response = await fetch(url, {
+              method: 'GET',
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+              },
+              credentials: 'include',
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
             }
-          });
-          
-          callback(null, {
-            status: response.status,
-            data: transformedTranslations
-          });
-        } catch (error) {
-          console.warn(`Failed to load translations from ${url}:`, error);
-          callback(error, {
-            status: 500,
-            data: {}
-          });
+
+            const data = await response.json();
+
+            // Our API returns { language, namespace, translations }
+            // We need to transform the keys to remove the namespace prefix
+            const translations = data.translations || {};
+            const transformedTranslations: Record<string, string> = {};
+
+            // Extract namespace from URL (e.g., /es/common -> common)
+            const urlParts = url.split('/');
+            const namespace = urlParts[urlParts.length - 1];
+
+            // Transform keys: "common.sign_in" -> "sign_in" for namespace "common"
+            Object.entries(translations).forEach(([key, value]) => {
+              if (typeof key === 'string' && typeof value === 'string') {
+                if (key.startsWith(`${namespace}.`)) {
+                  // Remove namespace prefix: "common.sign_in" -> "sign_in"
+                  const keyWithoutNamespace = key.substring(
+                    namespace.length + 1
+                  );
+                  transformedTranslations[keyWithoutNamespace] = value;
+                } else {
+                  // Keep key as is if it doesn't have the expected prefix
+                  transformedTranslations[key] = value;
+                }
+              }
+            });
+
+            callback(null, {
+              status: response.status,
+              data: transformedTranslations,
+            });
+          } catch (error) {
+            console.warn(`Failed to load translations from ${url}:`, error);
+            callback(error, {
+              status: 500,
+              data: {},
+            });
+          }
+        },
+      },
+
+      // Language detection settings
+      detection: {
+        // Detection order
+        order: [
+          'querystring', // ?lng=en
+          'localStorage', // localStorage
+          'navigator', // browser language
+          'htmlTag', // html lang attribute
+          'path', // /en/page
+          'subdomain', // en.example.com
+        ],
+
+        // Keys to look for
+        lookupQuerystring: 'lng',
+        lookupLocalStorage: 'i18nextLng',
+
+        // Cache user language
+        caches: ['localStorage'],
+
+        // Don't cache on these domains
+        excludeCacheFor: ['cimode'],
+
+        // Check if language is supported
+        // checkWhitelist: true
+      },
+
+      // Namespace settings
+      ns: ['common', 'auth', 'dashboard', 'landing'], // Default namespaces
+      defaultNS: 'common', // Default namespace
+
+      // Interpolation settings
+      interpolation: {
+        escapeValue: false, // React already escapes values
+        // Removed legacy format function - use formatters instead
+      },
+
+      // React settings
+      react: {
+        useSuspense: false, // We'll handle loading states manually
+        bindI18n: 'languageChanged loaded',
+        bindI18nStore: 'added removed',
+        transEmptyNodeValue: '', // Return empty string for empty nodes
+        transSupportBasicHtmlNodes: true, // Support basic HTML in translations
+        transKeepBasicHtmlNodesFor: ['br', 'strong', 'i', 'em'], // Allowed HTML tags
+      },
+
+      // Development settings
+      debug: import.meta.env.DEV, // Enable debug in development
+
+      // Performance settings
+      load: 'languageOnly', // Load only language (not region)
+      preload: ['es', 'en'], // Preload these languages
+
+      // Error handling
+      saveMissing: import.meta.env.DEV, // Save missing keys in development
+      missingKeyHandler: (lng, ns, key) => {
+        if (import.meta.env.DEV) {
+          console.warn(`Missing translation: ${lng}.${ns}.${key}`);
         }
-      }
-    },
+      },
 
-    // Language detection settings
-    detection: {
-      // Detection order
-      order: [
-        'querystring',     // ?lng=en
-        'localStorage',    // localStorage
-        'navigator',       // browser language
-        'htmlTag',         // html lang attribute
-        'path',           // /en/page
-        'subdomain'       // en.example.com
-      ],
-      
-      // Keys to look for
-      lookupQuerystring: 'lng',
-      lookupLocalStorage: 'i18nextLng',
-      
-      // Cache user language
-      caches: ['localStorage'],
-      
-      // Don't cache on these domains
-      excludeCacheFor: ['cimode'],
-      
-      // Check if language is supported
-      // checkWhitelist: true
-    },
+      // Pluralization
+      pluralSeparator: '_',
+      contextSeparator: '_',
 
-    // Namespace settings
-    ns: ['common', 'auth', 'dashboard', 'landing'], // Default namespaces
-    defaultNS: 'common', // Default namespace
-    
-    // Interpolation settings
-    interpolation: {
-      escapeValue: false, // React already escapes values
-      // Removed legacy format function - use formatters instead
-    },
-
-    // React settings
-    react: {
-      useSuspense: false, // We'll handle loading states manually
-      bindI18n: 'languageChanged loaded',
-      bindI18nStore: 'added removed',
-      transEmptyNodeValue: '', // Return empty string for empty nodes
-      transSupportBasicHtmlNodes: true, // Support basic HTML in translations
-      transKeepBasicHtmlNodesFor: ['br', 'strong', 'i', 'em'], // Allowed HTML tags
-    },
-
-    // Development settings
-    debug: import.meta.env.DEV, // Enable debug in development
-    
-    // Performance settings
-    load: 'languageOnly', // Load only language (not region)
-    preload: ['es', 'en'], // Preload these languages
-    
-    // Error handling
-    saveMissing: import.meta.env.DEV, // Save missing keys in development
-    missingKeyHandler: (lng, ns, key) => {
-      if (import.meta.env.DEV) {
-        console.warn(`Missing translation: ${lng}.${ns}.${key}`);
-      }
-    },
-
-    // Pluralization
-    pluralSeparator: '_',
-    contextSeparator: '_',
-    
-    // Return objects for complex translations
-    returnObjects: false,
-    returnEmptyString: true,
-    returnNull: false,
-  });
+      // Return objects for complex translations
+      returnObjects: false,
+      returnEmptyString: true,
+      returnNull: false,
+    });
 }
 
 // Hot reload in development

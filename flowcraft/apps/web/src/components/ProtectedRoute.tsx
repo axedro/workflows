@@ -7,9 +7,9 @@ interface ProtectedRouteProps {
   fallback?: React.ReactNode;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
-  fallback 
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  fallback,
 }) => {
   const { isAuthenticated, isLoading, initializeAuth } = useAuthStore();
 
@@ -26,4 +26,4 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   return <>{children}</>;
-}; 
+};

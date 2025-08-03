@@ -25,19 +25,15 @@ const Auth: React.FC = () => {
     switch (mode) {
       case 'login':
         return (
-          <LoginForm 
+          <LoginForm
             onSwitchToRegister={() => setMode('register')}
             onForgotPassword={() => setMode('forgot-password')}
           />
         );
       case 'register':
-        return (
-          <RegisterForm onSwitchToLogin={() => setMode('login')} />
-        );
+        return <RegisterForm onSwitchToLogin={() => setMode('login')} />;
       case 'forgot-password':
-        return (
-          <ForgotPasswordForm onBackToLogin={() => setMode('login')} />
-        );
+        return <ForgotPasswordForm onBackToLogin={() => setMode('login')} />;
       default:
         return null;
     }
@@ -54,11 +50,11 @@ const Auth: React.FC = () => {
             Workflow Automation Platform
           </p>
         </div>
-        
+
         {renderForm()}
       </div>
     </div>
   );
 };
 
-export default Auth; 
+export default Auth;

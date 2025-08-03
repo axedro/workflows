@@ -9,7 +9,7 @@ export async function setupRateLimit(fastify: FastifyInstance) {
   });
 
   // Apply rate limiting to auth routes
-  fastify.addHook('onRoute', (routeOptions) => {
+  fastify.addHook('onRoute', routeOptions => {
     if (routeOptions.url?.startsWith('/auth')) {
       routeOptions.config = {
         ...routeOptions.config,
@@ -18,11 +18,12 @@ export async function setupRateLimit(fastify: FastifyInstance) {
           timeWindow: '15 minutes',
           errorResponseBuilder: (request, context) => ({
             error: 'Too Many Requests',
-            message: 'Too many authentication attempts. Please try again later.',
+            message:
+              'Too many authentication attempts. Please try again later.',
             retryAfter: Math.round(context.ttl / 1000),
           }),
         },
       };
     }
   });
-} 
+}

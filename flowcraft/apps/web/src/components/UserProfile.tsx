@@ -24,7 +24,9 @@ export const UserProfile: React.FC = () => {
       // Refresh user data
       window.location.reload();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to update profile');
+      setError(
+        error instanceof Error ? error.message : 'Failed to update profile'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -65,7 +67,10 @@ export const UserProfile: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               Full Name
             </label>
             <input
@@ -81,7 +86,10 @@ export const UserProfile: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               Email
             </label>
             <input
@@ -135,11 +143,7 @@ export const UserProfile: React.FC = () => {
           <div className="flex gap-4 pt-4">
             {isEditing ? (
               <>
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="flex-1"
-                >
+                <Button type="submit" disabled={isLoading} className="flex-1">
                   {isLoading ? 'Saving...' : 'Save Changes'}
                 </Button>
                 <Button
@@ -172,4 +176,4 @@ export const UserProfile: React.FC = () => {
       </div>
     </div>
   );
-}; 
+};

@@ -8,7 +8,9 @@ interface RegisterFormProps {
   onSwitchToLogin: () => void;
 }
 
-export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
+export const RegisterForm: React.FC<RegisterFormProps> = ({
+  onSwitchToLogin,
+}) => {
   const navigate = useNavigate();
   const { register, isLoading, error, clearError } = useAuthStore();
   const { t } = useTranslation('auth');
@@ -23,23 +25,23 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
-    
+
     // Validation
     if (formData.name.trim().length < 2) {
       alert(t('validation.name_min_length'));
       return;
     }
-    
+
     if (formData.password.length < 8) {
       alert(t('validation.password_min_length'));
       return;
     }
-    
+
     if (formData.password !== formData.confirmPassword) {
       alert(t('validation.passwords_no_match'));
       return;
     }
-    
+
     try {
       await register({
         email: formData.email.trim(),
@@ -67,16 +69,19 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
         <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-white">
           {t('register.title')}
         </h2>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
               {error}
             </div>
           )}
-          
+
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               {t('name')}
             </label>
             <input
@@ -91,9 +96,12 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
               placeholder={t('name_placeholder')}
             />
           </div>
-          
+
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               {t('email')}
             </label>
             <input
@@ -107,9 +115,12 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
               placeholder={t('email_placeholder')}
             />
           </div>
-          
+
           <div>
-            <label htmlFor="organizationName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label
+              htmlFor="organizationName"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               {t('organization_name')}
             </label>
             <input
@@ -122,9 +133,12 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
               placeholder={t('organization_placeholder')}
             />
           </div>
-          
+
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               {t('password')}
             </label>
             <input
@@ -139,9 +153,12 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
               placeholder={t('password_placeholder')}
             />
           </div>
-          
+
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               {t('confirm_password')}
             </label>
             <input
@@ -155,16 +172,12 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
               placeholder={t('confirm_password_placeholder')}
             />
           </div>
-          
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full"
-          >
+
+          <Button type="submit" disabled={isLoading} className="w-full">
             {isLoading ? t('creating_account') : t('register.title')}
           </Button>
         </form>
-        
+
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {t('have_account')}{' '}
@@ -180,4 +193,4 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
       </div>
     </div>
   );
-}; 
+};

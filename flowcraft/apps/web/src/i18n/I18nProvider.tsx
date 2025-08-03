@@ -12,18 +12,20 @@ interface I18nProviderProps {
  */
 export function I18nProvider({ children }: I18nProviderProps) {
   const [isReady, setIsReady] = useState(false);
-  const [loadedNamespaces, setLoadedNamespaces] = useState<Set<string>>(new Set());
+  const [loadedNamespaces, setLoadedNamespaces] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     const requiredNamespaces = ['common', 'auth', 'landing', 'dashboard'];
-    
+
     // Check if all required namespaces are loaded
     const checkAllNamespacesLoaded = () => {
       const currentLanguage = i18n.language || 'es';
-      const allLoaded = requiredNamespaces.every(ns => 
+      const allLoaded = requiredNamespaces.every(ns =>
         i18n.hasResourceBundle(currentLanguage, ns)
       );
-      
+
       if (allLoaded && i18n.isInitialized) {
         setIsReady(true);
       }
@@ -67,7 +69,8 @@ export function I18nProvider({ children }: I18nProviderProps) {
         <div className="text-center">
           <Loading />
           <p className="mt-4 text-sm text-gray-600">
-            Cargando traducciones... ({loadedNamespaces.size} namespaces cargados)
+            Cargando traducciones... ({loadedNamespaces.size} namespaces
+            cargados)
           </p>
         </div>
       </div>
@@ -76,9 +79,7 @@ export function I18nProvider({ children }: I18nProviderProps) {
 
   return (
     <I18nextProvider i18n={i18n}>
-      <Suspense fallback={<Loading />}>
-        {children}
-      </Suspense>
+      <Suspense fallback={<Loading />}>{children}</Suspense>
     </I18nextProvider>
   );
 }

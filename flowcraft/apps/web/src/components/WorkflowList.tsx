@@ -30,10 +30,13 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({
   const [searchTerm, setSearchTerm] = useState(filters.search || '');
   const [statusFilter, setStatusFilter] = useState(filters.status || '');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(null);
+  const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(
+    null
+  );
   const [duplicateName, setDuplicateName] = useState('');
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
-  const [workflowToDuplicate, setWorkflowToDuplicate] = useState<Workflow | null>(null);
+  const [workflowToDuplicate, setWorkflowToDuplicate] =
+    useState<Workflow | null>(null);
 
   useEffect(() => {
     fetchWorkflows({
@@ -143,7 +146,7 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({
         <div className="flex gap-2">
           <select
             value={statusFilter}
-            onChange={(e) => handleStatusFilter(e.target.value)}
+            onChange={e => handleStatusFilter(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">All Status</option>
@@ -157,7 +160,7 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({
 
       {/* Workflows Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {workflows.map((workflow) => (
+        {workflows.map(workflow => (
           <Card key={workflow.id} className="p-6">
             <div className="flex justify-between items-start mb-4">
               <div className="flex-1">
@@ -168,7 +171,9 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({
                   {workflow.description || 'No description'}
                 </p>
                 <div className="flex items-center gap-2 mb-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(workflow.status)}`}>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(workflow.status)}`}
+                  >
                     {workflow.status}
                   </span>
                   <span className="text-xs text-gray-500">
@@ -263,13 +268,11 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({
       >
         <div className="p-6">
           <p className="text-gray-600 mb-4">
-            Are you sure you want to delete "{workflowToDelete?.name}"? This action cannot be undone.
+            Are you sure you want to delete "{workflowToDelete?.name}"? This
+            action cannot be undone.
           </p>
           <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleteModal(false)}
-            >
+            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
               Cancel
             </Button>
             <Button
@@ -308,10 +311,7 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({
             >
               Cancel
             </Button>
-            <Button
-              onClick={confirmDuplicate}
-              disabled={!duplicateName.trim()}
-            >
+            <Button onClick={confirmDuplicate} disabled={!duplicateName.trim()}>
               Duplicate
             </Button>
           </div>
@@ -319,4 +319,4 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({
       </Modal>
     </div>
   );
-}; 
+};

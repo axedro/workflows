@@ -36,10 +36,12 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
   const [searchTerm, setSearchTerm] = useState(filters.search || '');
   const [categoryFilter, setCategoryFilter] = useState(filters.category || '');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [templateToDelete, setTemplateToDelete] = useState<WorkflowTemplate | null>(null);
+  const [templateToDelete, setTemplateToDelete] =
+    useState<WorkflowTemplate | null>(null);
   const [duplicateName, setDuplicateName] = useState('');
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
-  const [templateToDuplicate, setTemplateToDuplicate] = useState<WorkflowTemplate | null>(null);
+  const [templateToDuplicate, setTemplateToDuplicate] =
+    useState<WorkflowTemplate | null>(null);
 
   const displayedTemplates = showPublicOnly ? publicTemplates : templates;
 
@@ -63,7 +65,13 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
         search: searchTerm,
       });
     }
-  }, [pagination.page, pagination.limit, categoryFilter, searchTerm, showPublicOnly]);
+  }, [
+    pagination.page,
+    pagination.limit,
+    categoryFilter,
+    searchTerm,
+    showPublicOnly,
+  ]);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -140,9 +148,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
         <h2 className="text-2xl font-bold text-gray-900">
           {showPublicOnly ? 'Public Templates' : 'My Templates'}
         </h2>
-        {!showPublicOnly && (
-          <Button>Create Template</Button>
-        )}
+        {!showPublicOnly && <Button>Create Template</Button>}
       </div>
 
       {/* Filters */}
@@ -159,11 +165,11 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
         <div className="flex gap-2">
           <select
             value={categoryFilter}
-            onChange={(e) => handleCategoryFilter(e.target.value)}
+            onChange={e => handleCategoryFilter(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">All Categories</option>
-            {categories.map((category) => (
+            {categories.map(category => (
               <option key={category} value={category}>
                 {category}
               </option>
@@ -174,7 +180,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
 
       {/* Templates Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {displayedTemplates.map((template) => (
+        {displayedTemplates.map(template => (
           <Card key={template.id} className="p-6">
             <div className="flex justify-between items-start mb-4">
               <div className="flex-1">
@@ -248,7 +254,9 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
       {displayedTemplates.length === 0 && !isLoading && (
         <div className="text-center py-12">
           <div className="text-gray-500 mb-4">
-            {showPublicOnly ? 'No public templates found' : 'No templates found'}
+            {showPublicOnly
+              ? 'No public templates found'
+              : 'No templates found'}
           </div>
           {!showPublicOnly && (
             <Button variant="outline">Create your first template</Button>
@@ -289,13 +297,11 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
       >
         <div className="p-6">
           <p className="text-gray-600 mb-4">
-            Are you sure you want to delete "{templateToDelete?.name}"? This action cannot be undone.
+            Are you sure you want to delete "{templateToDelete?.name}"? This
+            action cannot be undone.
           </p>
           <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleteModal(false)}
-            >
+            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
               Cancel
             </Button>
             <Button
@@ -334,10 +340,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
             >
               Cancel
             </Button>
-            <Button
-              onClick={confirmDuplicate}
-              disabled={!duplicateName.trim()}
-            >
+            <Button onClick={confirmDuplicate} disabled={!duplicateName.trim()}>
               Duplicate
             </Button>
           </div>
@@ -345,4 +348,4 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
       </Modal>
     </div>
   );
-}; 
+};

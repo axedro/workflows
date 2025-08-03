@@ -27,7 +27,9 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
  */
 export function useLanguageDetector(): UseLanguageDetectorReturn {
   const { language, changeLanguage: i18nChangeLanguage } = useTranslation();
-  const [availableLanguages, setAvailableLanguages] = useState<LanguageInfo[]>([]);
+  const [availableLanguages, setAvailableLanguages] = useState<LanguageInfo[]>(
+    []
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,7 +43,7 @@ export function useLanguageDetector(): UseLanguageDetectorReturn {
         const response = await fetch(`${API_BASE_URL}/i18n/languages`, {
           method: 'GET',
           headers: {
-            'Accept': 'application/json',
+            Accept: 'application/json',
             'Content-Type': 'application/json',
           },
           credentials: 'include',
@@ -54,10 +56,11 @@ export function useLanguageDetector(): UseLanguageDetectorReturn {
         const data = await response.json();
         setAvailableLanguages(data.languages || []);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch languages';
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to fetch languages';
         setError(errorMessage);
         console.error('Failed to fetch available languages:', err);
-        
+
         // Fallback to default languages
         setAvailableLanguages([
           {
@@ -101,16 +104,16 @@ export function useLanguageDetector(): UseLanguageDetectorReturn {
     // Check navigator languages
     const browserLanguages = navigator.languages || [navigator.language];
     const supportedCodes = availableLanguages.map(lang => lang.code);
-    
+
     for (const browserLang of browserLanguages) {
       // Extract main language code (e.g., 'en-US' -> 'en')
       const langCode = browserLang.toLowerCase().split('-')[0];
-      
+
       if (supportedCodes.includes(langCode)) {
         return langCode;
       }
     }
-    
+
     // Fallback to default language
     const defaultLang = availableLanguages.find(lang => lang.isDefault);
     return defaultLang?.code || 'es';
@@ -133,9 +136,9 @@ export function useLanguageDetector(): UseLanguageDetectorReturn {
       // if (user) {
       //   await updateUserLanguagePreference(code);
       // }
-
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to change language';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to change language';
       setError(errorMessage);
       throw err;
     }

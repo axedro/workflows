@@ -7,7 +7,9 @@ interface ForgotPasswordFormProps {
   onBackToLogin: () => void;
 }
 
-export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }) => {
+export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
+  onBackToLogin,
+}) => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -23,7 +25,9 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackTo
       await apiService.forgotPassword(email);
       setIsSubmitted(true);
     } catch (error) {
-      setError(error instanceof Error ? error.message : t('reset_email_failed'));
+      setError(
+        error instanceof Error ? error.message : t('reset_email_failed')
+      );
     } finally {
       setIsLoading(false);
     }
@@ -59,38 +63,37 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackTo
         <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-white">
           {t('forgot_password')}
         </h2>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
               {error}
             </div>
           )}
-          
+
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               {t('email')}
             </label>
             <input
               type="email"
               id="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
               required
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               placeholder={t('email_placeholder')}
             />
           </div>
-          
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full"
-          >
+
+          <Button type="submit" disabled={isLoading} className="w-full">
             {isLoading ? t('sending') : t('send_reset_link')}
           </Button>
         </form>
-        
+
         <div className="mt-6 text-center">
           <button
             type="button"
@@ -103,4 +106,4 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackTo
       </div>
     </div>
   );
-}; 
+};

@@ -158,7 +158,7 @@ class ApiService {
   ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
     const token = localStorage.getItem('accessToken');
-    
+
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
@@ -169,7 +169,7 @@ class ApiService {
     };
 
     const response = await fetch(url, config);
-    
+
     if (!response.ok) {
       const error: ApiError = await response.json();
       throw new Error(error.message || 'API request failed');
@@ -207,7 +207,10 @@ class ApiService {
     });
   }
 
-  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+  async resetPassword(
+    token: string,
+    newPassword: string
+  ): Promise<{ message: string }> {
     return this.request<{ message: string }>('/auth/reset-password', {
       method: 'POST',
       body: JSON.stringify({ token, newPassword }),
@@ -226,7 +229,10 @@ class ApiService {
     });
   }
 
-  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  async changePassword(
+    currentPassword: string,
+    newPassword: string
+  ): Promise<void> {
     return this.request<void>('/auth/change-password', {
       method: 'POST',
       body: JSON.stringify({ currentPassword, newPassword }),
@@ -238,7 +244,10 @@ class ApiService {
     return this.request<any>('/organizations/me');
   }
 
-  async updateOrganization(data: { name?: string; settings?: any }): Promise<any> {
+  async updateOrganization(data: {
+    name?: string;
+    settings?: any;
+  }): Promise<any> {
     return this.request<any>('/organizations/me', {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -253,7 +262,9 @@ class ApiService {
     });
   }
 
-  async getWorkflows(params: WorkflowListParams = {}): Promise<WorkflowListResponse> {
+  async getWorkflows(
+    params: WorkflowListParams = {}
+  ): Promise<WorkflowListResponse> {
     const searchParams = new URLSearchParams();
     if (params.page) searchParams.append('page', params.page.toString());
     if (params.limit) searchParams.append('limit', params.limit.toString());
@@ -261,14 +272,19 @@ class ApiService {
     if (params.search) searchParams.append('search', params.search);
 
     const query = searchParams.toString();
-    return this.request<WorkflowListResponse>(`/workflows${query ? `?${query}` : ''}`);
+    return this.request<WorkflowListResponse>(
+      `/workflows${query ? `?${query}` : ''}`
+    );
   }
 
   async getWorkflow(id: string): Promise<Workflow> {
     return this.request<Workflow>(`/workflows/${id}`);
   }
 
-  async updateWorkflow(id: string, data: UpdateWorkflowData): Promise<Workflow> {
+  async updateWorkflow(
+    id: string,
+    data: UpdateWorkflowData
+  ): Promise<Workflow> {
     return this.request<Workflow>(`/workflows/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -288,18 +304,29 @@ class ApiService {
     });
   }
 
-  async createWorkflowVersion(id: string, data: CreateVersionData): Promise<WorkflowVersion> {
+  async createWorkflowVersion(
+    id: string,
+    data: CreateVersionData
+  ): Promise<WorkflowVersion> {
     return this.request<WorkflowVersion>(`/workflows/${id}/versions`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async getWorkflowVersion(id: string, version: number): Promise<WorkflowVersion> {
-    return this.request<WorkflowVersion>(`/workflows/${id}/versions/${version}`);
+  async getWorkflowVersion(
+    id: string,
+    version: number
+  ): Promise<WorkflowVersion> {
+    return this.request<WorkflowVersion>(
+      `/workflows/${id}/versions/${version}`
+    );
   }
 
-  async validateWorkflow(id: string, definition: any): Promise<ValidationResult> {
+  async validateWorkflow(
+    id: string,
+    definition: any
+  ): Promise<ValidationResult> {
     return this.request<ValidationResult>(`/workflows/${id}/validate`, {
       method: 'POST',
       body: JSON.stringify({ definition }),
@@ -314,19 +341,26 @@ class ApiService {
     });
   }
 
-  async getTemplates(params: TemplateListParams = {}): Promise<TemplateListResponse> {
+  async getTemplates(
+    params: TemplateListParams = {}
+  ): Promise<TemplateListResponse> {
     const searchParams = new URLSearchParams();
     if (params.page) searchParams.append('page', params.page.toString());
     if (params.limit) searchParams.append('limit', params.limit.toString());
     if (params.category) searchParams.append('category', params.category);
     if (params.search) searchParams.append('search', params.search);
-    if (params.isPublic !== undefined) searchParams.append('isPublic', params.isPublic.toString());
+    if (params.isPublic !== undefined)
+      searchParams.append('isPublic', params.isPublic.toString());
 
     const query = searchParams.toString();
-    return this.request<TemplateListResponse>(`/workflow-templates${query ? `?${query}` : ''}`);
+    return this.request<TemplateListResponse>(
+      `/workflow-templates${query ? `?${query}` : ''}`
+    );
   }
 
-  async getPublicTemplates(params: Omit<TemplateListParams, 'isPublic'> = {}): Promise<TemplateListResponse> {
+  async getPublicTemplates(
+    params: Omit<TemplateListParams, 'isPublic'> = {}
+  ): Promise<TemplateListResponse> {
     const searchParams = new URLSearchParams();
     if (params.page) searchParams.append('page', params.page.toString());
     if (params.limit) searchParams.append('limit', params.limit.toString());
@@ -334,14 +368,19 @@ class ApiService {
     if (params.search) searchParams.append('search', params.search);
 
     const query = searchParams.toString();
-    return this.request<TemplateListResponse>(`/workflow-templates/public${query ? `?${query}` : ''}`);
+    return this.request<TemplateListResponse>(
+      `/workflow-templates/public${query ? `?${query}` : ''}`
+    );
   }
 
   async getTemplate(id: string): Promise<WorkflowTemplate> {
     return this.request<WorkflowTemplate>(`/workflow-templates/${id}`);
   }
 
-  async updateTemplate(id: string, data: UpdateTemplateData): Promise<WorkflowTemplate> {
+  async updateTemplate(
+    id: string,
+    data: UpdateTemplateData
+  ): Promise<WorkflowTemplate> {
     return this.request<WorkflowTemplate>(`/workflow-templates/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -355,25 +394,37 @@ class ApiService {
   }
 
   async duplicateTemplate(id: string, name: string): Promise<WorkflowTemplate> {
-    return this.request<WorkflowTemplate>(`/workflow-templates/${id}/duplicate`, {
-      method: 'POST',
-      body: JSON.stringify({ name }),
-    });
+    return this.request<WorkflowTemplate>(
+      `/workflow-templates/${id}/duplicate`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ name }),
+      }
+    );
   }
 
   async getTemplateCategories(): Promise<string[]> {
     return this.request<string[]>('/workflow-templates/categories');
   }
 
-  async validateTemplate(id: string, definition: any): Promise<ValidationResult> {
-    return this.request<ValidationResult>(`/workflow-templates/${id}/validate`, {
-      method: 'POST',
-      body: JSON.stringify({ definition }),
-    });
+  async validateTemplate(
+    id: string,
+    definition: any
+  ): Promise<ValidationResult> {
+    return this.request<ValidationResult>(
+      `/workflow-templates/${id}/validate`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ definition }),
+      }
+    );
   }
 
   // Import/Export endpoints
-  async exportWorkflow(id: string, options: ExportWorkflowOptions = {}): Promise<any> {
+  async exportWorkflow(
+    id: string,
+    options: ExportWorkflowOptions = {}
+  ): Promise<any> {
     return this.request<any>(`/import-export/workflows/${id}/export`, {
       method: 'POST',
       body: JSON.stringify(options),
@@ -393,26 +444,40 @@ class ApiService {
     });
   }
 
-  async importTemplate(data: CreateTemplateData & { overwrite?: boolean }): Promise<WorkflowTemplate> {
-    return this.request<WorkflowTemplate>('/import-export/workflow-templates/import', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+  async importTemplate(
+    data: CreateTemplateData & { overwrite?: boolean }
+  ): Promise<WorkflowTemplate> {
+    return this.request<WorkflowTemplate>(
+      '/import-export/workflow-templates/import',
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
   }
 
-  async bulkExportWorkflows(workflowIds: string[], options: ExportWorkflowOptions = {}): Promise<any> {
+  async bulkExportWorkflows(
+    workflowIds: string[],
+    options: ExportWorkflowOptions = {}
+  ): Promise<any> {
     return this.request<any>('/import-export/workflows/bulk-export', {
       method: 'POST',
       body: JSON.stringify({ workflowIds, ...options }),
     });
   }
 
-  async bulkImportWorkflows(workflows: ImportWorkflowData[], overwrite: boolean = false): Promise<BulkImportResult> {
-    return this.request<BulkImportResult>('/import-export/workflows/bulk-import', {
-      method: 'POST',
-      body: JSON.stringify({ workflows, overwrite }),
-    });
+  async bulkImportWorkflows(
+    workflows: ImportWorkflowData[],
+    overwrite: boolean = false
+  ): Promise<BulkImportResult> {
+    return this.request<BulkImportResult>(
+      '/import-export/workflows/bulk-import',
+      {
+        method: 'POST',
+        body: JSON.stringify({ workflows, overwrite }),
+      }
+    );
   }
 }
 
-export const apiService = new ApiService(); 
+export const apiService = new ApiService();

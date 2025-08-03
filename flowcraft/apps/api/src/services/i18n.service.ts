@@ -3,10 +3,10 @@ import Redis from 'redis';
 
 // Redis client for caching
 const redis = Redis.createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379'
+  url: process.env.REDIS_URL || 'redis://localhost:6379',
 });
 
-redis.on('error', (err) => console.error('Redis Client Error', err));
+redis.on('error', err => console.error('Redis Client Error', err));
 redis.connect();
 
 export interface TranslationData {
@@ -32,7 +32,7 @@ export class I18nService {
    */
   async getLanguages(): Promise<LanguageInfo[]> {
     const cacheKey = `${I18nService.CACHE_PREFIX}languages`;
-    
+
     try {
       // Try to get from cache
       const cached = await redis.get(cacheKey);
@@ -46,10 +46,7 @@ export class I18nService {
     // Get from database
     const languages = await prisma.language.findMany({
       where: { isActive: true },
-      orderBy: [
-        { isDefault: 'desc' },
-        { name: 'asc' }
-      ]
+      orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
     });
 
     const result: LanguageInfo[] = languages.map(lang => ({
@@ -59,12 +56,16 @@ export class I18nService {
       nativeName: lang.nativeName,
       flagEmoji: lang.flagEmoji || undefined,
       isActive: lang.isActive,
-      isDefault: lang.isDefault
+      isDefault: lang.isDefault,
     }));
 
     // Cache the result
     try {
-      await redis.setEx(cacheKey, I18nService.CACHE_TTL, JSON.stringify(result));
+      await redis.setEx(
+        cacheKey,
+        I18nService.CACHE_TTL,
+        JSON.stringify(result)
+      );
     } catch (error) {
       console.warn('Redis cache set error:', error);
     }
@@ -75,9 +76,12 @@ export class I18nService {
   /**
    * Get translations for a specific language and namespace
    */
-  async getTranslations(languageCode: string, namespace?: string): Promise<TranslationData> {
+  async getTranslations(
+    languageCode: string,
+    namespace?: string
+  ): Promise<TranslationData> {
     const cacheKey = `${I18nService.CACHE_PREFIX}translations:${languageCode}:${namespace || 'all'}`;
-    
+
     try {
       // Try to get from cache
       const cached = await redis.get(cacheKey);
@@ -91,18 +95,18 @@ export class I18nService {
     // Get from database
     const whereClause: any = {
       language: { code: languageCode },
-      key: { 
+      key: {
         isActive: true,
-        ...(namespace ? { namespace } : {})
+        ...(namespace ? { namespace } : {}),
       },
-      isApproved: true
+      isApproved: true,
     };
 
     const translations = await prisma.translation.findMany({
       where: whereClause,
       include: {
-        key: true
-      }
+        key: true,
+      },
     });
 
     // Transform to key-value format
@@ -113,7 +117,11 @@ export class I18nService {
 
     // Cache the result
     try {
-      await redis.setEx(cacheKey, I18nService.CACHE_TTL, JSON.stringify(result));
+      await redis.setEx(
+        cacheKey,
+        I18nService.CACHE_TTL,
+        JSON.stringify(result)
+      );
     } catch (error) {
       console.warn('Redis cache set error:', error);
     }
@@ -148,7 +156,9 @@ export class I18nService {
     }
 
     // Return key if no translation found
-    console.warn(`Translation not found for key: ${key} in language: ${languageCode}`);
+    console.warn(
+      `Translation not found for key: ${key} in language: ${languageCode}`
+    );
     return key;
   }
 
@@ -175,7 +185,7 @@ export class I18nService {
         const [code, q = '1'] = lang.trim().split(';q=');
         return {
           code: code.toLowerCase().split('-')[0], // Get main language code
-          quality: parseFloat(q)
+          quality: parseFloat(q),
         };
       })
       .sort((a, b) => b.quality - a.quality);
@@ -194,7 +204,10 @@ export class I18nService {
   /**
    * Invalidate cache for translations
    */
-  async invalidateCache(languageCode?: string, namespace?: string): Promise<void> {
+  async invalidateCache(
+    languageCode?: string,
+    namespace?: string
+  ): Promise<void> {
     try {
       if (languageCode && namespace) {
         // Invalidate specific cache
@@ -231,7 +244,7 @@ export class I18nService {
   ): Promise<void> {
     // Find or create translation key
     let translationKey = await prisma.translationKey.findUnique({
-      where: { key }
+      where: { key },
     });
 
     if (!translationKey) {
@@ -242,14 +255,14 @@ export class I18nService {
           key,
           namespace,
           category: 'auto-generated',
-          description: `Auto-generated key for ${key}`
-        }
+          description: `Auto-generated key for ${key}`,
+        },
       });
     }
 
     // Find language
     const language = await prisma.language.findUnique({
-      where: { code: languageCode }
+      where: { code: languageCode },
     });
 
     if (!language) {
@@ -261,14 +274,14 @@ export class I18nService {
       where: {
         languageId_keyId: {
           languageId: language.id,
-          keyId: translationKey.id
-        }
+          keyId: translationKey.id,
+        },
       },
       update: {
         value,
         isApproved: !!approvedBy,
         approvedBy,
-        approvedAt: approvedBy ? new Date() : null
+        approvedAt: approvedBy ? new Date() : null,
       },
       create: {
         languageId: language.id,
@@ -276,8 +289,8 @@ export class I18nService {
         value,
         isApproved: !!approvedBy,
         approvedBy,
-        approvedAt: approvedBy ? new Date() : null
-      }
+        approvedAt: approvedBy ? new Date() : null,
+      },
     });
 
     // Invalidate cache

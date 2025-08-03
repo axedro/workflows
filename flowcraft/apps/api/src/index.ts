@@ -61,7 +61,8 @@ await fastify.register(swagger, {
   swagger: {
     info: {
       title: 'FlowCraft API',
-      description: 'API documentation for FlowCraft workflow automation platform',
+      description:
+        'API documentation for FlowCraft workflow automation platform',
       version: '1.0.0',
       contact: {
         name: 'FlowCraft Team',
@@ -75,9 +76,15 @@ await fastify.register(swagger, {
     tags: [
       { name: 'auth', description: 'Authentication endpoints' },
       { name: 'users', description: 'User management endpoints' },
-      { name: 'organizations', description: 'Organization management endpoints' },
+      {
+        name: 'organizations',
+        description: 'Organization management endpoints',
+      },
       { name: 'workflows', description: 'Workflow management endpoints' },
-      { name: 'workflow-templates', description: 'Workflow template endpoints' },
+      {
+        name: 'workflow-templates',
+        description: 'Workflow template endpoints',
+      },
       { name: 'import-export', description: 'Import/Export endpoints' },
       { name: 'i18n', description: 'Internationalization endpoints' },
       { name: 'health', description: 'Health check endpoints' },
@@ -108,7 +115,7 @@ await fastify.register(swaggerUi, {
     },
   },
   staticCSP: true,
-  transformStaticCSP: (header) => header,
+  transformStaticCSP: header => header,
   transformSpecification: (swaggerObject, request, reply) => {
     return swaggerObject;
   },
@@ -122,13 +129,17 @@ await fastify.register(userRoutes, { prefix: '/users' });
 await fastify.register(organizationRoutes, { prefix: '/organizations' });
 await fastify.register(i18nRoutes, { prefix: '/i18n' });
 await fastify.register(workflowRoutes, { prefix: '/workflows' });
-await fastify.register(workflowTemplateRoutes, { prefix: '/workflow-templates' });
-await fastify.register(workflowImportExportRoutes, { prefix: '/import-export' });
+await fastify.register(workflowTemplateRoutes, {
+  prefix: '/workflow-templates',
+});
+await fastify.register(workflowImportExportRoutes, {
+  prefix: '/import-export',
+});
 
 // Global error handler
 fastify.setErrorHandler((error, request, reply) => {
   fastify.log.error(error);
-  
+
   if (error.validation) {
     return reply.status(400).send({
       error: 'Validation Error',
@@ -155,7 +166,7 @@ const start = async () => {
   try {
     const port = parseInt(process.env.PORT || '3000', 10);
     const host = process.env.HOST || '0.0.0.0';
-    
+
     await fastify.listen({ port, host });
     fastify.log.info(`Server listening on ${host}:${port}`);
   } catch (err) {
@@ -164,4 +175,4 @@ const start = async () => {
   }
 };
 
-start(); 
+start();

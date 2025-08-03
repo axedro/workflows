@@ -14,6 +14,10 @@
   "dependencies": {
     "@flowcraft/shared-types": "workspace:*",
     "@flowcraft/ui": "workspace:*",
+    "@reactflow/background": "^11.3.14",
+    "@reactflow/controls": "^11.2.14",
+    "@reactflow/core": "^11.11.4",
+    "@reactflow/minimap": "^11.7.14",
     "@tanstack/react-query": "^4.36.1",
     "clsx": "^2.0.0",
     "framer-motion": "^10.16.4",
@@ -23,7 +27,6 @@
     "lucide-react": "^0.263.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-flow-renderer": "^10.3.17",
     "react-i18next": "^15.6.1",
     "react-router-dom": "^6.8.1",
     "tailwind-merge": "^1.14.0",

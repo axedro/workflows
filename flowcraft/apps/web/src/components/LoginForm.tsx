@@ -9,7 +9,10 @@ interface LoginFormProps {
   onForgotPassword: () => void;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onForgotPassword }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({
+  onSwitchToRegister,
+  onForgotPassword,
+}) => {
   const navigate = useNavigate();
   const { login, isLoading, error, clearError } = useAuthStore();
   const { t } = useTranslation('auth');
@@ -21,7 +24,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onForg
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
-    
+
     try {
       await login(formData);
       // Redirect to dashboard on successful login
@@ -44,16 +47,19 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onForg
         <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-white">
           {t('login.title')}
         </h2>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
               {error}
             </div>
           )}
-          
+
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               {t('email')}
             </label>
             <input
@@ -67,9 +73,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onForg
               placeholder={t('email_placeholder')}
             />
           </div>
-          
+
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               {t('password')}
             </label>
             <input
@@ -83,7 +92,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onForg
               placeholder={t('password_placeholder')}
             />
           </div>
-          
+
           <div className="text-right">
             <button
               type="button"
@@ -93,16 +102,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onForg
               {t('forgot_password')}
             </button>
           </div>
-          
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full"
-          >
+
+          <Button type="submit" disabled={isLoading} className="w-full">
             {isLoading ? t('signing_in') : t('login.title')}
           </Button>
         </form>
-        
+
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {t('no_account')}{' '}
@@ -118,4 +123,4 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onForg
       </div>
     </div>
   );
-}; 
+};

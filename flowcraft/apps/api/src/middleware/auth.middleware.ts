@@ -5,10 +5,13 @@ export interface AuthenticatedRequest extends FastifyRequest {
   user: UserPayload;
 }
 
-export async function authenticate(request: FastifyRequest, reply: FastifyReply) {
+export async function authenticate(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
   try {
     const authHeader = request.headers.authorization;
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return reply.status(401).send({
         error: 'Unauthorized',
@@ -18,7 +21,7 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     const user = await authService.validateToken(token);
-    
+
     (request as AuthenticatedRequest).user = user;
   } catch (error) {
     return reply.status(401).send({
@@ -31,9 +34,9 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
 export async function requireRole(roles: string[]) {
   return async (request: FastifyRequest, reply: FastifyReply) => {
     await authenticate(request, reply);
-    
+
     const user = (request as AuthenticatedRequest).user;
-    
+
     if (!roles.includes(user.role)) {
       return reply.status(403).send({
         error: 'Forbidden',
@@ -43,11 +46,14 @@ export async function requireRole(roles: string[]) {
   };
 }
 
-export async function requireOrganization(request: FastifyRequest, reply: FastifyReply) {
+export async function requireOrganization(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
   await authenticate(request, reply);
-  
+
   const user = (request as AuthenticatedRequest).user;
-  
+
   if (!user.organizationId) {
     return reply.status(403).send({
       error: 'Forbidden',
@@ -56,10 +62,13 @@ export async function requireOrganization(request: FastifyRequest, reply: Fastif
   }
 }
 
-export async function optionalAuth(request: FastifyRequest, reply: FastifyReply) {
+export async function optionalAuth(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
   try {
     const authHeader = request.headers.authorization;
-    
+
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
       const user = await authService.validateToken(token);
@@ -68,4 +77,4 @@ export async function optionalAuth(request: FastifyRequest, reply: FastifyReply)
   } catch (error) {
     // Ignore authentication errors for optional auth
   }
-} 
+}

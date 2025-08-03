@@ -31,16 +31,28 @@ export const Header: React.FC = () => {
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-gray-600 hover:text-gray-900 transition-colors">
+            <Link
+              to="/"
+              className="text-gray-600 hover:text-gray-900 transition-colors"
+            >
               {t('nav.home')}
             </Link>
-            <Link to="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
+            <Link
+              to="#features"
+              className="text-gray-600 hover:text-gray-900 transition-colors"
+            >
               {t('nav.features')}
             </Link>
-            <Link to="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
+            <Link
+              to="#pricing"
+              className="text-gray-600 hover:text-gray-900 transition-colors"
+            >
               {t('nav.pricing')}
             </Link>
-            <Link to="#docs" className="text-gray-600 hover:text-gray-900 transition-colors">
+            <Link
+              to="#docs"
+              className="text-gray-600 hover:text-gray-900 transition-colors"
+            >
               {t('nav.docs')}
             </Link>
           </nav>
@@ -60,11 +72,7 @@ export const Header: React.FC = () => {
                 >
                   {t('dashboard')}
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleLogout}
-                >
+                <Button variant="outline" size="sm" onClick={handleLogout}>
                   {t('logout')}
                 </Button>
               </div>
