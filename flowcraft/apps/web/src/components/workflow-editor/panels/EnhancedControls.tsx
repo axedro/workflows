@@ -108,8 +108,8 @@ const EnhancedControls: React.FC<EnhancedControlsProps> = ({
   };
 
   return (
-    <div className={`absolute ${getPositionClasses()} ${className}`}>
-      <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-2 flex flex-col gap-1">
+    <div className={`absolute ${getPositionClasses()} ${className} z-50`}>
+      <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-2 flex flex-col gap-1 pointer-events-auto">
         {/* Zoom Level Display */}
         <div className="text-xs text-gray-600 text-center px-2 py-1 bg-gray-50 rounded border">
           {Math.round(currentZoom * 100)}%
@@ -120,7 +120,7 @@ const EnhancedControls: React.FC<EnhancedControlsProps> = ({
           <Tooltip content="Zoom In (Ctrl/Cmd + +)" position="left">
             <button
               onClick={handleZoomIn}
-              className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+              className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors pointer-events-auto"
               aria-label="Zoom In"
             >
               <svg
@@ -145,7 +145,7 @@ const EnhancedControls: React.FC<EnhancedControlsProps> = ({
           <Tooltip content="Zoom Out (Ctrl/Cmd + -)" position="left">
             <button
               onClick={handleZoomOut}
-              className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+              className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors pointer-events-auto"
               aria-label="Zoom Out"
             >
               <svg
@@ -169,7 +169,7 @@ const EnhancedControls: React.FC<EnhancedControlsProps> = ({
           <Tooltip content="Fit to View (Ctrl/Cmd + 0)" position="left">
             <button
               onClick={handleFitView}
-              className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+              className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors pointer-events-auto"
               aria-label="Fit to View"
             >
               <svg
@@ -193,7 +193,7 @@ const EnhancedControls: React.FC<EnhancedControlsProps> = ({
         <Tooltip content="Reset View" position="left">
           <button
             onClick={handleResetView}
-            className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+            className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors pointer-events-auto"
             aria-label="Reset View"
           >
             <svg
@@ -227,7 +227,7 @@ const EnhancedControls: React.FC<EnhancedControlsProps> = ({
             position="left"
           >
             <button
-              className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+              className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors pointer-events-auto"
               aria-label="Keyboard Shortcuts"
             >
               <svg
