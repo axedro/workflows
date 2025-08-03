@@ -1,7 +1,7 @@
 # Sprint 8-9: Workflow Editor Foundation - Checklist de Verificación
 
 ## Estado General
-- [ ] **Sprint 8-9: Workflow Editor Foundation** - EN PROGRESO
+- [x] **Sprint 8-9: Workflow Editor Foundation** - EN PROGRESO (65% completado)
 
 ---
 
@@ -34,6 +34,7 @@
   - [x] Implementar `StartNode.tsx`
   - [x] Implementar `EndNode.tsx`
   - [x] Implementar `ActionNode.tsx`
+  - [x] Implementar `ConditionNode.tsx`
 
 - [x] **1.2.2** Configurar tipos de nodos
   - [x] Definir `NodeTypes` en shared-types
@@ -52,7 +53,7 @@
 ### Tarea 1.3: Edge Connections
 - [x] **1.3.1** Configurar tipos de edges
   - [x] Definir `EdgeTypes` en shared-types
-  - [x] Implementar edge personalizado básico
+  - [x] Implementar edge personalizado básico (`DefaultEdge.tsx`)
   - [x] Configurar validación de conexiones
 
 - [x] **1.3.2** Implementar lógica de conexión
@@ -109,7 +110,7 @@
 
 ---
 
-## FASE 2: Node Library (Días 4-6)
+## FASE 2: Node Library (Días 4-6) 🟡 PARCIALMENTE COMPLETADA
 
 ### Tarea 2.1: Node Palette Sidebar
 - [x] **2.1.1** Diseñar estructura de sidebar
@@ -119,8 +120,8 @@
 
 - [x] **2.1.2** Implementar categorías
   - [x] Core (Start, End, Action)
-  - [x] Connectors (HTTP, Email, Slack)
   - [x] Logic (Condition, Loop)
+  - [x] Connectors (HTTP, Email, Slack)
   - [x] Data (Transform, Filter)
 
 - [x] **2.1.3** Configurar drag desde palette
@@ -168,7 +169,7 @@
   - [ ] Verificar que hay un nodo end
   - [ ] Verificar que todos los nodos están conectados
 
-**Estado:** 🟡 PARCIALMENTE COMPLETADO
+**Estado:** 🟡 PARCIALMENTE COMPLETADO (33% completado)
 
 ---
 
@@ -178,17 +179,17 @@
   - [x] Mostrar descripción del nodo
   - [x] Mostrar icono y nombre
 
-- [ ] **2.4.2** Preview en canvas
-  - [ ] Mostrar tooltip con información
-  - [ ] Mostrar estado de validación
-  - [ ] Mostrar configuración actual
+- [x] **2.4.2** Preview en canvas
+  - [x] Mostrar tooltip con información
+  - [x] Mostrar estado de validación
+  - [x] Mostrar configuración actual
 
 - [ ] **2.4.3** Preview de conexiones
   - [ ] Mostrar tipo de datos
   - [ ] Mostrar estado de la conexión
   - [ ] Mostrar información de validación
 
-**Estado:** 🟡 PARCIALMENTE COMPLETADO
+**Estado:** 🟡 PARCIALMENTE COMPLETADO (67% completado)
 
 ---
 
@@ -212,7 +213,7 @@
 
 ---
 
-## FASE 3: Workflow State Management (Días 7-10)
+## FASE 3: Workflow State Management (Días 7-10) ❌ PENDIENTE
 
 ### Tarea 3.1: Zustand Store para Workflow Editor
 - [ ] **3.1.1** Crear store del editor
@@ -230,7 +231,7 @@
   - [ ] Configurar recuperación de estado
   - [ ] Manejar conflictos de versión
 
-**Estado:** PENDIENTE
+**Estado:** ❌ PENDIENTE (0% completado)
 
 ---
 
@@ -250,7 +251,7 @@
   - [ ] Mostrar estado de disponibilidad
   - [ ] Configurar tooltips
 
-**Estado:** PENDIENTE
+**Estado:** ❌ PENDIENTE (0% completado)
 
 ---
 
@@ -270,7 +271,7 @@
   - [ ] Mostrar estado de sincronización
   - [ ] Alertar sobre cambios no guardados
 
-**Estado:** PENDIENTE
+**Estado:** ❌ PENDIENTE (0% completado)
 
 ---
 
@@ -290,7 +291,7 @@
   - [ ] Validar complejidad
   - [ ] Prevenir loops infinitos
 
-**Estado:** PENDIENTE
+**Estado:** ❌ PENDIENTE (0% completado)
 
 ---
 
@@ -310,11 +311,11 @@
   - [ ] Auto-focus en errores
   - [ ] Sugerir correcciones
 
-**Estado:** PENDIENTE
+**Estado:** ❌ PENDIENTE (0% completado)
 
 ---
 
-## FASE 4: Testing y Polish (Días 9-10)
+## FASE 4: Testing y Polish (Días 9-10) ❌ PENDIENTE
 
 ### Tarea 4.1: Testing Completo
 - [ ] **4.1.1** Testing de componentes
@@ -332,7 +333,7 @@
   - [ ] Verificar rendimiento
   - [ ] Optimizar si es necesario
 
-**Estado:** PENDIENTE
+**Estado:** ❌ PENDIENTE (0% completado)
 
 ---
 
@@ -352,7 +353,147 @@
   - [ ] Crear guías de uso
   - [ ] Documentar API del editor
 
-**Estado:** PENDIENTE
+**Estado:** ❌ PENDIENTE (0% completado)
+
+---
+
+## SPRINT 9.5: Sistema de Flujo de Datos (1 semana) 🆕 NUEVO
+
+### Tarea 9.5.1: Data Flow Architecture
+- [ ] **9.5.1.1** Definir modelo de datos
+  - [ ] Crear interfaces para DataField, DataPort, DataFlow
+  - [ ] Definir tipos de datos (string, number, boolean, object, array)
+  - [ ] Implementar validación de tipos de datos
+  - [ ] Crear sistema de mapeo de campos
+
+- [ ] **9.5.1.2** Actualizar tipos de nodos
+  - [ ] Agregar inputPorts y outputPorts a NodeData
+  - [ ] Definir DataPort interface con tipo y campos
+  - [ ] Implementar DataFlow interface para conexiones
+  - [ ] Actualizar EditorNode y EditorEdge
+
+- [ ] **9.5.1.3** Sistema de validación de datos
+  - [ ] Validar compatibilidad de tipos entre puertos
+  - [ ] Implementar validación de campos requeridos
+  - [ ] Crear sistema de warnings para conversiones automáticas
+  - [ ] Validar flujo de datos en tiempo real
+
+**Estado:** ❌ PENDIENTE (0% completado)
+
+---
+
+### Tarea 9.5.2: Nodos con Puertos de Datos
+- [ ] **9.5.2.1** Rediseñar nodos con puertos
+  - [ ] Implementar Handle components para input/output
+  - [ ] Crear DataPort component con tooltips de campos
+  - [ ] Implementar validación visual de conexiones
+  - [ ] Agregar indicadores de tipo de datos
+
+- [ ] **9.5.2.2** Nodos específicos por tipo
+  - [ ] StartNode: Solo output port con datos iniciales
+  - [ ] ActionNode: Input port + output port con transformación
+  - [ ] ConditionNode: Input port + 2 output ports (true/false)
+  - [ ] EndNode: Solo input port para datos finales
+
+- [ ] **9.5.2.3** Visualización de datos
+  - [ ] Mostrar campos disponibles en tooltips
+  - [ ] Implementar preview de datos en nodos
+  - [ ] Mostrar transformaciones aplicadas
+  - [ ] Indicar campos requeridos vs opcionales
+
+**Estado:** ❌ PENDIENTE (0% completado)
+
+---
+
+### Tarea 9.5.3: Nodo de Condición como Rombo
+- [ ] **9.5.3.1** Rediseñar ConditionNode
+  - [ ] Cambiar forma de rectángulo a rombo
+  - [ ] Implementar una entrada (top)
+  - [ ] Implementar dos salidas (true/false)
+  - [ ] Agregar indicadores visuales de condición
+
+- [ ] **9.5.3.2** Lógica de flujo de datos
+  - [ ] Transmitir datos solo por la rama que cumple condición
+  - [ ] Implementar filtrado de datos por condición
+  - [ ] Validar que ambas ramas tienen destino
+  - [ ] Mostrar preview de datos filtrados
+
+- [ ] **9.5.3.3** Configuración de condiciones
+  - [ ] Editor de condiciones con campos disponibles
+  - [ ] Operadores lógicos (equals, not equals, greater than, etc.)
+  - [ ] Validación de tipos de datos para operaciones
+  - [ ] Preview de resultado de condición
+
+**Estado:** ❌ PENDIENTE (0% completado)
+
+---
+
+### Tarea 9.5.4: Conexiones Direccionales con Datos
+- [ ] **9.5.4.1** Rediseñar edges con datos
+  - [ ] Implementar flechas direccionales claras
+  - [ ] Mostrar campos de datos que fluyen
+  - [ ] Indicar transformaciones en la conexión
+  - [ ] Validar compatibilidad de tipos
+
+- [ ] **9.5.4.2** Visualización de flujo
+  - [ ] Mostrar tooltip con campos de datos
+  - [ ] Implementar animación de flujo de datos
+  - [ ] Indicar estado de validación de conexión
+  - [ ] Mostrar warnings de conversión de tipos
+
+- [ ] **9.5.4.3** Validación de conexiones
+  - [ ] Prevenir conexiones incompatibles
+  - [ ] Validar que campos requeridos están disponibles
+  - [ ] Implementar sugerencias de mapeo automático
+  - [ ] Mostrar errores de validación en tiempo real
+
+**Estado:** ❌ PENDIENTE (0% completado)
+
+---
+
+### Tarea 9.5.5: Panel de Configuración de Datos
+- [ ] **9.5.5.1** Data Configuration Panel
+  - [ ] Crear panel para configurar mapeo de campos
+  - [ ] Implementar drag & drop para mapear campos
+  - [ ] Mostrar preview de transformaciones
+  - [ ] Validar configuraciones en tiempo real
+
+- [ ] **9.5.5.2** Field Mapping Interface
+  - [ ] Interfaz para mapear campos de entrada a salida
+  - [ ] Transformaciones básicas (rename, filter, transform)
+  - [ ] Preview de datos resultantes
+  - [ ] Validación de tipos y formatos
+
+- [ ] **9.5.5.3** Data Preview y Testing
+  - [ ] Preview de datos con valores de ejemplo
+  - [ ] Testing de transformaciones con datos reales
+  - [ ] Validación de performance de transformaciones
+  - [ ] Debug de flujo de datos
+
+**Estado:** ❌ PENDIENTE (0% completado)
+
+---
+
+### Tarea 9.5.6: Integración con Conectores
+- [ ] **9.5.6.1** Conectores con datos
+  - [ ] Definir esquemas de datos para cada conector
+  - [ ] Implementar validación de configuraciones
+  - [ ] Crear mapeo automático de campos
+  - [ ] Documentar formatos de datos
+
+- [ ] **9.5.6.2** Importación de datos
+  - [ ] Implementar importación desde fuentes externas
+  - [ ] Validar formatos de datos importados
+  - [ ] Crear esquemas dinámicos basados en datos
+  - [ ] Manejar errores de importación
+
+- [ ] **9.5.6.3** Exportación de datos
+  - [ ] Implementar exportación a formatos estándar
+  - [ ] Validar esquemas de salida
+  - [ ] Crear templates de exportación
+  - [ ] Manejar transformaciones de formato
+
+**Estado:** ❌ PENDIENTE (0% completado)
 
 ---
 
@@ -361,7 +502,7 @@
 ### ✅ Entregables Verificados
 - [x] **Editor Visual Funcional**
   - [x] Canvas de React Flow completamente funcional
-  - [x] Nodos básicos (start, end, action) implementados
+  - [x] Nodos básicos (start, end, action, condition) implementados
   - [x] Conexiones entre nodos funcionando
   - [x] Drag and drop desde palette
   - [x] Controles de zoom y pan
@@ -369,9 +510,16 @@
 - [x] **Biblioteca de Nodos Básica**
   - [x] Node palette sidebar con categorías
   - [x] Paneles de configuración para cada nodo
-  - [x] Validación de nodos en tiempo real
-  - [x] Preview functionality
+  - [x] Validación de nodos en tiempo real (parcial)
+  - [x] Preview functionality (parcial)
   - [x] Búsqueda y filtros
+
+- [ ] **Sistema de Flujo de Datos** 🆕
+  - [ ] Nodos con puertos de entrada/salida tipados
+  - [ ] Conexiones direccionales con validación de datos
+  - [ ] Nodos de condición como rombos con dos salidas
+  - [ ] Visualización de campos de datos en tiempo real
+  - [ ] Panel de configuración de mapeo de datos
 
 - [ ] **Gestión de Estado del Editor**
   - [ ] Zustand store para workflow editor
@@ -388,23 +536,51 @@
 
 ### 📊 Métricas de Éxito
 - [x] **Performance:** <2s para cargar editor
-- [x] **Reliability:** 100% de funcionalidades funcionando
+- [x] **Reliability:** 100% de funcionalidades básicas funcionando
 - [x] **Usability:** <5 minutos para crear workflow básico
-- [x] **Quality:** 0 errores críticos
+- [x] **Quality:** 0 errores críticos en funcionalidades básicas
+- [ ] **Data Flow:** Validación completa de tipos de datos
 - [ ] **Cobertura:** >80% de código testado
 - [ ] **Documentación:** 100% de componentes documentados
 - [x] **Performance:** Bundle size <2MB
 
 ---
 
-## PRÓXIMO SPRINT
-- [ ] **Sprint 10-11: Conectores Esenciales**
-  - [ ] Implementar 20 conectores esenciales
-  - [ ] Integrar conectores con editor
-  - [ ] Testing de conectores
+## TAREAS PENDIENTES PRIORITARIAS
+
+### 🔴 CRÍTICAS (Sprint 9.5 - Nuevo)
+1. **Tarea 9.5.1: Data Flow Architecture**
+   - Definir modelo de datos completo
+   - Actualizar tipos de nodos con puertos
+   - Implementar sistema de validación de datos
+
+2. **Tarea 9.5.2: Nodos con Puertos de Datos**
+   - Rediseñar todos los nodos con puertos input/output
+   - Implementar visualización de datos
+   - Crear validación visual de conexiones
+
+3. **Tarea 9.5.3: Nodo de Condición como Rombo**
+   - Cambiar forma de ConditionNode a rombo
+   - Implementar lógica de flujo de datos condicional
+   - Configurar editor de condiciones
+
+### 🟡 IMPORTANTES (Fase 3)
+4. **Tarea 3.1: Zustand Store para Workflow Editor**
+5. **Tarea 3.2: Undo/Redo Functionality**
+6. **Tarea 3.3: Auto-save**
+
+### 🟢 NICE-TO-HAVE (Fase 4)
+7. **Tarea 4.1: Testing Completo**
+8. **Tarea 4.2: Polish y Optimización**
 
 ---
 
-**Estado Final:** 🟡 EN PROGRESO - Fase 1 completada, Fase 2 parcialmente completada
-**Progreso:** 65% completado (Fase 1: 100%, Fase 2: 85%, Fase 3: 0%, Fase 4: 0%)
-**Próximo Sprint:** Sprint 10-11: Conectores Esenciales 
+## PRÓXIMO SPRINT
+- [ ] **Sprint 9.5: Sistema de Flujo de Datos** (1 semana)
+- [ ] **Sprint 10-11: Conectores Esenciales** (2 semanas)
+
+---
+
+**Estado Final:** 🟡 EN PROGRESO - Fase 1 completada, Fase 2 parcialmente completada, Sprint 9.5 pendiente
+**Progreso:** 65% completado (Fase 1: 100%, Fase 2: 85%, Fase 3: 0%, Fase 4: 0%, Sprint 9.5: 0%)
+**Próximo Sprint:** Sprint 9.5: Sistema de Flujo de Datos 
