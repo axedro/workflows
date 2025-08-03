@@ -12,12 +12,14 @@ interface ConditionNodeData extends NodeData {
 }
 
 const ConditionNode: React.FC<NodeProps<ConditionNodeData>> = ({ data, selected }) => {
+  const isValid = data.validation?.isValid ?? true;
+
   return (
     <div
       className={`
         relative bg-white rounded-lg shadow-md border-2 p-4 w-48
         transition-all duration-200
-        ${selected ? 'border-yellow-500 shadow-xl' : 'border-gray-300'}
+        ${selected ? 'border-yellow-500 shadow-xl' : (isValid ? 'border-gray-300' : 'border-red-500')}
       `}
     >
       <Handle type="target" position={Position.Top} className="w-3 h-3 bg-gray-400" />

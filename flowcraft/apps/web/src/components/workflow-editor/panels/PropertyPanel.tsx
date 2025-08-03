@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { EditorNode, NodeType } from '@flowcraft/shared-types';
 import { Tooltip } from '@flowcraft/ui';
+import { validateNode } from '../../../services/workflowValidation.service';
 
 interface PropertyPanelProps {
   selectedNode: EditorNode | null;
@@ -15,9 +16,13 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
 }) => {
   const [localNode, setLocalNode] = useState<EditorNode | null>(selectedNode);
 
-  // Update local state when selected node changes
-  React.useEffect(() => {
+  // Update local state and run validation when selected node changes
+  useEffect(() => {
     setLocalNode(selectedNode);
+    if (selectedNode) {
+      // The validation state is now managed directly within handleInputChange
+      // and stored on the node data. This effect just syncs the localNode.
+    }
   }, [selectedNode]);
 
   if (!selectedNode || !localNode) {
@@ -37,16 +42,24 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
   }
 
   const handleInputChange = (field: string, value: any) => {
-    if (readOnly) return;
+    if (readOnly || !localNode) return;
 
-    const updatedNode = {
-      ...localNode,
-      data: {
-        ...localNode.data,
-        [field]: value,
-      },
+    const updatedNodeData = {
+      ...localNode.data,
+      [field]: value,
     };
+
+    const updatedNode: EditorNode = {
+      ...localNode,
+      data: updatedNodeData,
+    };
+
+    // Run validation on the updated node data
+    const validation = validateNode(updatedNode);
+    updatedNode.data.validation = validation;
+
     setLocalNode(updatedNode);
+    onNodeUpdate(updatedNode); // Update parent state immediately
   };
 
   const handleSave = () => {
@@ -186,15 +199,18 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 value={localNode.data.condition?.variable || ''}
                 onChange={e => handleInputChange('condition', { ...localNode.data.condition, variable: e.target.value })}
                 placeholder="e.g., {{data.temperature}}"
-                className="w-full px-3 py-2 border rounded-md text-sm"
+                className={`w-full px-3 py-2 border rounded-md text-sm ${localNode.data.validation?.errors.some(e => e.includes('Variable')) ? 'border-red-500' : 'border-gray-300'}`}
               />
+              {localNode.data.validation?.errors.find(e => e.includes('Variable')) && (
+                <p className="text-xs text-red-600 mt-1">{localNode.data.validation.errors.find(e => e.includes('Variable'))}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Operator</label>
               <select
                 value={localNode.data.condition?.operator || 'equals'}
                 onChange={e => handleInputChange('condition', { ...localNode.data.condition, operator: e.target.value })}
-                className="w-full px-3 py-2 border rounded-md text-sm"
+                className="w-full px-3 py-2 border rounded-md text-sm border-gray-300"
               >
                 <option value="equals">Equals</option>
                 <option value="not_equals">Not Equals</option>
@@ -209,8 +225,11 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 value={localNode.data.condition?.value || ''}
                 onChange={e => handleInputChange('condition', { ...localNode.data.condition, value: e.target.value })}
                 placeholder="e.g., 25"
-                className="w-full px-3 py-2 border rounded-md text-sm"
+                className={`w-full px-3 py-2 border rounded-md text-sm ${localNode.data.validation?.errors.some(e => e.includes('Value')) ? 'border-red-500' : 'border-gray-300'}`}
               />
+              {localNode.data.validation?.errors.find(e => e.includes('Value')) && (
+                <p className="text-xs text-red-600 mt-1">{localNode.data.validation.errors.find(e => e.includes('Value'))}</p>
+              )}
             </div>
           </div>
         );
