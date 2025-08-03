@@ -108,6 +108,12 @@ export interface NodeData {
   status?: 'idle' | 'running' | 'success' | 'error';
   retryCount?: number;
   maxRetries?: number;
+  // Condition node specific properties
+  condition?: {
+    variable: string;
+    operator: string;
+    value: string;
+  };
   // End node specific properties
   resultType?: 'success' | 'error' | 'partial';
   outputData?: Record<string, any>;

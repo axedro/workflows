@@ -175,6 +175,45 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             </div>
           </div>
         );
+      
+      case NodeType.CONDITION:
+        return (
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Variable</label>
+              <input
+                type="text"
+                value={localNode.data.condition?.variable || ''}
+                onChange={e => handleInputChange('condition', { ...localNode.data.condition, variable: e.target.value })}
+                placeholder="e.g., {{data.temperature}}"
+                className="w-full px-3 py-2 border rounded-md text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Operator</label>
+              <select
+                value={localNode.data.condition?.operator || 'equals'}
+                onChange={e => handleInputChange('condition', { ...localNode.data.condition, operator: e.target.value })}
+                className="w-full px-3 py-2 border rounded-md text-sm"
+              >
+                <option value="equals">Equals</option>
+                <option value="not_equals">Not Equals</option>
+                <option value="greater_than">Greater Than</option>
+                <option value="less_than">Less Than</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Value</label>
+              <input
+                type="text"
+                value={localNode.data.condition?.value || ''}
+                onChange={e => handleInputChange('condition', { ...localNode.data.condition, value: e.target.value })}
+                placeholder="e.g., 25"
+                className="w-full px-3 py-2 border rounded-md text-sm"
+              />
+            </div>
+          </div>
+        );
 
       case NodeType.END:
         return (

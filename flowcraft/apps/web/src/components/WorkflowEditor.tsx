@@ -20,6 +20,7 @@ import { NodeType, EditorNode, EditorEdge, EdgeType, NodeCategory } from '@flowc
 import StartNode from './workflow-editor/nodes/StartNode';
 import EndNode from './workflow-editor/nodes/EndNode';
 import ActionNode from './workflow-editor/nodes/ActionNode';
+import ConditionNode from './workflow-editor/nodes/ConditionNode';
 import DefaultEdge from './workflow-editor/edges/DefaultEdge';
 import { Background, BackgroundVariant } from '@reactflow/background';
 import { MiniMap } from '@reactflow/minimap';
@@ -116,6 +117,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
     [NodeType.START]: StartNode,
     [NodeType.END]: EndNode,
     [NodeType.ACTION]: ActionNode,
+    [NodeType.CONDITION]: ConditionNode,
   }), []);
 
   const edgeTypes: EdgeTypes = useMemo(() => ({
