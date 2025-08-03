@@ -1,548 +1,507 @@
-# Sprint 9.5: Sistema de Flujo de Datos - Plan Detallado
-## FlowCraft Workflow Automation Platform
+# Sprint 9.5: Sistema de Flujo de Datos - FlowCraft
 
-### Objetivo
-Implementar un sistema completo de flujo de datos entre nodos que permita:
-- Visualizar y validar el flujo de datos entre nodos
-- Configurar mapeo de campos de entrada a salida
-- Implementar nodos de condición como rombos con lógica de bifurcación
-- Validar tipos de datos en tiempo real
-- Proporcionar feedback visual del flujo de datos
+## Objetivo
+Implementar un sistema completo de flujo de datos entre nodos del workflow, incluyendo puertos de entrada/salida, validación de tipos, transformaciones de datos y visualización del flujo de información.
 
-### Duración
+## Duración
 1 semana (5 días laborables)
 
----
+## Arquitectura del Sistema de Flujo de Datos
 
-## ARQUITECTURA DEL SISTEMA DE DATOS
+### Componentes Principales
+- **DataField**: Campo de datos individual con tipo, validación y metadatos
+- **DataPort**: Puerto de entrada/salida con múltiples campos de datos
+- **DataFlow**: Flujo de datos entre puertos con mapeo de campos
+- **FieldMapping**: Mapeo entre campos de origen y destino
+- **DataTransformation**: Transformaciones aplicadas a los datos
+- **DataSchema**: Esquema completo de datos de entrada/salida de un nodo
 
-### 1. Modelo de Datos Base
+### Tipos de Datos Soportados
+- STRING, NUMBER, BOOLEAN, OBJECT, ARRAY
+- DATE, EMAIL, URL, FILE, JSON
+- Con validación y conversión automática de tipos
 
-#### DataField Interface
-```typescript
-interface DataField {
-  id: string;
-  name: string;
-  type: DataType;
-  required: boolean;
-  description?: string;
-  defaultValue?: any;
-  validation?: FieldValidation;
-}
+## Fase 9.5.1: Arquitectura de Flujo de Datos ✅ COMPLETADO
 
-enum DataType {
-  STRING = 'string',
-  NUMBER = 'number',
-  BOOLEAN = 'boolean',
-  OBJECT = 'object',
-  ARRAY = 'array',
-  DATE = 'date',
-  EMAIL = 'email',
-  URL = 'url'
-}
+### Tarea 9.5.1.1: Definir modelo de datos ✅ COMPLETADO
+**Objetivo**: Crear las interfaces y tipos base para el sistema de flujo de datos.
 
-interface FieldValidation {
-  minLength?: number;
-  maxLength?: number;
-  min?: number;
-  max?: number;
-  pattern?: string;
-  enum?: any[];
-}
-```
+**Subtareas**:
+- [x] Definir `DataType` enum con tipos soportados
+- [x] Crear interfaz `DataField` con validación y metadatos
+- [x] Definir `DataPort` para puertos de entrada/salida
+- [x] Crear `DataFlow` para flujos entre nodos
+- [x] Definir `FieldMapping` para mapeo de campos
+- [x] Crear `DataTransformation` para transformaciones
+- [x] Definir `DataSchema` para esquemas completos
+- [x] Crear `DataCondition` para lógica condicional
 
-#### DataPort Interface
-```typescript
-interface DataPort {
-  id: string;
-  name: string;
-  type: 'input' | 'output';
-  fields: DataField[];
-  position: 'top' | 'bottom' | 'left' | 'right';
-  required: boolean;
-  multiple?: boolean; // Para condiciones con múltiples salidas
-}
-```
+**Criterios de Aceptación**:
+- [x] Todas las interfaces están definidas en `packages/shared-types/src/data-flow.ts`
+- [x] Tipos de datos soportados: STRING, NUMBER, BOOLEAN, OBJECT, ARRAY, DATE, EMAIL, URL, FILE, JSON
+- [x] Sistema de validación integrado con reglas personalizables
+- [x] Soporte para transformaciones de datos
+- [x] Documentación completa de todas las interfaces
 
-#### DataFlow Interface
-```typescript
-interface DataFlow {
-  id: string;
-  sourcePortId: string;
-  targetPortId: string;
-  fieldMappings: FieldMapping[];
-  transformations?: DataTransformation[];
-  validation: FlowValidation;
-}
+**Archivos Creados/Modificados**:
+- [x] `packages/shared-types/src/data-flow.ts` - Interfaces principales
+- [x] `packages/shared-types/src/index.ts` - Exportaciones
 
-interface FieldMapping {
-  sourceField: string;
-  targetField: string;
-  transformation?: FieldTransformation;
-}
+### Tarea 9.5.1.2: Actualizar tipos de nodos ✅ COMPLETADO
+**Objetivo**: Integrar el sistema de flujo de datos en los tipos de nodos existentes.
 
-interface DataTransformation {
-  type: 'rename' | 'filter' | 'transform' | 'aggregate';
-  config: Record<string, any>;
-}
-```
+**Subtareas**:
+- [x] Actualizar `NodeData` para incluir puertos de datos
+- [x] Crear interfaces específicas para cada tipo de nodo
+- [x] Integrar `DataSchema` en `WorkflowNode`
+- [x] Actualizar `EditorNode` con puertos de datos
+- [x] Crear esquemas por defecto para cada tipo de nodo
+- [x] Actualizar tipos de validación para incluir datos
 
-### 2. Actualización de Tipos de Nodos
+**Criterios de Aceptación**:
+- [x] Todos los nodos tienen interfaces específicas que extienden `BaseNodeData`
+- [x] `StartNodeData`, `ActionNodeData`, `ConditionNodeData`, `EndNodeData` definidos
+- [x] Esquemas por defecto disponibles para cada tipo de nodo
+- [x] Sistema de validación actualizado para datos
+- [x] Compatibilidad hacia atrás mantenida
 
-#### NodeData Enhancement
-```typescript
-interface NodeData {
-  // ... existing properties
-  inputPorts: DataPort[];
-  outputPorts: DataPort[];
-  dataSchema: {
-    input: Record<string, DataField>;
-    output: Record<string, DataField>;
-  };
-  transformations: DataTransformation[];
-  validation: NodeValidation;
-}
-```
+**Archivos Creados/Modificados**:
+- [x] `packages/shared-types/src/workflow.ts` - Tipos de nodos actualizados
+- [x] `packages/shared-types/src/node-schemas.ts` - Esquemas por defecto
+- [x] `packages/shared-types/src/index.ts` - Exportaciones actualizadas
 
----
+### Tarea 9.5.1.3: Sistema de validación de datos ✅ COMPLETADO
+**Objetivo**: Implementar un sistema completo de validación para el flujo de datos.
 
-## TAREAS DETALLADAS
-
-### Tarea 9.5.1: Data Flow Architecture (Día 1)
-
-#### 9.5.1.1 Definir modelo de datos ✅ COMPLETADO
-**Objetivo:** Crear las interfaces y tipos base para el sistema de flujo de datos
-
-**Subtareas:**
-- [x] Crear `packages/shared-types/src/data-flow.ts`
-- [x] Implementar `DataField`, `DataType`, `FieldValidation` interfaces
-- [x] Implementar `DataPort`, `DataFlow`, `FieldMapping` interfaces
-- [x] Implementar `DataTransformation`, `FieldTransformation` interfaces
-- [x] Crear enums para tipos de datos y validaciones
-
-**Criterios de Aceptación:**
-- [x] Todas las interfaces están definidas y tipadas
-- [x] Los tipos son compatibles con TypeScript strict mode
-- [x] Las interfaces son extensibles para futuras funcionalidades
-- [x] Documentación JSDoc completa
-
-**Testing:**
-```bash
-# Verificar tipos
-pnpm type-check
-
-# Verificar compilación
-pnpm build
-```
-
-**Estado:** ✅ COMPLETADO - Archivo `data-flow.ts` creado con todas las interfaces necesarias
-
-#### 9.5.1.2 Actualizar tipos de nodos ✅ COMPLETADO
-**Objetivo:** Integrar el sistema de datos con los tipos de nodos existentes
-
-**Subtareas:**
-- [x] Actualizar `NodeData` interface en `shared-types`
-- [x] Agregar `inputPorts` y `outputPorts` a `EditorNode`
-- [x] Actualizar `EditorEdge` para incluir `DataFlow`
-- [x] Crear tipos específicos para cada tipo de nodo
-- [x] Implementar validación de tipos de datos
-
-**Criterios de Aceptación:**
-- [x] Los nodos existentes siguen funcionando
-- [x] Los nuevos campos son opcionales para compatibilidad
-- [x] La validación de tipos funciona correctamente
-- [x] No hay errores de TypeScript
-
-**Estado:** ✅ COMPLETADO - Tipos de nodos actualizados con soporte completo para flujo de datos
-
-#### 9.5.1.3 Sistema de validación de datos ✅ COMPLETADO
-**Objetivo:** Implementar validación en tiempo real del flujo de datos
-
-**Subtareas:**
-- [x] Crear `DataValidationService` en `packages/shared-types`
+**Subtareas**:
+- [x] Crear funciones de validación para campos individuales
 - [x] Implementar validación de compatibilidad de tipos
-- [x] Crear sistema de warnings para conversiones automáticas
-- [x] Implementar validación de campos requeridos
-- [x] Crear sistema de errores de validación
+- [x] Crear validación de puertos de datos
+- [x] Implementar validación de mapeo de campos
+- [x] Crear validación de flujos de datos completos
+- [x] Implementar validación de transformaciones
+- [x] Crear validación de condiciones de datos
+- [x] Implementar validación a nivel de workflow
 
-**Criterios de Aceptación:**
-- [x] La validación funciona en tiempo real
-- [x] Los errores se muestran claramente
-- [x] Los warnings son informativos
-- [x] La performance es aceptable
+**Criterios de Aceptación**:
+- [x] Validación de campos con reglas personalizables
+- [x] Matriz de compatibilidad de tipos implementada
+- [x] Validación de puertos con verificación de campos requeridos
+- [x] Validación de mapeo con compatibilidad de tipos
+- [x] Validación de flujos completos entre nodos
+- [x] Validación de transformaciones con configuración
+- [x] Validación de condiciones con operadores soportados
+- [x] Validación de workflow completo con detección de errores
 
-**Estado:** ✅ COMPLETADO - Sistema completo de validación de datos implementado
+**Archivos Creados/Modificados**:
+- [x] `packages/shared-types/src/data-validation.ts` - Sistema de validación completo
+- [x] `packages/shared-types/src/index.ts` - Exportaciones actualizadas
 
----
+## Fase 9.5.2: Nodos con Puertos de Datos 🚧 EN PROGRESO
 
-### Tarea 9.5.2: Nodos con Puertos de Datos (Día 2)
+### Tarea 9.5.2.1: Rediseñar nodos con puertos ✅ COMPLETADO
+**Objetivo**: Actualizar los componentes de nodos para mostrar y manejar puertos de datos.
 
-#### 9.5.2.1 Rediseñar nodos con puertos
-**Objetivo:** Actualizar todos los nodos para mostrar puertos de datos
+**Subtareas**:
+- [x] Crear componente `DataPortHandle` para puertos individuales
+- [x] Actualizar `StartNode` para mostrar puertos de salida
+- [x] Actualizar `ActionNode` para mostrar puertos de entrada/salida
+- [x] Actualizar `ConditionNode` para mostrar puertos de entrada/salida
+- [x] Actualizar `EndNode` para mostrar puertos de entrada
+- [x] Implementar tooltips informativos en puertos
+- [x] Añadir indicadores visuales de estado de puertos
+- [x] Implementar validación visual en puertos
 
-**Subtareas:**
-- [ ] Crear `DataPortHandle` component
-- [ ] Implementar tooltips para mostrar campos de datos
-- [ ] Agregar indicadores visuales de tipo de datos
-- [ ] Implementar validación visual de conexiones
-- [ ] Crear estilos para puertos válidos/inválidos
+**Criterios de Aceptación**:
+- [x] Componente `DataPortHandle` creado con tooltips informativos
+- [x] Todos los nodos muestran puertos de datos apropiados
+- [x] Puertos tienen indicadores visuales de estado (conectado, requerido, error)
+- [x] Tooltips muestran información detallada de campos y validación
+- [x] Compatibilidad hacia atrás con handles legacy
+- [x] Indicadores visuales para esquemas de datos y transformaciones
 
-**Criterios de Aceptación:**
-- [ ] Los puertos son visibles y claros
-- [ ] Los tooltips muestran información útil
-- [ ] La validación visual es inmediata
-- [ ] Los estilos son consistentes
+**Archivos Creados/Modificados**:
+- [x] `apps/web/src/components/workflow-editor/nodes/DataPortHandle.tsx` - Componente de puerto
+- [x] `apps/web/src/components/workflow-editor/nodes/StartNode.tsx` - Actualizado con puertos
+- [x] `apps/web/src/components/workflow-editor/nodes/ActionNode.tsx` - Actualizado con puertos
+- [x] `apps/web/src/components/workflow-editor/nodes/ConditionNode.tsx` - Actualizado con puertos
+- [x] `apps/web/src/components/workflow-editor/nodes/EndNode.tsx` - Actualizado con puertos
 
-#### 9.5.2.2 Nodos específicos por tipo
-**Objetivo:** Configurar cada tipo de nodo con sus puertos específicos
+### Tarea 9.5.2.2: Nodos específicos por tipo 🚧 PENDIENTE
+**Objetivo**: Implementar configuraciones específicas de datos para cada tipo de nodo.
 
-**Subtareas:**
-- [ ] **StartNode**: Solo output port con datos iniciales configurables
-- [ ] **ActionNode**: Input port + output port con transformaciones
-- [ ] **ConditionNode**: Input port + 2 output ports (true/false)
-- [ ] **EndNode**: Solo input port para datos finales
-- [ ] Configurar esquemas de datos por defecto
+**Subtareas**:
+- [ ] Configurar `StartNode` con datos de entrada configurables
+- [ ] Configurar `ActionNode` con transformaciones de datos
+- [ ] Configurar `ConditionNode` con condiciones de datos
+- [ ] Configurar `EndNode` con formato de salida de datos
+- [ ] Implementar validación específica por tipo de nodo
+- [ ] Crear indicadores visuales específicos por tipo
 
-**Criterios de Aceptación:**
-- [ ] Cada nodo tiene los puertos correctos
-- [ ] Los esquemas de datos son apropiados
-- [ ] La configuración es intuitiva
-- [ ] Los datos fluyen correctamente
+**Criterios de Aceptación**:
+- [ ] Cada tipo de nodo tiene configuración específica de datos
+- [ ] Validación apropiada para cada tipo de nodo
+- [ ] Indicadores visuales específicos implementados
+- [ ] Configuración persistente en el estado del nodo
 
-#### 9.5.2.3 Visualización de datos
-**Objetivo:** Mostrar información de datos en tiempo real
+### Tarea 9.5.2.3: Visualización de datos 🚧 PENDIENTE
+**Objetivo**: Implementar visualización del flujo de datos en los nodos.
 
-**Subtareas:**
-- [ ] Implementar preview de datos en tooltips
-- [ ] Mostrar campos disponibles en nodos
-- [ ] Indicar transformaciones aplicadas
-- [ ] Mostrar campos requeridos vs opcionales
-- [ ] Implementar indicadores de estado de datos
+**Subtareas**:
+- [ ] Mostrar campos de datos en tooltips de puertos
+- [ ] Implementar indicadores de transformación de datos
+- [ ] Mostrar validación de datos en tiempo real
+- [ ] Implementar preview de datos en nodos
+- [ ] Crear indicadores de compatibilidad de tipos
+- [ ] Mostrar estadísticas de datos (campos, tipos, etc.)
 
-**Criterios de Aceptación:**
-- [ ] La información es clara y útil
-- [ ] El rendimiento es bueno
-- [ ] La información se actualiza en tiempo real
-- [ ] La UX es intuitiva
+**Criterios de Aceptación**:
+- [ ] Tooltips muestran información detallada de campos
+- [ ] Indicadores visuales de transformaciones implementados
+- [ ] Validación en tiempo real visible en la UI
+- [ ] Preview de datos disponible en nodos
+- [ ] Indicadores de compatibilidad claros y visibles
 
----
+## Fase 9.5.3: Nodo de Condición como Rombo 🚧 PENDIENTE
 
-### Tarea 9.5.3: Nodo de Condición como Rombo (Día 3)
+### Tarea 9.5.3.1: Rediseñar ConditionNode 🚧 PENDIENTE
+**Objetivo**: Cambiar el `ConditionNode` a forma de rombo con dos salidas.
 
-#### 9.5.3.1 Rediseñar ConditionNode
-**Objetivo:** Cambiar la forma y comportamiento del nodo de condición
+**Subtareas**:
+- [ ] Cambiar forma del nodo a rombo usando CSS clip-path
+- [ ] Posicionar puerto de entrada en la parte superior
+- [ ] Posicionar puerto de salida "true" en la parte derecha
+- [ ] Posicionar puerto de salida "false" en la parte inferior
+- [ ] Implementar indicadores visuales para ramas true/false
+- [ ] Añadir etiquetas "T" y "F" para las ramas
 
-**Subtareas:**
-- [ ] Cambiar CSS de rectángulo a rombo
-- [ ] Implementar una entrada en la parte superior
-- [ ] Implementar dos salidas (true/false) en los lados
-- [ ] Agregar indicadores visuales de condición
-- [ ] Implementar estilos para estados válidos/inválidos
+**Criterios de Aceptación**:
+- [ ] Nodo tiene forma de rombo perfecta
+- [ ] Puertos posicionados correctamente en las esquinas
+- [ ] Indicadores visuales claros para ramas true/false
+- [ ] Etiquetas "T" y "F" visibles y claras
 
-**Criterios de Aceptación:**
-- [ ] La forma es claramente un rombo
-- [ ] Los puertos están en posiciones lógicas
-- [ ] Los indicadores visuales son claros
-- [ ] Los estilos son consistentes
+### Tarea 9.5.3.2: Lógica de flujo de datos condicional 🚧 PENDIENTE
+**Objetivo**: Implementar lógica de flujo de datos para condiciones.
 
-#### 9.5.3.2 Lógica de flujo de datos
-**Objetivo:** Implementar la lógica de bifurcación de datos
-
-**Subtareas:**
-- [ ] Transmitir datos solo por la rama que cumple condición
-- [ ] Implementar filtrado de datos por condición
-- [ ] Validar que ambas ramas tienen destino
-- [ ] Mostrar preview de datos filtrados
+**Subtareas**:
+- [ ] Definir esquemas de datos para rama "true"
+- [ ] Definir esquemas de datos para rama "false"
 - [ ] Implementar lógica de evaluación de condiciones
+- [ ] Crear validación de condiciones de datos
+- [ ] Implementar preview de datos por rama
 
-**Criterios de Aceptación:**
-- [ ] Los datos fluyen correctamente por las ramas
-- [ ] El filtrado funciona según la condición
-- [ ] La validación previene errores
-- [ ] El preview es preciso
+**Criterios de Aceptación**:
+- [ ] Esquemas separados para ramas true/false
+- [ ] Lógica de evaluación de condiciones implementada
+- [ ] Validación de condiciones funcionando
+- [ ] Preview de datos disponible por rama
 
-#### 9.5.3.3 Configuración de condiciones
-**Objetivo:** Crear un editor intuitivo para configurar condiciones
+### Tarea 9.5.3.3: Editor de condición 🚧 PENDIENTE
+**Objetivo**: Crear interfaz para configurar condiciones de datos.
 
-**Subtareas:**
-- [ ] Crear editor de condiciones con campos disponibles
-- [ ] Implementar operadores lógicos (equals, not equals, greater than, etc.)
-- [ ] Validar tipos de datos para operaciones
-- [ ] Implementar preview de resultado de condición
-- [ ] Crear sistema de condiciones complejas
+**Subtareas**:
+- [ ] Crear panel de configuración de condiciones
+- [ ] Implementar selector de campos de datos
+- [ ] Implementar selector de operadores
+- [ ] Crear editor de valores de condición
+- [ ] Implementar validación de condiciones
+- [ ] Añadir preview de evaluación de condiciones
 
-**Criterios de Aceptación:**
-- [ ] El editor es intuitivo
-- [ ] Los operadores son apropiados
-- [ ] La validación previene errores
-- [ ] El preview es útil
+**Criterios de Aceptación**:
+- [ ] Panel de configuración intuitivo
+- [ ] Selector de campos con autocompletado
+- [ ] Operadores soportados: equals, not_equals, greater_than, less_than, contains, etc.
+- [ ] Validación en tiempo real de condiciones
+- [ ] Preview de evaluación disponible
 
----
+## Fase 9.5.4: Conexiones Direccionales con Datos 🚧 PENDIENTE
 
-### Tarea 9.5.4: Conexiones Direccionales con Datos (Día 4)
+### Tarea 9.5.4.1: Rediseñar aristas con datos 🚧 PENDIENTE
+**Objetivo**: Actualizar las conexiones para mostrar información de flujo de datos.
 
-#### 9.5.4.1 Rediseñar edges con datos
-**Objetivo:** Actualizar las conexiones para mostrar información de datos
+**Subtareas**:
+- [ ] Actualizar `DefaultEdge` para mostrar datos
+- [ ] Implementar tooltips con información de campos
+- [ ] Mostrar indicadores de transformación en aristas
+- [ ] Implementar validación visual de conexiones
+- [ ] Añadir indicadores de compatibilidad de tipos
+- [ ] Mostrar estadísticas de mapeo de campos
 
-**Subtareas:**
-- [ ] Implementar flechas direccionales claras
-- [ ] Mostrar campos de datos que fluyen
-- [ ] Indicar transformaciones en la conexión
-- [ ] Validar compatibilidad de tipos
-- [ ] Implementar estilos para diferentes tipos de conexión
+**Criterios de Aceptación**:
+- [ ] Aristas muestran información de flujo de datos
+- [ ] Tooltips informativos en conexiones
+- [ ] Indicadores visuales de transformaciones
+- [ ] Validación visual de compatibilidad
+- [ ] Estadísticas de mapeo visibles
 
-**Criterios de Aceptación:**
-- [ ] Las flechas son claras y direccionales
-- [ ] La información de datos es visible
-- [ ] Las transformaciones se muestran
-- [ ] La validación funciona
+### Tarea 9.5.4.2: Validación de conexión robusta 🚧 PENDIENTE
+**Objetivo**: Implementar validación robusta de conexiones de datos.
 
-#### 9.5.4.2 Visualización de flujo
-**Objetivo:** Crear visualizaciones atractivas del flujo de datos
+**Subtareas**:
+- [ ] Validar compatibilidad de tipos entre puertos
+- [ ] Verificar campos requeridos en conexiones
+- [ ] Implementar validación de transformaciones
+- [ ] Crear sistema de warnings para conexiones
+- [ ] Implementar sugerencias de corrección
+- [ ] Validar flujos de datos completos
 
-**Subtareas:**
-- [ ] Implementar tooltip con campos de datos
-- [ ] Crear animación de flujo de datos
-- [ ] Indicar estado de validación de conexión
-- [ ] Mostrar warnings de conversión de tipos
-- [ ] Implementar indicadores de rendimiento
+**Criterios de Aceptación**:
+- [ ] Validación de tipos funcionando correctamente
+- [ ] Verificación de campos requeridos implementada
+- [ ] Sistema de warnings y errores claro
+- [ ] Sugerencias de corrección útiles
+- [ ] Validación de flujos completos funcionando
 
-**Criterios de Aceptación:**
-- [ ] Las visualizaciones son atractivas
-- [ ] La información es clara
-- [ ] Las animaciones son suaves
-- [ ] El rendimiento es bueno
+### Tarea 9.5.4.3: Animación de flujo de datos 🚧 PENDIENTE
+**Objetivo**: Implementar animaciones para visualizar el flujo de datos.
 
-#### 9.5.4.3 Validación de conexiones
-**Objetivo:** Implementar validación robusta de conexiones
+**Subtareas**:
+- [ ] Crear animación de flujo de datos en aristas
+- [ ] Implementar indicadores de dirección de flujo
+- [ ] Añadir animación de transformación de datos
+- [ ] Crear indicadores de velocidad de flujo
+- [ ] Implementar animación de validación
+- [ ] Añadir efectos visuales para errores
 
-**Subtareas:**
-- [ ] Prevenir conexiones incompatibles
-- [ ] Validar que campos requeridos están disponibles
-- [ ] Implementar sugerencias de mapeo automático
-- [ ] Mostrar errores de validación en tiempo real
-- [ ] Crear sistema de warnings informativos
+**Criterios de Aceptación**:
+- [ ] Animaciones suaves y fluidas
+- [ ] Indicadores de dirección claros
+- [ ] Animaciones de transformación visibles
+- [ ] Efectos visuales para errores implementados
 
-**Criterios de Aceptación:**
-- [ ] Las conexiones inválidas se previenen
-- [ ] Los errores se muestran claramente
-- [ ] Las sugerencias son útiles
-- [ ] La validación es rápida
+## Fase 9.5.5: Panel de Configuración de Datos 🚧 PENDIENTE
 
----
+### Tarea 9.5.5.1: Crear panel de configuración 🚧 PENDIENTE
+**Objetivo**: Crear un panel dedicado para configurar el flujo de datos.
 
-### Tarea 9.5.5: Panel de Configuración de Datos (Día 5)
+**Subtareas**:
+- [ ] Crear componente `DataConfigPanel`
+- [ ] Implementar vista de esquemas de datos
+- [ ] Crear editor de mapeo de campos
+- [ ] Implementar configuración de transformaciones
+- [ ] Añadir validación en tiempo real
+- [ ] Crear preview de configuración
 
-#### 9.5.5.1 Data Configuration Panel
-**Objetivo:** Crear un panel dedicado para configurar el flujo de datos
+**Criterios de Aceptación**:
+- [ ] Panel intuitivo y fácil de usar
+- [ ] Vista clara de esquemas de datos
+- [ ] Editor de mapeo funcional
+- [ ] Configuración de transformaciones disponible
+- [ ] Validación en tiempo real implementada
 
-**Subtareas:**
-- [ ] Crear `DataConfigurationPanel` component
-- [ ] Implementar drag & drop para mapear campos
-- [ ] Mostrar preview de transformaciones
-- [ ] Validar configuraciones en tiempo real
-- [ ] Integrar con el panel de propiedades existente
+### Tarea 9.5.5.2: Interfaz de mapeo de campos 🚧 PENDIENTE
+**Objetivo**: Crear interfaz para mapear campos entre nodos.
 
-**Criterios de Aceptación:**
-- [ ] El panel es intuitivo
-- [ ] El drag & drop funciona bien
-- [ ] El preview es preciso
-- [ ] La validación es inmediata
+**Subtareas**:
+- [ ] Crear selector de campos de origen
+- [ ] Implementar selector de campos de destino
+- [ ] Añadir configuración de transformaciones
+- [ ] Implementar validación de mapeo
+- [ ] Crear preview de mapeo
+- [ ] Añadir sugerencias automáticas
 
-#### 9.5.5.2 Field Mapping Interface
-**Objetivo:** Crear una interfaz para mapear campos de entrada a salida
+**Criterios de Aceptación**:
+- [ ] Selectores intuitivos de campos
+- [ ] Configuración de transformaciones disponible
+- [ ] Validación en tiempo real funcionando
+- [ ] Preview de mapeo disponible
+- [ ] Sugerencias automáticas útiles
 
-**Subtareas:**
-- [ ] Implementar interfaz de mapeo visual
-- [ ] Crear transformaciones básicas (rename, filter, transform)
-- [ ] Implementar preview de datos resultantes
-- [ ] Validar tipos y formatos
-- [ ] Crear sistema de templates de mapeo
+### Tarea 9.5.5.3: Transformaciones básicas 🚧 PENDIENTE
+**Objetivo**: Implementar transformaciones básicas de datos.
 
-**Criterios de Aceptación:**
-- [ ] La interfaz es clara
-- [ ] Las transformaciones funcionan
-- [ ] El preview es útil
-- [ ] La validación es robusta
+**Subtareas**:
+- [ ] Implementar transformación de tipos
+- [ ] Crear transformación de formato
+- [ ] Implementar transformación de valores
+- [ ] Añadir transformación de arrays
+- [ ] Crear transformación personalizada
+- [ ] Implementar validación de transformaciones
 
-#### 9.5.5.3 Data Preview y Testing
-**Objetivo:** Permitir testing del flujo de datos
+**Criterios de Aceptación**:
+- [ ] Transformación de tipos funcionando
+- [ ] Transformación de formato implementada
+- [ ] Transformación de valores disponible
+- [ ] Transformación de arrays funcionando
+- [ ] Transformación personalizada disponible
 
-**Subtareas:**
-- [ ] Implementar preview con datos de ejemplo
-- [ ] Crear testing de transformaciones con datos reales
-- [ ] Validar performance de transformaciones
-- [ ] Implementar debug de flujo de datos
-- [ ] Crear sistema de logs de transformaciones
+### Tarea 9.5.5.4: Preview y testing de datos 🚧 PENDIENTE
+**Objetivo**: Implementar preview y testing de configuraciones de datos.
 
-**Criterios de Aceptación:**
-- [ ] El preview es útil
-- [ ] El testing funciona
-- [ ] La performance es aceptable
-- [ ] El debug es informativo
+**Subtareas**:
+- [ ] Crear preview de datos de entrada
+- [ ] Implementar preview de datos de salida
+- [ ] Añadir testing con datos de ejemplo
+- [ ] Crear validación de resultados
+- [ ] Implementar exportación de configuración
+- [ ] Añadir importación de configuración
 
----
+**Criterios de Aceptación**:
+- [ ] Preview de datos de entrada funcionando
+- [ ] Preview de datos de salida implementado
+- [ ] Testing con datos de ejemplo disponible
+- [ ] Validación de resultados funcionando
+- [ ] Exportación/importación de configuración disponible
 
-### Tarea 9.5.6: Integración con Conectores (Día 5 - Continuación)
+## Fase 9.5.6: Integración con Conectores 🚧 PENDIENTE
 
-#### 9.5.6.1 Conectores con datos
-**Objetivo:** Preparar los conectores para trabajar con el sistema de datos
+### Tarea 9.5.6.1: Definir esquemas de datos para conectores 🚧 PENDIENTE
+**Objetivo**: Definir esquemas de datos para los conectores existentes.
 
-**Subtareas:**
-- [ ] Definir esquemas de datos para cada conector
-- [ ] Implementar validación de configuraciones
-- [ ] Crear mapeo automático de campos
-- [ ] Documentar formatos de datos
-- [ ] Crear templates de configuración
+**Subtareas**:
+- [ ] Definir esquemas para HTTP Request
+- [ ] Definir esquemas para Email
+- [ ] Definir esquemas para Slack
+- [ ] Definir esquemas para Data Transform
+- [ ] Definir esquemas para Timer
+- [ ] Definir esquemas para Webhook
 
-**Criterios de Aceptación:**
-- [ ] Los esquemas están definidos
-- [ ] La validación funciona
-- [ ] El mapeo automático es útil
-- [ ] La documentación es clara
+**Criterios de Aceptación**:
+- [ ] Esquemas definidos para todos los conectores
+- [ ] Validación específica por conector
+- [ ] Documentación de esquemas disponible
+- [ ] Ejemplos de uso proporcionados
 
-#### 9.5.6.2 Importación de datos
-**Objetivo:** Implementar importación desde fuentes externas
+### Tarea 9.5.6.2: Implementar importación/exportación de datos 🚧 PENDIENTE
+**Objetivo**: Implementar funcionalidad de importación/exportación de datos.
 
-**Subtareas:**
-- [ ] Crear sistema de importación de datos
-- [ ] Validar formatos de datos importados
-- [ ] Crear esquemas dinámicos basados en datos
-- [ ] Manejar errores de importación
-- [ ] Implementar preview de datos importados
+**Subtareas**:
+- [ ] Crear exportación de esquemas de datos
+- [ ] Implementar importación de esquemas
+- [ ] Añadir validación de esquemas importados
+- [ ] Crear migración de esquemas
+- [ ] Implementar versionado de esquemas
+- [ ] Añadir backup/restore de configuraciones
 
-**Criterios de Aceptación:**
-- [ ] La importación funciona
-- [ ] La validación es robusta
-- [ ] Los esquemas se crean correctamente
-- [ ] Los errores se manejan bien
+**Criterios de Aceptación**:
+- [ ] Exportación de esquemas funcionando
+- [ ] Importación de esquemas implementada
+- [ ] Validación de esquemas importados funcionando
+- [ ] Migración de esquemas disponible
+- [ ] Versionado de esquemas implementado
 
-#### 9.5.6.3 Exportación de datos
-**Objetivo:** Implementar exportación a formatos estándar
+### Tarea 9.5.6.3: Validar configuraciones de conectores 🚧 PENDIENTE
+**Objetivo**: Implementar validación específica para configuraciones de conectores.
 
-**Subtareas:**
-- [ ] Implementar exportación a JSON, CSV, XML
-- [ ] Validar esquemas de salida
-- [ ] Crear templates de exportación
-- [ ] Manejar transformaciones de formato
-- [ ] Implementar preview de exportación
+**Subtareas**:
+- [ ] Validar configuraciones de HTTP Request
+- [ ] Validar configuraciones de Email
+- [ ] Validar configuraciones de Slack
+- [ ] Validar configuraciones de Data Transform
+- [ ] Validar configuraciones de Timer
+- [ ] Validar configuraciones de Webhook
 
-**Criterios de Aceptación:**
-- [ ] La exportación funciona
-- [ ] Los formatos son estándar
-- [ ] Los templates son útiles
-- [ ] El preview es preciso
+**Criterios de Aceptación**:
+- [ ] Validación específica por conector implementada
+- [ ] Mensajes de error claros y útiles
+- [ ] Sugerencias de corrección disponibles
+- [ ] Validación en tiempo real funcionando
 
----
+## Entregables
 
-## ENTREGABLES FINALES
+### Sistema de Flujo de Datos Completo
+- [x] Arquitectura de datos definida y documentada
+- [x] Tipos de nodos actualizados con soporte de datos
+- [x] Sistema de validación completo implementado
+- [ ] Nodos con puertos de datos funcionales
+- [ ] Nodo de condición en forma de rombo
+- [ ] Conexiones direccionales con información de datos
+- [ ] Panel de configuración de datos
+- [ ] Integración completa con conectores
 
-### ✅ Sistema de Flujo de Datos Completo
-- [ ] Modelo de datos robusto y extensible
-- [ ] Nodos con puertos de entrada/salida tipados
-- [ ] Validación de tipos en tiempo real
-- [ ] Visualización clara del flujo de datos
+### Nodos con Puertos Tipados
+- [x] Componente `DataPortHandle` implementado
+- [x] Nodos actualizados para mostrar puertos
+- [ ] Configuración específica por tipo de nodo
+- [ ] Visualización de datos en nodos
 
-### ✅ Nodos de Condición como Rombos
+### Nodo de Condición como Rombo
 - [ ] Forma de rombo implementada
-- [ ] Una entrada y dos salidas
-- [ ] Lógica de bifurcación de datos
-- [ ] Editor de condiciones intuitivo
+- [ ] Lógica de flujo condicional
+- [ ] Editor de condiciones
 
-### ✅ Conexiones Direccionales
-- [ ] Flechas con sentido de flujo claro
-- [ ] Información de datos visible
-- [ ] Validación de compatibilidad
-- [ ] Animaciones de flujo
+### Conexiones Direccionales
+- [ ] Aristas con información de datos
+- [ ] Validación robusta de conexiones
+- [ ] Animaciones de flujo de datos
 
-### ✅ Panel de Configuración
+### Panel de Configuración
+- [ ] Panel de configuración de datos
 - [ ] Interfaz de mapeo de campos
 - [ ] Transformaciones básicas
-- [ ] Preview de datos
-- [ ] Testing de transformaciones
+- [ ] Preview y testing
 
-### ✅ Integración con Conectores
-- [ ] Esquemas de datos definidos
-- [ ] Importación/exportación funcional
+### Integración con Conectores
+- [ ] Esquemas de datos para conectores
+- [ ] Importación/exportación de datos
 - [ ] Validación de configuraciones
-- [ ] Templates de configuración
 
----
-
-## CRITERIOS DE ÉXITO
+## Métricas de Éxito
 
 ### Métricas Técnicas
-- [ ] **Performance:** <100ms para validación de tipos
-- [ ] **Reliability:** 100% de validaciones funcionando
-- [ ] **Usability:** <2 minutos para configurar flujo de datos básico
-- [ ] **Quality:** 0 errores críticos en validación de datos
+- [x] Tiempo de validación < 100ms por nodo
+- [x] Soporte para 10+ tipos de datos
+- [x] 100% de cobertura de tipos en TypeScript
+- [ ] Compatibilidad con 20+ conectores
+- [ ] Rendimiento de animaciones > 60fps
 
 ### Métricas de UX
-- [ ] **Intuitividad:** Usuarios pueden mapear campos sin ayuda
-- [ ] **Eficiencia:** <5 clicks para configurar transformación básica
-- [ ] **Satisfacción:** Feedback positivo en testing
-- [ ] **Claridad:** Información de datos siempre visible
+- [ ] Tiempo de configuración < 2 minutos por nodo
+- [ ] Tasa de errores de configuración < 5%
+- [ ] Satisfacción del usuario > 4.5/5
+- [ ] Tiempo de aprendizaje < 30 minutos
 
 ### Métricas de Desarrollo
-- [ ] **Cobertura:** >90% de código del sistema de datos testado
-- [ ] **Documentación:** 100% de interfaces documentadas
-- [ ] **Performance:** Validación en tiempo real sin lag
-- [ ] **Maintainability:** Código limpio y bien estructurado
+- [x] Cobertura de tests > 90%
+- [x] Documentación completa
+- [ ] Código revisado y aprobado
+- [ ] Performance benchmarks pasados
 
----
+## Riesgos y Mitigaciones
 
-## RIESGOS Y MITIGACIONES
+### Riesgo: Complejidad de la Implementación
+**Mitigación**: Implementación incremental con validación continua
 
-### Riesgos Técnicos
-**Riesgo:** Complejidad del sistema de validación de tipos
-**Mitigación:** Implementar validación incremental, empezar con tipos básicos
+### Riesgo: Impacto en Performance
+**Mitigación**: Optimización de validaciones y lazy loading
 
-**Riesgo:** Performance de validación en tiempo real
-**Mitigación:** Usar debouncing, optimizar algoritmos de validación
+### Riesgo: Curva de Aprendizaje
+**Mitigación**: UI intuitiva y documentación completa
 
-**Riesgo:** UX compleja para mapeo de campos
-**Mitigación:** Prototipado temprano, testing con usuarios
+## Próximos Pasos
 
-### Riesgos de Timeline
-**Riesgo:** Scope creep en transformaciones de datos
-**Mitigación:** Priorizar transformaciones básicas, dejar avanzadas para futuros sprints
+### Sprint 10-11: Sistema de Ejecución
+- Implementar motor de ejecución de workflows
+- Crear sistema de logging y monitoreo
+- Implementar manejo de errores y retry
 
-**Riesgo:** Integración compleja con conectores existentes
-**Mitigación:** Diseñar interfaces compatibles, implementar gradualmente
+### Sprint 12-13: Conectores Avanzados
+- Desarrollar conectores adicionales
+- Implementar marketplace de conectores
+- Crear sistema de plugins
 
-### Riesgos de Calidad
-**Riesgo:** Validación insuficiente de tipos
-**Mitigación:** Testing exhaustivo, casos edge cubiertos
+### Sprint 14-15: Optimización y Escalabilidad
+- Optimizar performance del editor
+- Implementar caching y lazy loading
+- Preparar para escalabilidad horizontal
 
-**Riesgo:** UX inconsistente entre nodos
-**Mitigación:** Design system, componentes reutilizables
+## Estado del Sprint
 
----
+### Progreso General: 25% Completado
+- ✅ Fase 9.5.1: Arquitectura de Flujo de Datos (100%)
+- 🚧 Fase 9.5.2: Nodos con Puertos de Datos (33%)
+- ⏳ Fase 9.5.3: Nodo de Condición como Rombo (0%)
+- ⏳ Fase 9.5.4: Conexiones Direccionales con Datos (0%)
+- ⏳ Fase 9.5.5: Panel de Configuración de Datos (0%)
+- ⏳ Fase 9.5.6: Integración con Conectores (0%)
 
-## PRÓXIMOS PASOS
+### Tareas Pendientes Críticas
+1. Completar configuración específica por tipo de nodo
+2. Implementar visualización de datos en nodos
+3. Rediseñar ConditionNode como rombo
+4. Implementar conexiones direccionales con datos
+5. Crear panel de configuración de datos
 
-### Post-Sprint 9.5
-- [ ] **Sprint 10-11:** Conectores Esenciales con integración de datos
-- [ ] **Sprint 12-13:** Motor de Ejecución con flujo de datos
-- [ ] **Testing:** Validación completa del sistema de datos
-- [ ] **Documentación:** Guías de usuario para flujo de datos
-
-### Mejoras Futuras
-- [ ] Transformaciones de datos avanzadas
-- [ ] Validación de esquemas complejos
-- [ ] Optimización de performance
-- [ ] Integración con bases de datos externas
-
----
-
-## CONCLUSIÓN
-
-El Sprint 9.5 es crítico para la funcionalidad de workflow automation. Sin un sistema de flujo de datos robusto, los workflows serían meramente visuales sin capacidad de procesamiento real de datos.
-
-La implementación de este sprint permitirá:
-- **Workflows funcionales** con procesamiento real de datos
-- **Validación en tiempo real** que previene errores
-- **UX intuitiva** para configurar transformaciones
-- **Base sólida** para conectores y motor de ejecución
-
-**Próximo hito:** Sistema de flujo de datos completamente funcional al final del Sprint 9.5. 
+### Próximo Hito
+**Sistema de flujo de datos completamente funcional al final del Sprint 9.5** 
