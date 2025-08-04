@@ -127,7 +127,36 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 - [x] `apps/web/src/components/workflow-editor/nodes/ConditionNode.tsx` - Actualizado con puertos
 - [x] `apps/web/src/components/workflow-editor/nodes/EndNode.tsx` - Actualizado con puertos
 
-### Tarea 9.5.2.2: Nodos específicos por tipo 🚧 PENDIENTE
+### Tarea 9.5.2.2: Implementar DataPortHandle ✅ COMPLETADO
+**Objetivo**: Crear un componente robusto para renderizar handles de puertos de datos con posicionamiento correcto.
+
+**Subtareas**:
+- [x] Crear componente `DataPortHandle` con posicionamiento automático
+- [x] Implementar mapeo de posiciones (top, bottom, left, right) a constantes de React Flow
+- [x] Añadir indicadores visuales de estado (conectado, requerido, error)
+- [x] Implementar tooltips informativos con detalles del puerto
+- [x] Corregir bug de posicionamiento hardcodeado en el handle
+- [x] Asegurar compatibilidad con todos los tipos de nodos
+- [x] Implementar estilos personalizables para handles
+
+**Criterios de Aceptación**:
+- [x] Componente `DataPortHandle` renderiza handles en posiciones correctas (top, bottom, left, right)
+- [x] Handles se posicionan automáticamente según la configuración del puerto
+- [x] Indicadores visuales funcionan correctamente (colores según estado)
+- [x] Tooltips muestran información detallada del puerto (nombre, tipo, campos)
+- [x] Handles son compatibles con todos los tipos de nodos existentes
+- [x] No hay interferencia con layouts de flexbox o posicionamiento absoluto
+- [x] Estilos personalizables permiten ajustar tamaño, color y borde
+- [x] Posicionamiento funciona correctamente en nodos de diferentes tamaños
+
+**Archivos Creados/Modificados**:
+- [x] `apps/web/src/components/workflow-editor/nodes/DataPortHandle.tsx` - Componente principal
+- [x] `apps/web/src/components/workflow-editor/nodes/StartNode.tsx` - Integración con DataPortHandle
+- [x] `apps/web/src/components/workflow-editor/nodes/ActionNode.tsx` - Integración con DataPortHandle
+- [x] `apps/web/src/components/workflow-editor/nodes/ConditionNode.tsx` - Integración con DataPortHandle
+- [x] `apps/web/src/components/workflow-editor/nodes/EndNode.tsx` - Integración con DataPortHandle
+
+### Tarea 9.5.2.3: Nodos específicos por tipo 🚧 PENDIENTE
 **Objetivo**: Implementar configuraciones específicas de datos para cada tipo de nodo.
 
 **Subtareas**:
@@ -505,3 +534,15 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 
 ### Próximo Hito
 **Sistema de flujo de datos completamente funcional al final del Sprint 9.5** 
+
+## Criterios de Aceptación para el nodo Test
+
+- El nodo Test debe poder arrastrarse desde el sidebar y colocarse en el canvas.
+- El nodo Test debe tener un tamaño de 224x224px, borde redondeado y sombra.
+- El fondo debe ser un gradiente verde-azul.
+- El contenido visual debe mostrar un círculo blanco centrado con un ícono de play verde y el texto 'Test' (o el label) debajo.
+- El handle de salida debe estar alineado a la derecha y centrado verticalmente respecto al nodo, con un tamaño de 14px y borde blanco de 2px.
+- El nodo debe ser seleccionable y mostrar el borde azul al seleccionarse.
+- Al seleccionar el nodo, sus propiedades (label, description) deben mostrarse y poder editarse en el panel derecho.
+- El nodo no debe tener problemas de alineación del handle al cambiar el tamaño, el label o la selección.
+- El diseño visual debe mantenerse consistente con el StartNode, pero sin interferir con la posición del handle. 

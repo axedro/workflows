@@ -1,38 +1,57 @@
-import { EditorNode, NodeType, NodeValidation } from '@flowcraft/shared-types';
+import { EditorNode, NodeValidation, NodeType } from '@flowcraft/shared-types';
 
 /**
  * Validates a single workflow node based on its type and data.
  * @param node The node to validate.
  * @returns A NodeValidation object with the validation status and errors.
  */
-export const validateNode = (node: EditorNode): NodeValidation => {
+export function validateNode(node: EditorNode): NodeValidation {
   const errors: string[] = [];
+  const warnings: string[] = [];
 
-  // General validations for all nodes
+  // Basic validation
   if (!node.data.label || node.data.label.trim() === '') {
-    errors.push('Node label cannot be empty.');
+    errors.push('Node label is required');
   }
 
-  // Type-specific validations
+  // Node-specific validation
   switch (node.type) {
     case NodeType.CONDITION:
-      if (!node.data.condition?.variable || node.data.condition.variable.trim() === '') {
-        errors.push('"Variable" field cannot be empty.');
+      const conditionData = node.data as any; // Cast to any for now
+      if (!conditionData.condition?.variable || conditionData.condition.variable.trim() === '') {
+        errors.push('Condition variable is required');
       }
-      if (!node.data.condition?.value || node.data.condition.value.trim() === '') {
-        errors.push('"Value" field cannot be empty.');
+      if (!conditionData.condition?.value || conditionData.condition.value.trim() === '') {
+        errors.push('Condition value is required');
       }
       break;
 
-    // Add cases for other node types here...
-    // case NodeType.HTTP_REQUEST:
-    //   ...
-    //   break;
+    case NodeType.START:
+      const startData = node.data as any; // Cast to any for now
+      if (startData.triggerType === 'scheduled' && (!startData.schedule || startData.schedule.trim() === '')) {
+        errors.push('Schedule is required for scheduled triggers');
+      }
+      if (startData.triggerType === 'webhook' && (!startData.webhookUrl || startData.webhookUrl.trim() === '')) {
+        errors.push('Webhook URL is required for webhook triggers');
+      }
+      break;
+
+    case NodeType.ACTION:
+      const actionData = node.data as any; // Cast to any for now
+      if (actionData.maxRetries && (actionData.maxRetries < 0 || actionData.maxRetries > 10)) {
+        warnings.push('Max retries should be between 0 and 10');
+      }
+      break;
   }
 
   return {
     isValid: errors.length === 0,
     errors,
-    warnings: [], // Warnings can be implemented later
+    warnings,
+    dataValidation: {
+      isValid: true,
+      errors: [],
+      warnings: []
+    }
   };
-};
+}

@@ -68,13 +68,16 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
   };
 
   const getNodeSpecificFields = () => {
+    if (!localNode) return null;
+
     switch (localNode.type) {
       case NodeType.START:
+        const startData = localNode.data as any; // Cast to any for now
         return (
           <div className="space-y-3">
             <div>
               <Tooltip
-                content="How this workflow will be triggered to start"
+                content="How this workflow will be triggered"
                 position="right"
               >
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -82,7 +85,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 </label>
               </Tooltip>
               <select
-                value={localNode.data.triggerType || 'manual'}
+                value={startData.triggerType || 'manual'}
                 onChange={e => handleInputChange('triggerType', e.target.value)}
                 disabled={readOnly}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
@@ -93,7 +96,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
               </select>
             </div>
 
-            {localNode.data.triggerType === 'scheduled' && (
+            {startData.triggerType === 'scheduled' && (
               <div>
                 <Tooltip
                   content="Cron expression for scheduling workflow execution (e.g., 0 0 * * * for daily at midnight)"
@@ -105,7 +108,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 </Tooltip>
                 <input
                   type="text"
-                  value={localNode.data.schedule || ''}
+                  value={startData.schedule || ''}
                   onChange={e => handleInputChange('schedule', e.target.value)}
                   placeholder="0 0 * * *"
                   disabled={readOnly}
@@ -114,7 +117,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
               </div>
             )}
 
-            {localNode.data.triggerType === 'webhook' && (
+            {startData.triggerType === 'webhook' && (
               <div>
                 <Tooltip
                   content="URL endpoint that will trigger this workflow when called"
@@ -126,7 +129,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 </Tooltip>
                 <input
                   type="text"
-                  value={localNode.data.webhookUrl || ''}
+                  value={startData.webhookUrl || ''}
                   onChange={e =>
                     handleInputChange('webhookUrl', e.target.value)
                   }
@@ -140,6 +143,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
         );
 
       case NodeType.ACTION:
+        const actionData = localNode.data as any; // Cast to any for now
         return (
           <div className="space-y-3">
             <div>
@@ -152,7 +156,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 </label>
               </Tooltip>
               <select
-                value={localNode.data.actionType || 'custom'}
+                value={actionData.actionType || 'custom'}
                 onChange={e => handleInputChange('actionType', e.target.value)}
                 disabled={readOnly}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
@@ -176,10 +180,8 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
               </Tooltip>
               <input
                 type="number"
-                value={localNode.data.maxRetries || 3}
-                onChange={e =>
-                  handleInputChange('maxRetries', parseInt(e.target.value))
-                }
+                value={actionData.maxRetries || 3}
+                onChange={e => handleInputChange('maxRetries', parseInt(e.target.value))}
                 min="0"
                 max="10"
                 disabled={readOnly}
@@ -188,58 +190,84 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             </div>
           </div>
         );
-      
+
       case NodeType.CONDITION:
+        const conditionData = localNode.data as any; // Cast to any for now
         return (
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Variable</label>
+              <Tooltip
+                content="Variable or field to evaluate in the condition"
+                position="right"
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Variable
+                </label>
+              </Tooltip>
               <input
                 type="text"
-                value={localNode.data.condition?.variable || ''}
-                onChange={e => handleInputChange('condition', { ...localNode.data.condition, variable: e.target.value })}
-                placeholder="e.g., {{data.temperature}}"
-                className={`w-full px-3 py-2 border rounded-md text-sm ${localNode.data.validation?.errors.some(e => e.includes('Variable')) ? 'border-red-500' : 'border-gray-300'}`}
+                value={conditionData.condition?.variable || ''}
+                onChange={e => handleInputChange('condition', { ...conditionData.condition, variable: e.target.value })}
+                placeholder="status"
+                disabled={readOnly}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
               />
-              {localNode.data.validation?.errors.find(e => e.includes('Variable')) && (
-                <p className="text-xs text-red-600 mt-1">{localNode.data.validation.errors.find(e => e.includes('Variable'))}</p>
-              )}
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Operator</label>
+              <Tooltip
+                content="Comparison operator for the condition"
+                position="right"
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Operator
+                </label>
+              </Tooltip>
               <select
-                value={localNode.data.condition?.operator || 'equals'}
-                onChange={e => handleInputChange('condition', { ...localNode.data.condition, operator: e.target.value })}
-                className="w-full px-3 py-2 border rounded-md text-sm border-gray-300"
+                value={conditionData.condition?.operator || 'equals'}
+                onChange={e => handleInputChange('condition', { ...conditionData.condition, operator: e.target.value })}
+                disabled={readOnly}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
               >
                 <option value="equals">Equals</option>
                 <option value="not_equals">Not Equals</option>
                 <option value="greater_than">Greater Than</option>
                 <option value="less_than">Less Than</option>
+                <option value="contains">Contains</option>
+                <option value="not_contains">Not Contains</option>
+                <option value="is_empty">Is Empty</option>
+                <option value="is_not_empty">Is Not Empty</option>
               </select>
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Value</label>
+              <Tooltip
+                content="Value to compare against the variable"
+                position="right"
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Value
+                </label>
+              </Tooltip>
               <input
                 type="text"
-                value={localNode.data.condition?.value || ''}
-                onChange={e => handleInputChange('condition', { ...localNode.data.condition, value: e.target.value })}
-                placeholder="e.g., 25"
-                className={`w-full px-3 py-2 border rounded-md text-sm ${localNode.data.validation?.errors.some(e => e.includes('Value')) ? 'border-red-500' : 'border-gray-300'}`}
+                value={conditionData.condition?.value || ''}
+                onChange={e => handleInputChange('condition', { ...conditionData.condition, value: e.target.value })}
+                placeholder="success"
+                disabled={readOnly}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
               />
-              {localNode.data.validation?.errors.find(e => e.includes('Value')) && (
-                <p className="text-xs text-red-600 mt-1">{localNode.data.validation.errors.find(e => e.includes('Value'))}</p>
-              )}
             </div>
           </div>
         );
 
       case NodeType.END:
+        const endData = localNode.data as any; // Cast to any for now
         return (
           <div className="space-y-3">
             <div>
               <Tooltip
-                content="Expected result type when this workflow completes"
+                content="Type of result this end node will produce"
                 position="right"
               >
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -247,14 +275,15 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 </label>
               </Tooltip>
               <select
-                value={localNode.data.resultType || 'success'}
+                value={endData.resultType || 'success'}
                 onChange={e => handleInputChange('resultType', e.target.value)}
                 disabled={readOnly}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
               >
                 <option value="success">Success</option>
                 <option value="error">Error</option>
-                <option value="partial">Partial</option>
+                <option value="partial">Partial Success</option>
+                <option value="custom">Custom</option>
               </select>
             </div>
           </div>

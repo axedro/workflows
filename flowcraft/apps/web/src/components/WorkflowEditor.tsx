@@ -16,7 +16,7 @@ import {
 } from '@reactflow/core';
 import '@reactflow/core/dist/style.css';
 
-import { NodeType, EditorNode, EditorEdge, EdgeType, NodeCategory } from '@flowcraft/shared-types';
+import { NodeType, EditorNode, EditorEdge, EdgeType, NodeCategory, getNodePorts } from '@flowcraft/shared-types';
 import StartNode from './workflow-editor/nodes/StartNode';
 import EndNode from './workflow-editor/nodes/EndNode';
 import ActionNode from './workflow-editor/nodes/ActionNode';
@@ -28,6 +28,7 @@ import { getNodeDimensions, getNodeInfo } from './workflow-editor/utils';
 import NodePalette, { OnNodeDragStart } from './workflow-editor/panels/NodePalette';
 import PropertyPanel from './workflow-editor/panels/PropertyPanel';
 import EnhancedControls from './workflow-editor/panels/EnhancedControls';
+import TestNode from './workflow-editor/nodes/TestNode';
 
 
 interface WorkflowEditorProps {
@@ -49,7 +50,7 @@ const EditorCanvas: React.FC<{
 }> = (props) => {
   const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onNodeClick, onPaneClick, setNodes, nodeTypes, edgeTypes } = props;
   const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
-  const { project } = useReactFlow();
+  const { screenToFlowPosition } = useReactFlow();
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -58,17 +59,20 @@ const EditorCanvas: React.FC<{
 
   const onDrop = useCallback((event: React.DragEvent) => {
     event.preventDefault();
-    if (!reactFlowWrapperRef.current) return;
 
-    const reactFlowBounds = reactFlowWrapperRef.current.getBoundingClientRect();
     const type = event.dataTransfer.getData('application/reactflow') as NodeType;
     if (!type) return;
     
-    const position = project({
-      x: event.clientX - reactFlowBounds.left,
-      y: event.clientY - reactFlowBounds.top,
+    const position = screenToFlowPosition({
+      x: event.clientX,
+      y: event.clientY,
     });
     const nodeDimensions = getNodeDimensions(type);
+
+    // Get node ports and separate input/output
+    const allPorts = getNodePorts(type);
+    const inputPorts = allPorts.filter(port => port.type === 'input');
+    const outputPorts = allPorts.filter(port => port.type === 'output');
 
     const newNode: Node = {
       id: `node-${Date.now()}`,
@@ -77,11 +81,16 @@ const EditorCanvas: React.FC<{
         x: position.x - nodeDimensions.width / 2,
         y: position.y - nodeDimensions.height / 2,
       },
-      data: { label: getNodeInfo(type).name },
+      data: { 
+        label: getNodeInfo(type).name,
+        inputPorts,
+        outputPorts,
+        validation: { isValid: true, errors: [], warnings: [] }
+      },
     };
 
     setNodes((nds) => [...nds, newNode]);
-  }, [project, setNodes]);
+  }, [screenToFlowPosition, setNodes]);
 
   return (
     <div className="flex-1 h-full" ref={reactFlowWrapperRef}>
@@ -118,6 +127,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
     [NodeType.END]: EndNode,
     [NodeType.ACTION]: ActionNode,
     [NodeType.CONDITION]: ConditionNode,
+    [NodeType.TEST]: TestNode, // <-- nuevo nodo
   }), []);
 
   const edgeTypes: EdgeTypes = useMemo(() => ({
@@ -133,7 +143,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
   };
 
   const nodeCategories: NodeCategory[] = useMemo(() => [
-    { id: 'core', name: 'Core', description: 'Basic nodes', icon: '⚡', color: '', nodes: [NodeType.START, NodeType.END, NodeType.ACTION] },
+    { id: 'core', name: 'Core', description: 'Basic nodes', icon: '⚡', color: '', nodes: [NodeType.START, NodeType.END, NodeType.ACTION, NodeType.TEST] },
     { id: 'logic', name: 'Logic', description: 'Control flow', icon: '🧠', color: '', nodes: [NodeType.CONDITION, NodeType.LOOP] },
     { id: 'connectors', name: 'Connectors', description: 'Integrations', icon: '🔗', color: '', nodes: [NodeType.HTTP_REQUEST, NodeType.EMAIL, NodeType.SLACK] },
     { id: 'data', name: 'Data', description: 'Data processing', icon: '📊', color: '', nodes: [NodeType.DATA_TRANSFORM, NodeType.TIMER, NodeType.WEBHOOK] },

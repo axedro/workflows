@@ -331,6 +331,13 @@ export const NODE_SCHEMAS: Record<NodeType, DataSchema> = {
     },
     description: 'Webhook node schema - receives webhook data',
     version: '1.0'
+  },
+  
+  [NodeType.TEST]: {
+    input: {},
+    output: {},
+    description: 'Test node schema',
+    version: '1.0'
   }
 };
 
@@ -341,10 +348,13 @@ export const NODE_PORTS: Record<NodeType, DataPort[]> = {
     {
       ...DEFAULT_PORTS.output,
       id: 'start-output',
+      position: 'right',
       fields: [
         DEFAULT_FIELDS.id,
-        DEFAULT_FIELDS.timestamp,
-        DEFAULT_FIELDS.data
+        DEFAULT_FIELDS.data,
+        DEFAULT_FIELDS.success,
+        DEFAULT_FIELDS.message,
+        DEFAULT_FIELDS.timestamp
       ]
     }
   ],
@@ -353,6 +363,7 @@ export const NODE_PORTS: Record<NodeType, DataPort[]> = {
     {
       ...DEFAULT_PORTS.input,
       id: 'end-input',
+      position: 'left',
       fields: [
         DEFAULT_FIELDS.id,
         DEFAULT_FIELDS.data,
@@ -372,7 +383,7 @@ export const NODE_PORTS: Record<NodeType, DataPort[]> = {
     {
       ...DEFAULT_PORTS.output,
       id: 'action-output',
-      position: 'bottom',
+      position: 'right',
       fields: [
         DEFAULT_FIELDS.id,
         DEFAULT_FIELDS.data,
@@ -387,16 +398,19 @@ export const NODE_PORTS: Record<NodeType, DataPort[]> = {
     {
       ...DEFAULT_PORTS.input,
       id: 'condition-input',
+      position: 'top',
       fields: [DEFAULT_FIELDS.id, DEFAULT_FIELDS.data]
     },
     {
       ...DEFAULT_PORTS.success,
       id: 'condition-true',
+      position: 'right',
       fields: [DEFAULT_FIELDS.id, DEFAULT_FIELDS.data, DEFAULT_FIELDS.success]
     },
     {
       ...DEFAULT_PORTS.error,
       id: 'condition-false',
+      position: 'left',
       fields: [DEFAULT_FIELDS.id, DEFAULT_FIELDS.data, DEFAULT_FIELDS.success]
     }
   ],
@@ -531,6 +545,18 @@ export const NODE_PORTS: Record<NodeType, DataPort[]> = {
         DEFAULT_FIELDS.message,
         DEFAULT_FIELDS.timestamp
       ]
+    }
+  ],
+  
+  [NodeType.TEST]: [
+    {
+      id: 'test-output',
+      name: 'Output',
+      type: 'output',
+      position: 'right',
+      fields: [],
+      required: false,
+      description: 'Test output port'
     }
   ]
 };

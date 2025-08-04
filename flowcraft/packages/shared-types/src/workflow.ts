@@ -4,8 +4,7 @@ import {
   DataFlow,
   DataField,
   DataType,
-  ConditionOperator,
-  DataCondition
+  DataCondition,
 } from './data-flow';
 
 export interface Workflow {
@@ -92,6 +91,7 @@ export enum NodeType {
   DATA_TRANSFORM = 'data_transform',
   TIMER = 'timer',
   WEBHOOK = 'webhook',
+  TEST = 'test', // <-- nuevo tipo de nodo
 }
 
 export enum EdgeType {
