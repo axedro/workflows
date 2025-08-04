@@ -7,7 +7,8 @@ import {
   DataFlow,
   FlowValidation,
   FieldMappingValidation,
-  TransformationValidation
+  TransformationValidation,
+  DataType
 } from '@flowcraft/shared-types';
 
 interface DataConfigPanelProps {
@@ -31,16 +32,118 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
   readOnly = false,
 }) => {
   const [localDataFlow, setLocalDataFlow] = useState<DataFlow>(dataFlow);
-  const [activeTab, setActiveTab] = useState<'mapping' | 'transformations' | 'validation'>('mapping');
+  const [activeTab, setActiveTab] = useState<'mapping' | 'transformations' | 'validation' | 'preview'>('mapping');
+  const [previewData, setPreviewData] = useState<Record<string, any>>({});
+  const [suggestions, setSuggestions] = useState<Array<{sourceField: string, targetField: string, confidence: number}>>([]);
 
   // Update local state when props change
   useEffect(() => {
     setLocalDataFlow(dataFlow);
   }, [dataFlow]);
 
+  // Generate sample data for preview
+  useEffect(() => {
+    const sampleData: Record<string, any> = {};
+    Object.entries(sourceSchema).forEach(([fieldId, field]) => {
+      sampleData[fieldId] = generateSampleValue(field);
+    });
+    setPreviewData(sampleData);
+  }, [sourceSchema]);
+
+  // Generate field mapping suggestions
+  useEffect(() => {
+    const newSuggestions = generateFieldSuggestions(sourceSchema, targetSchema);
+    setSuggestions(newSuggestions);
+  }, [sourceSchema, targetSchema]);
 
 
 
+
+  const generateSampleValue = (field: DataField): any => {
+    switch (field.type) {
+      case DataType.STRING:
+        return field.example || `Sample ${field.name}`;
+      case DataType.NUMBER:
+        return field.example || 42;
+      case DataType.BOOLEAN:
+        return field.example || true;
+      case DataType.ARRAY:
+        return field.example || ['item1', 'item2'];
+      case DataType.OBJECT:
+        return field.example || { key: 'value' };
+      case DataType.DATE:
+        return field.example || new Date().toISOString();
+      case DataType.EMAIL:
+        return field.example || 'user@example.com';
+      case DataType.URL:
+        return field.example || 'https://example.com';
+      default:
+        return field.example || null;
+    }
+  };
+
+  const generateFieldSuggestions = (sourceSchema: Record<string, DataField>, targetSchema: Record<string, DataField>) => {
+    const suggestions: Array<{sourceField: string, targetField: string, confidence: number}> = [];
+    
+    Object.entries(sourceSchema).forEach(([sourceFieldId, sourceField]) => {
+      Object.entries(targetSchema).forEach(([targetFieldId, targetField]) => {
+        let confidence = 0;
+        
+        // Exact name match
+        if (sourceField.name.toLowerCase() === targetField.name.toLowerCase()) {
+          confidence += 0.8;
+        }
+        
+        // Similar name match
+        if (sourceField.name.toLowerCase().includes(targetField.name.toLowerCase()) || 
+            targetField.name.toLowerCase().includes(sourceField.name.toLowerCase())) {
+          confidence += 0.4;
+        }
+        
+        // Type compatibility
+        if (sourceField.type === targetField.type) {
+          confidence += 0.3;
+        }
+        
+        // Description similarity
+        if (sourceField.description && targetField.description) {
+          const sourceWords = sourceField.description.toLowerCase().split(' ');
+          const targetWords = targetField.description.toLowerCase().split(' ');
+          const commonWords = sourceWords.filter(word => targetWords.includes(word));
+          if (commonWords.length > 0) {
+            confidence += 0.2 * (commonWords.length / Math.max(sourceWords.length, targetWords.length));
+          }
+        }
+        
+        if (confidence > 0.3) {
+          suggestions.push({
+            sourceField: sourceFieldId,
+            targetField: targetFieldId,
+            confidence: Math.min(confidence, 1)
+          });
+        }
+      });
+    });
+    
+    return suggestions.sort((a, b) => b.confidence - a.confidence);
+  };
+
+  const applySuggestion = (suggestion: {sourceField: string, targetField: string, confidence: number}) => {
+    const newMapping: FieldMapping = {
+      sourceField: suggestion.sourceField,
+      targetField: suggestion.targetField,
+      required: false,
+      description: `Auto-mapped (${Math.round(suggestion.confidence * 100)}% confidence)`,
+    };
+
+    const updatedDataFlow: DataFlow = {
+      ...localDataFlow,
+      fieldMappings: [...localDataFlow.fieldMappings, newMapping],
+    };
+
+    setLocalDataFlow(updatedDataFlow);
+    onDataFlowChange(updatedDataFlow);
+  };
 
   const handleFieldMappingChange = (mappingId: string, updates: Partial<FieldMapping>) => {
     const updatedMappings = localDataFlow.fieldMappings.map(mapping => 
@@ -200,14 +303,64 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium text-gray-900">Field Mappings</h3>
-        <button
-          onClick={addFieldMapping}
-          disabled={readOnly}
-          className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300"
-        >
-          Add Mapping
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={addFieldMapping}
+            disabled={readOnly}
+            className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300"
+          >
+            Add Mapping
+          </button>
+          <button
+            onClick={() => setActiveTab('preview')}
+            disabled={readOnly}
+            className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-300"
+          >
+            Preview Data
+          </button>
+        </div>
       </div>
+
+      {/* Auto-suggestions */}
+      {suggestions.length > 0 && (
+        <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
+          <h4 className="text-sm font-medium text-blue-800 mb-3">💡 Field Mapping Suggestions</h4>
+          <div className="space-y-2">
+            {suggestions.slice(0, 5).map((suggestion, index) => {
+              const sourceField = sourceSchema[suggestion.sourceField];
+              const targetField = targetSchema[suggestion.targetField];
+              const isAlreadyMapped = localDataFlow.fieldMappings.some(
+                mapping => mapping.sourceField === suggestion.sourceField || mapping.targetField === suggestion.targetField
+              );
+              
+              return (
+                <div key={index} className="flex items-center justify-between p-2 bg-white rounded border">
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-700">
+                      {sourceField?.name} → {targetField?.name}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Confidence: {Math.round(suggestion.confidence * 100)}% | 
+                      Types: {sourceField?.type} → {targetField?.type}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => applySuggestion(suggestion)}
+                    disabled={readOnly || isAlreadyMapped}
+                    className={`px-2 py-1 text-xs rounded ${
+                      isAlreadyMapped 
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-blue-500 text-white hover:bg-blue-600'
+                    }`}
+                  >
+                    {isAlreadyMapped ? 'Already Mapped' : 'Apply'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="space-y-3">
         {localDataFlow.fieldMappings.map((mapping, index) => {
@@ -429,56 +582,190 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
 
               {/* Transformation-specific configuration */}
               {transformation.type === TransformationType.RENAME && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    New Field Name
-                  </label>
-                  <input
-                    type="text"
-                    value={transformation.config.newName || ''}
-                    onChange={(e) => updateTransformation(transformation.id, { 
-                      config: { ...transformation.config, newName: e.target.value }
-                    })}
-                    disabled={readOnly}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter new field name"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Old Field Name
+                    </label>
+                    <input
+                      type="text"
+                      value={transformation.config.oldName || ''}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, oldName: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter old field name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      New Field Name
+                    </label>
+                    <input
+                      type="text"
+                      value={transformation.config.newName || ''}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, newName: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter new field name"
+                    />
+                  </div>
                 </div>
               )}
 
               {transformation.type === TransformationType.FILTER && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Filter Condition
-                  </label>
-                  <textarea
-                    value={transformation.config.condition || ''}
-                    onChange={(e) => updateTransformation(transformation.id, { 
-                      config: { ...transformation.config, condition: e.target.value }
-                    })}
-                    disabled={readOnly}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter filter condition (e.g., value > 10)"
-                    rows={3}
-                  />
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Filter Field
+                    </label>
+                    <input
+                      type="text"
+                      value={transformation.config.field || ''}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, field: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter field name to filter"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Filter Operator
+                    </label>
+                    <select
+                      value={transformation.config.operator || ''}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, operator: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select operator</option>
+                      <option value="equals">Equals</option>
+                      <option value="not_equals">Not Equals</option>
+                      <option value="greater_than">Greater Than</option>
+                      <option value="less_than">Less Than</option>
+                      <option value="contains">Contains</option>
+                      <option value="starts_with">Starts With</option>
+                      <option value="ends_with">Ends With</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Filter Value
+                    </label>
+                    <input
+                      type="text"
+                      value={transformation.config.value || ''}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, value: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter filter value"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {transformation.type === TransformationType.FORMAT && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Target Field
+                    </label>
+                    <input
+                      type="text"
+                      value={transformation.config.field || ''}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, field: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter field name to format"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Format Type
+                    </label>
+                    <select
+                      value={transformation.config.formatType || ''}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, formatType: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select format</option>
+                      <option value="date">Date Format</option>
+                      <option value="currency">Currency Format</option>
+                      <option value="phone">Phone Number Format</option>
+                      <option value="email">Email Format</option>
+                      <option value="url">URL Format</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Format Pattern
+                    </label>
+                    <input
+                      type="text"
+                      value={transformation.config.pattern || ''}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, pattern: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter format pattern (e.g., YYYY-MM-DD)"
+                    />
+                  </div>
                 </div>
               )}
 
               {transformation.type === TransformationType.TRANSFORM && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Transform Expression
-                  </label>
-                  <textarea
-                    value={transformation.config.expression || ''}
-                    onChange={(e) => updateTransformation(transformation.id, { 
-                      config: { ...transformation.config, expression: e.target.value }
-                    })}
-                    disabled={readOnly}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter transform expression (e.g., value.toUpperCase())"
-                    rows={3}
-                  />
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Target Field
+                    </label>
+                    <input
+                      type="text"
+                      value={transformation.config.field || ''}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, field: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter field name to transform"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Transform Operation
+                    </label>
+                    <select
+                      value={transformation.config.expression || ''}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, expression: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select operation</option>
+                      <option value="toUpperCase">Convert to Uppercase</option>
+                      <option value="toLowerCase">Convert to Lowercase</option>
+                      <option value="toString">Convert to String</option>
+                      <option value="toNumber">Convert to Number</option>
+                      <option value="trim">Trim Whitespace</option>
+                      <option value="capitalize">Capitalize First Letter</option>
+                    </select>
+                  </div>
                 </div>
               )}
 
@@ -510,6 +797,218 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
       </div>
     </div>
   );
+
+  const renderPreviewTab = () => {
+    const transformedData = applyTransformations(previewData, localDataFlow.fieldMappings, localDataFlow.transformations || []);
+    
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-medium text-gray-900">Data Preview</h3>
+          <button
+            onClick={() => setActiveTab('mapping')}
+            className="px-3 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600"
+          >
+            Back to Mapping
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          {/* Input Data */}
+          <div className="border border-gray-200 rounded-lg p-4">
+            <h4 className="font-medium text-gray-700 mb-3">📥 Input Data</h4>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {Object.entries(previewData).map(([fieldId, value]) => {
+                const field = sourceSchema[fieldId];
+                return (
+                  <div key={fieldId} className="text-sm">
+                    <span className="font-medium text-gray-600">{field?.name || fieldId}:</span>
+                    <span className="ml-2 text-gray-800">
+                      {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Output Data */}
+          <div className="border border-gray-200 rounded-lg p-4">
+            <h4 className="font-medium text-gray-700 mb-3">📤 Output Data</h4>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {Object.entries(transformedData).map(([fieldId, value]) => {
+                const field = targetSchema[fieldId];
+                return (
+                  <div key={fieldId} className="text-sm">
+                    <span className="font-medium text-gray-600">{field?.name || fieldId}:</span>
+                    <span className="ml-2 text-gray-800">
+                      {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Mapping Summary */}
+        <div className="border border-gray-200 rounded-lg p-4">
+          <h4 className="font-medium text-gray-700 mb-3">🔗 Mapping Summary</h4>
+          <div className="space-y-2">
+            {localDataFlow.fieldMappings.map((mapping, index) => {
+              const sourceField = sourceSchema[mapping.sourceField];
+              const targetField = targetSchema[mapping.targetField];
+              const sourceValue = previewData[mapping.sourceField];
+              const targetValue = transformedData[mapping.targetField];
+              
+              return (
+                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-700">
+                      {sourceField?.name} → {targetField?.name}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {sourceValue} → {targetValue}
+                    </div>
+                  </div>
+                  <span className={`text-xs px-2 py-1 rounded ${
+                    mapping.required ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                  }`}>
+                    {mapping.required ? 'Required' : 'Optional'}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const applyTransformations = (inputData: Record<string, any>, fieldMappings: FieldMapping[], transformations: DataTransformation[]) => {
+    let outputData: Record<string, any> = {};
+    
+    // Apply field mappings
+    fieldMappings.forEach(mapping => {
+      if (mapping.sourceField && mapping.targetField) {
+        outputData[mapping.targetField] = inputData[mapping.sourceField];
+      }
+    });
+    
+    // Apply transformations in order
+    transformations
+      .filter(t => t.enabled)
+      .sort((a, b) => a.order - b.order)
+      .forEach(transformation => {
+        switch (transformation.type) {
+          case TransformationType.RENAME:
+            if (transformation.config.newName && transformation.config.oldName) {
+              const value = outputData[transformation.config.oldName];
+              if (value !== undefined) {
+                outputData[transformation.config.newName] = value;
+                delete outputData[transformation.config.oldName];
+              }
+            }
+            break;
+          case TransformationType.TRANSFORM:
+            if (transformation.config.expression && transformation.config.field) {
+              try {
+                const value = outputData[transformation.config.field];
+                if (value !== undefined) {
+                  switch (transformation.config.expression) {
+                    case 'toUpperCase':
+                      outputData[transformation.config.field] = String(value).toUpperCase();
+                      break;
+                    case 'toLowerCase':
+                      outputData[transformation.config.field] = String(value).toLowerCase();
+                      break;
+                    case 'toString':
+                      outputData[transformation.config.field] = String(value);
+                      break;
+                    case 'toNumber':
+                      outputData[transformation.config.field] = Number(value);
+                      break;
+                    case 'trim':
+                      outputData[transformation.config.field] = String(value).trim();
+                      break;
+                    case 'capitalize':
+                      const str = String(value);
+                      outputData[transformation.config.field] = str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+                      break;
+                  }
+                }
+              } catch (error) {
+                console.error('Transformation error:', error);
+              }
+            }
+            break;
+          case TransformationType.FILTER:
+            if (transformation.config.field && transformation.config.operator && transformation.config.value !== undefined) {
+              const value = outputData[transformation.config.field];
+              const filterValue = transformation.config.value;
+              
+              let shouldKeep = true;
+              switch (transformation.config.operator) {
+                case 'equals':
+                  shouldKeep = value == filterValue;
+                  break;
+                case 'not_equals':
+                  shouldKeep = value != filterValue;
+                  break;
+                case 'greater_than':
+                  shouldKeep = Number(value) > Number(filterValue);
+                  break;
+                case 'less_than':
+                  shouldKeep = Number(value) < Number(filterValue);
+                  break;
+                case 'contains':
+                  shouldKeep = String(value).includes(String(filterValue));
+                  break;
+                case 'starts_with':
+                  shouldKeep = String(value).startsWith(String(filterValue));
+                  break;
+                case 'ends_with':
+                  shouldKeep = String(value).endsWith(String(filterValue));
+                  break;
+              }
+              
+              if (!shouldKeep) {
+                // Remove the entire record if filter condition is not met
+                return {};
+              }
+            }
+            break;
+          case TransformationType.FORMAT:
+            if (transformation.config.field && transformation.config.formatType) {
+              const value = outputData[transformation.config.field];
+              if (value !== undefined) {
+                switch (transformation.config.formatType) {
+                  case 'date':
+                    if (transformation.config.pattern) {
+                      // Simple date formatting (in a real app, use a proper date library)
+                      const date = new Date(value);
+                      outputData[transformation.config.field] = date.toISOString().split('T')[0];
+                    }
+                    break;
+                  case 'currency':
+                    outputData[transformation.config.field] = `$${Number(value).toFixed(2)}`;
+                    break;
+                  case 'phone':
+                    // Simple phone formatting
+                    const phone = String(value).replace(/\D/g, '');
+                    if (phone.length === 10) {
+                      outputData[transformation.config.field] = `(${phone.slice(0,3)}) ${phone.slice(3,6)}-${phone.slice(6)}`;
+                    }
+                    break;
+                }
+              }
+            }
+            break;
+        }
+      });
+    
+    return outputData;
+  };
 
   const renderValidationTab = () => {
     const allMappingsValid = localDataFlow.fieldMappings.every(mapping => 
@@ -648,6 +1147,7 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
             { id: 'mapping', label: 'Field Mapping', icon: '🔗' },
             { id: 'transformations', label: 'Transformations', icon: '⚙️' },
             { id: 'validation', label: 'Validation', icon: '✅' },
+            { id: 'preview', label: 'Preview', icon: '👁️' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -670,6 +1170,7 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
         {activeTab === 'mapping' && renderFieldMappingTab()}
         {activeTab === 'transformations' && renderTransformationsTab()}
         {activeTab === 'validation' && renderValidationTab()}
+        {activeTab === 'preview' && renderPreviewTab()}
       </div>
     </div>
   );
