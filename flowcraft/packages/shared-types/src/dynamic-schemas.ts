@@ -328,10 +328,23 @@ function generateConditionNodeOutput(
     example: true
   };
   
-  // Add input data to both branches
+  // Add input data to both branches with proper namespacing
   Object.entries(inputSchema).forEach(([key, field]) => {
-    output[`trueBranch.${key}`] = { ...field, id: `trueBranch.${key}` };
-    output[`falseBranch.${key}`] = { ...field, id: `falseBranch.${key}` };
+    // True branch fields
+    output[`trueBranch.${key}`] = {
+      ...field,
+      id: `trueBranch.${key}`,
+      name: `${field.name} (True Branch)`,
+      description: `${field.description} - Available in true branch`
+    };
+    
+    // False branch fields
+    output[`falseBranch.${key}`] = {
+      ...field,
+      id: `falseBranch.${key}`,
+      name: `${field.name} (False Branch)`,
+      description: `${field.description} - Available in false branch`
+    };
   });
   
   return output;
