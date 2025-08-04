@@ -208,38 +208,45 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 
 ## Fase 9.5.3: Nodo de Condición como Rombo 🚧 PENDIENTE
 
-### Tarea 9.5.3.1: Rediseñar ConditionNode 🚧 PENDIENTE
+### Tarea 9.5.3.1: Rediseñar ConditionNode ✅ COMPLETADO
 **Objetivo**: Cambiar el `ConditionNode` a forma de rombo con dos salidas.
 
 **Subtareas**:
-- [ ] Cambiar forma del nodo a rombo usando CSS clip-path
-- [ ] Posicionar puerto de entrada en la parte superior
-- [ ] Posicionar puerto de salida "true" en la parte derecha
-- [ ] Posicionar puerto de salida "false" en la parte inferior
-- [ ] Implementar indicadores visuales para ramas true/false
-- [ ] Añadir etiquetas "T" y "F" para las ramas
+- [x] Cambiar forma del nodo a rombo usando CSS clip-path
+- [x] Posicionar puerto de entrada en la parte superior
+- [x] Posicionar puerto de salida "true" en la parte derecha
+- [x] Posicionar puerto de salida "false" en la parte inferior
+- [x] Implementar indicadores visuales para ramas true/false
+- [x] Añadir etiquetas "T" y "F" para las ramas
 
 **Criterios de Aceptación**:
-- [ ] Nodo tiene forma de rombo perfecta
-- [ ] Puertos posicionados correctamente en las esquinas
-- [ ] Indicadores visuales claros para ramas true/false
-- [ ] Etiquetas "T" y "F" visibles y claras
+- [x] Nodo tiene forma de rombo perfecta
+- [x] Puertos posicionados correctamente en las esquinas
+- [x] Indicadores visuales claros para ramas true/false
+- [x] Etiquetas "T" y "F" visibles y claras
 
-### Tarea 9.5.3.2: Lógica de flujo de datos condicional 🚧 PENDIENTE
+**Archivos Creados/Modificados**:
+- [x] `apps/web/src/components/workflow-editor/nodes/ConditionNode.tsx` - Forma de rombo implementada
+
+### Tarea 9.5.3.2: Lógica de flujo de datos condicional ✅ COMPLETADO
 **Objetivo**: Implementar lógica de flujo de datos para condiciones.
 
 **Subtareas**:
-- [ ] Definir esquemas de datos para rama "true"
-- [ ] Definir esquemas de datos para rama "false"
-- [ ] Implementar lógica de evaluación de condiciones
-- [ ] Crear validación de condiciones de datos
-- [ ] Implementar preview de datos por rama
+- [x] Definir esquemas de datos para rama "true"
+- [x] Definir esquemas de datos para rama "false"
+- [x] Implementar lógica de evaluación de condiciones
+- [x] Crear validación de condiciones de datos
+- [x] Implementar preview de datos por rama
 
 **Criterios de Aceptación**:
-- [ ] Esquemas separados para ramas true/false
-- [ ] Lógica de evaluación de condiciones implementada
-- [ ] Validación de condiciones funcionando
-- [ ] Preview de datos disponible por rama
+- [x] Esquemas separados para ramas true/false
+- [x] Lógica de evaluación de condiciones implementada
+- [x] Validación de condiciones funcionando
+- [x] Preview de datos disponible por rama
+
+**Archivos Creados/Modificados**:
+- [x] `packages/shared-types/src/node-schemas.ts` - Esquemas de ramas true/false
+- [x] `apps/web/src/components/workflow-editor/nodes/ConditionNode.tsx` - Visualización de ramas
 
 ### Tarea 9.5.3.3: Editor de condición 🚧 PENDIENTE
 **Objetivo**: Crear interfaz para configurar condiciones de datos.
@@ -466,8 +473,8 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 - [x] Visualización de datos en nodos
 
 ### Nodo de Condición como Rombo
-- [ ] Forma de rombo implementada
-- [ ] Lógica de flujo condicional
+- [x] Forma de rombo implementada
+- [x] Lógica de flujo condicional
 - [ ] Editor de condiciones
 
 ### Conexiones Direccionales ✅ COMPLETADO
@@ -539,16 +546,16 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 
 ## Estado del Sprint
 
-### Progreso General: 65% Completado
+### Progreso General: 75% Completado
 - ✅ Fase 9.5.1: Arquitectura de Flujo de Datos (100%)
 - ✅ Fase 9.5.2: Nodos con Puertos de Datos (100%)
-- ⏳ Fase 9.5.3: Nodo de Condición como Rombo (0%)
+- ✅ Fase 9.5.3: Nodo de Condición como Rombo (67%)
 - ✅ Fase 9.5.4: Conexiones Direccionales con Datos (100%)
 - ⏳ Fase 9.5.5: Panel de Configuración de Datos (0%)
 - ⏳ Fase 9.5.6: Integración con Conectores (0%)
 
 ### Tareas Pendientes Críticas
-1. Rediseñar ConditionNode como rombo
+1. Completar editor de condiciones (Tarea 9.5.3.3)
 2. Crear panel de configuración de datos
 3. Integrar esquemas de datos con conectores
 
