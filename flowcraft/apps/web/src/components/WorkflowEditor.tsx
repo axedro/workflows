@@ -134,7 +134,52 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
     [EdgeType.DEFAULT]: DefaultEdge,
   }), []);
 
-  const onConnect = useCallback((params: Connection) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
+  const onConnect = useCallback((params: Connection) => {
+    // Validar que la conexión sea direccional (output -> input)
+    const sourceNode = nodes.find(node => node.id === params.source);
+    const targetNode = nodes.find(node => node.id === params.target);
+    
+    if (!sourceNode || !targetNode) {
+      console.error('Invalid connection: source or target node not found');
+      return;
+    }
+
+    // Obtener los puertos de origen y destino
+    const sourcePort = sourceNode.data?.outputPorts?.find(port => port.id === params.sourceHandle);
+    const targetPort = targetNode.data?.inputPorts?.find(port => port.id === params.targetHandle);
+
+    // Validar que sea una conexión válida (output -> input)
+    if (!sourcePort || !targetPort) {
+      console.error('Invalid connection: source must be output port, target must be input port');
+      alert('Invalid connection: Can only connect output ports to input ports');
+      return;
+    }
+
+    // Validar que no se conecte un nodo consigo mismo
+    if (params.source === params.target) {
+      console.error('Invalid connection: Cannot connect a node to itself');
+      alert('Invalid connection: Cannot connect a node to itself');
+      return;
+    }
+
+    // Validar que no haya conexión duplicada
+    const existingConnection = edges.find(edge => 
+      edge.source === params.source && 
+      edge.target === params.target &&
+      edge.sourceHandle === params.sourceHandle &&
+      edge.targetHandle === params.targetHandle
+    );
+
+    if (existingConnection) {
+      console.error('Invalid connection: Connection already exists');
+      alert('Invalid connection: Connection already exists');
+      return;
+    }
+
+    // Si todas las validaciones pasan, crear la conexión
+    console.log('Valid connection created:', params);
+    setEdges((eds) => addEdge(params, eds));
+  }, [nodes, edges, setEdges]);
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => setSelectedNode(node), []);
   const onPaneClick = useCallback(() => setSelectedNode(null), []);
 

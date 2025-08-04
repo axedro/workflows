@@ -56,4 +56,18 @@
   body {
     @apply bg-background text-foreground;
   }
-} 
+}
+/* React Flow Edge Animations */
+@keyframes flowAnimation {
+  0% {
+    stroke-dashoffset: 0;
+  }
+
+  100% {
+    stroke-dashoffset: -10;
+  }
+}
+
+.animated-edge-path {
+  animation: flowAnimation 2s linear infinite;
+}

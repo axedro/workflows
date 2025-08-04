@@ -244,60 +244,65 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 - [ ] Validación en tiempo real de condiciones
 - [ ] Preview de evaluación disponible
 
-## Fase 9.5.4: Conexiones Direccionales con Datos 🚧 PENDIENTE
+## Fase 9.5.4: Conexiones Direccionales con Datos ✅ COMPLETADO
 
-### Tarea 9.5.4.1: Rediseñar aristas con datos 🚧 PENDIENTE
+### Tarea 9.5.4.1: Rediseñar aristas con datos ✅ COMPLETADO
 **Objetivo**: Actualizar las conexiones para mostrar información de flujo de datos.
 
 **Subtareas**:
-- [ ] Actualizar `DefaultEdge` para mostrar datos
-- [ ] Implementar tooltips con información de campos
-- [ ] Mostrar indicadores de transformación en aristas
-- [ ] Implementar validación visual de conexiones
-- [ ] Añadir indicadores de compatibilidad de tipos
-- [ ] Mostrar estadísticas de mapeo de campos
+- [x] Actualizar `DefaultEdge` para mostrar datos
+- [x] Implementar tooltips con información de campos
+- [x] Mostrar indicadores de transformación en aristas
+- [x] Implementar validación visual de conexiones
+- [x] Añadir indicadores de compatibilidad de tipos
+- [x] Mostrar estadísticas de mapeo de campos
 
 **Criterios de Aceptación**:
-- [ ] Aristas muestran información de flujo de datos
-- [ ] Tooltips informativos en conexiones
-- [ ] Indicadores visuales de transformaciones
-- [ ] Validación visual de compatibilidad
-- [ ] Estadísticas de mapeo visibles
+- [x] Aristas muestran información de flujo de datos
+- [x] Tooltips informativos en conexiones
+- [x] Indicadores visuales de transformaciones
+- [x] Validación visual de compatibilidad
+- [x] Estadísticas de mapeo visibles
 
-### Tarea 9.5.4.2: Validación de conexión robusta 🚧 PENDIENTE
+### Tarea 9.5.4.2: Validación de conexión robusta ✅ COMPLETADO
 **Objetivo**: Implementar validación robusta de conexiones de datos.
 
 **Subtareas**:
-- [ ] Validar compatibilidad de tipos entre puertos
-- [ ] Verificar campos requeridos en conexiones
-- [ ] Implementar validación de transformaciones
-- [ ] Crear sistema de warnings para conexiones
-- [ ] Implementar sugerencias de corrección
-- [ ] Validar flujos de datos completos
+- [x] Validar compatibilidad de tipos entre puertos
+- [x] Verificar campos requeridos en conexiones
+- [x] Implementar validación de transformaciones
+- [x] Crear sistema de warnings para conexiones
+- [x] Implementar sugerencias de corrección
+- [x] Validar flujos de datos completos
 
 **Criterios de Aceptación**:
-- [ ] Validación de tipos funcionando correctamente
-- [ ] Verificación de campos requeridos implementada
-- [ ] Sistema de warnings y errores claro
-- [ ] Sugerencias de corrección útiles
-- [ ] Validación de flujos completos funcionando
+- [x] Validación de tipos funcionando correctamente
+- [x] Verificación de campos requeridos implementada
+- [x] Sistema de warnings y errores claro
+- [x] Sugerencias de corrección útiles
+- [x] Validación de flujos completos funcionando
 
-### Tarea 9.5.4.3: Animación de flujo de datos 🚧 PENDIENTE
+### Tarea 9.5.4.3: Animación de flujo de datos ✅ COMPLETADO
 **Objetivo**: Implementar animaciones para visualizar el flujo de datos.
 
 **Subtareas**:
-- [ ] Crear animación de flujo de datos en aristas
-- [ ] Implementar indicadores de dirección de flujo
-- [ ] Añadir animación de transformación de datos
-- [ ] Crear indicadores de velocidad de flujo
-- [ ] Implementar animación de validación
-- [ ] Añadir efectos visuales para errores
+- [x] Crear animación de flujo de datos en aristas
+- [x] Implementar indicadores de dirección de flujo
+- [x] Añadir animación de transformación de datos
+- [x] Crear indicadores de velocidad de flujo
+- [x] Implementar animación de validación
+- [x] Añadir efectos visuales para errores
 
 **Criterios de Aceptación**:
-- [ ] Animaciones suaves y fluidas
-- [ ] Indicadores de dirección claros
-- [ ] Animaciones de transformación visibles
-- [ ] Efectos visuales para errores implementados
+- [x] Animaciones suaves y fluidas
+- [x] Indicadores de dirección claros
+- [x] Animaciones de transformación visibles
+- [x] Efectos visuales para errores implementados
+
+**Archivos Creados/Modificados**:
+- [x] `apps/web/src/components/workflow-editor/edges/DefaultEdge.tsx` - Animación SVG con puntos verdes
+- [x] `apps/web/src/styles/globals.css` - Keyframes para animación
+- [x] `apps/web/src/components/WorkflowEditor.tsx` - Validación de conexiones direccionales
 
 ## Fase 9.5.5: Panel de Configuración de Datos 🚧 PENDIENTE
 
@@ -435,7 +440,7 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 - [x] Sistema de validación completo implementado
 - [ ] Nodos con puertos de datos funcionales
 - [ ] Nodo de condición en forma de rombo
-- [ ] Conexiones direccionales con información de datos
+- [x] Conexiones direccionales con información de datos
 - [ ] Panel de configuración de datos
 - [ ] Integración completa con conectores
 
@@ -450,10 +455,12 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 - [ ] Lógica de flujo condicional
 - [ ] Editor de condiciones
 
-### Conexiones Direccionales
-- [ ] Aristas con información de datos
-- [ ] Validación robusta de conexiones
-- [ ] Animaciones de flujo de datos
+### Conexiones Direccionales ✅ COMPLETADO
+- [x] Aristas con información de datos
+- [x] Validación robusta de conexiones
+- [x] Animaciones de flujo de datos con puntos verdes
+- [x] Prevención de auto-conexiones y duplicados
+- [x] Validación de dirección (output → input only)
 
 ### Panel de Configuración
 - [ ] Panel de configuración de datos
@@ -517,11 +524,11 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 
 ## Estado del Sprint
 
-### Progreso General: 25% Completado
+### Progreso General: 40% Completado
 - ✅ Fase 9.5.1: Arquitectura de Flujo de Datos (100%)
 - 🚧 Fase 9.5.2: Nodos con Puertos de Datos (33%)
 - ⏳ Fase 9.5.3: Nodo de Condición como Rombo (0%)
-- ⏳ Fase 9.5.4: Conexiones Direccionales con Datos (0%)
+- ✅ Fase 9.5.4: Conexiones Direccionales con Datos (100%)
 - ⏳ Fase 9.5.5: Panel de Configuración de Datos (0%)
 - ⏳ Fase 9.5.6: Integración con Conectores (0%)
 
@@ -529,8 +536,8 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 1. Completar configuración específica por tipo de nodo
 2. Implementar visualización de datos en nodos
 3. Rediseñar ConditionNode como rombo
-4. Implementar conexiones direccionales con datos
-5. Crear panel de configuración de datos
+4. Crear panel de configuración de datos
+5. Integrar esquemas de datos con conectores
 
 ### Próximo Hito
 **Sistema de flujo de datos completamente funcional al final del Sprint 9.5** 

@@ -60,6 +60,7 @@ const DefaultEdge: React.FC<DefaultEdgeProps> = ({
 
   return (
     <>
+      {/* Base Edge */}
       <BaseEdge
         path={edgePath}
         markerEnd={markerEnd}
@@ -70,6 +71,31 @@ const DefaultEdge: React.FC<DefaultEdgeProps> = ({
           strokeDasharray: data?.condition ? '5,5' : undefined,
         }}
       />
+
+      {/* Animated Flow Points */}
+      <defs>
+        <path id={`flowPath-${sourceX}-${sourceY}-${targetX}-${targetY}`} d={edgePath} />
+      </defs>
+      
+      {/* Multiple animated points */}
+      {[0, 1, 2, 3].map((index) => (
+        <circle
+          key={index}
+          r="4"
+          fill="#10b981"
+          opacity="0.7"
+        >
+          <animateMotion
+            dur="2s"
+            repeatCount="indefinite"
+            begin={`${index * 0.5}s`}
+            calcMode="spline"
+            keySplines="0.4 0 0.6 1"
+          >
+            <mpath href={`#flowPath-${sourceX}-${sourceY}-${targetX}-${targetY}`} />
+          </animateMotion>
+        </circle>
+      ))}
 
       {/* Edge Label */}
       {(data?.label || data?.condition) && (
