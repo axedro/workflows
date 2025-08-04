@@ -29,6 +29,62 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
+  // Función para generar campos anidados para objetos JSON
+  const generateNestedFields = (fields: Record<string, DataField>): Record<string, DataField> => {
+    const nestedFields: Record<string, DataField> = { ...fields };
+    
+    // Buscar campos de tipo JSON y generar campos anidados
+    Object.entries(fields).forEach(([fieldName, field]) => {
+      if (field.type === DataType.JSON || field.type === DataType.OBJECT) {
+        // Generar campos anidados comunes para el objeto data
+        if (fieldName === 'data') {
+          nestedFields['data.status'] = {
+            id: 'data.status',
+            name: 'Status',
+            type: DataType.STRING,
+            required: false,
+            description: 'Status field within data object',
+            example: 'active'
+          };
+          nestedFields['data.count'] = {
+            id: 'data.count',
+            name: 'Count',
+            type: DataType.NUMBER,
+            required: false,
+            description: 'Count field within data object',
+            example: 42
+          };
+          nestedFields['data.name'] = {
+            id: 'data.name',
+            name: 'Name',
+            type: DataType.STRING,
+            required: false,
+            description: 'Name field within data object',
+            example: 'John Doe'
+          };
+          nestedFields['data.email'] = {
+            id: 'data.email',
+            name: 'Email',
+            type: DataType.EMAIL,
+            required: false,
+            description: 'Email field within data object',
+            example: 'john@example.com'
+          };
+          nestedFields['data.success'] = {
+            id: 'data.success',
+            name: 'Success',
+            type: DataType.BOOLEAN,
+            required: false,
+            description: 'Success flag within data object',
+            example: true
+          };
+        }
+      }
+    });
+    
+    return nestedFields;
+  };
+
   // Update local state when selected node or edge changes
   useEffect(() => {
     setLocalNode(selectedNode);
@@ -44,8 +100,12 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
     const targetNode = nodes.find(node => node.id === localEdge.target);
     
     // Get dynamic schemas from nodes
-    const sourceSchema = sourceNode ? getNodeOutputSchema(sourceNode.id, nodes, edges) : {};
-    const targetSchema = targetNode ? getNodeInputSchema(targetNode.id, nodes, edges) : {};
+    const rawSourceSchema = sourceNode ? getNodeOutputSchema(sourceNode.id, nodes, edges) : {};
+    const rawTargetSchema = targetNode ? getNodeInputSchema(targetNode.id, nodes, edges) : {};
+    
+    // Generate nested fields for JSON/OBJECT types
+    const sourceSchema = generateNestedFields(rawSourceSchema);
+    const targetSchema = generateNestedFields(rawTargetSchema);
     
     // Create a default data flow if none exists
           const dataFlow: DataFlow = localEdge.dataFlow || {
@@ -157,62 +217,6 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
         setSaveStatus('idle');
       }, 3000);
     }
-  };
-
-  // Función para generar campos anidados para objetos JSON
-  const generateNestedFields = (fields: Record<string, DataField>): Record<string, DataField> => {
-    const nestedFields: Record<string, DataField> = { ...fields };
-    
-    // Buscar campos de tipo JSON y generar campos anidados
-    Object.entries(fields).forEach(([fieldName, field]) => {
-      if (field.type === DataType.JSON || field.type === DataType.OBJECT) {
-        // Generar campos anidados comunes para el objeto data
-        if (fieldName === 'data') {
-          nestedFields['data.status'] = {
-            id: 'data.status',
-            name: 'Status',
-            type: DataType.STRING,
-            required: false,
-            description: 'Status field within data object',
-            example: 'active'
-          };
-          nestedFields['data.count'] = {
-            id: 'data.count',
-            name: 'Count',
-            type: DataType.NUMBER,
-            required: false,
-            description: 'Count field within data object',
-            example: 42
-          };
-          nestedFields['data.name'] = {
-            id: 'data.name',
-            name: 'Name',
-            type: DataType.STRING,
-            required: false,
-            description: 'Name field within data object',
-            example: 'John Doe'
-          };
-          nestedFields['data.email'] = {
-            id: 'data.email',
-            name: 'Email',
-            type: DataType.EMAIL,
-            required: false,
-            description: 'Email field within data object',
-            example: 'john@example.com'
-          };
-          nestedFields['data.success'] = {
-            id: 'data.success',
-            name: 'Success',
-            type: DataType.BOOLEAN,
-            required: false,
-            description: 'Success flag within data object',
-            example: true
-          };
-        }
-      }
-    });
-    
-    return nestedFields;
   };
 
   const getNodeSchemaInfo = () => {
