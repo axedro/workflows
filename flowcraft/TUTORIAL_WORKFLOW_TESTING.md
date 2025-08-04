@@ -71,9 +71,16 @@ Probar la funcionalidad básica de nodos, conexiones y flujo de datos.
    - Click en el Action Node
    - Verificar que aparece el panel de propiedades
 
-2. **Configurar Datos**
-   - En el panel, verificar que se muestran los campos de entrada/salida
+2. **Verificar Data Schema**
+   - En el panel, buscar la sección "Data Schema"
+   - Verificar que se muestran los campos de entrada (📥 Input Fields)
+   - Verificar que se muestran los campos de salida (📤 Output Fields)
    - Los campos deberían mostrar tipos de datos (STRING, NUMBER, etc.)
+   - Los campos requeridos deberían estar marcados en rojo
+
+3. **Configurar Datos**
+   - En la sección "Basic Properties", configurar Label y Description
+   - En la sección "Node Configuration", configurar los campos específicos del nodo
 
 #### 4. Testing de Validación
 1. **Probar Auto-conexión**
