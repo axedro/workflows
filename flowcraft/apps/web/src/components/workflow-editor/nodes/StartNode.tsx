@@ -84,13 +84,13 @@ const StartNode: React.FC<NodeProps<StartNodeData>> = ({ data, selected }) => {
       {/* Indicadores visuales específicos */}
       <div className="absolute top-2 right-2 flex flex-col gap-1">
         {hasInitialData && (
-          <div className="w-3 h-3 bg-blue-400 rounded-full" title="Initial data configured" />
+          <div className="w-3 h-3 bg-blue-400 rounded-full border border-white shadow-sm" />
         )}
         {hasScheduleConfig && (
-          <div className="w-3 h-3 bg-purple-400 rounded-full" title="Schedule configured" />
+          <div className="w-3 h-3 bg-purple-400 rounded-full border border-white shadow-sm" />
         )}
         {hasWebhookConfig && (
-          <div className="w-3 h-3 bg-indigo-400 rounded-full" title="Webhook configured" />
+          <div className="w-3 h-3 bg-indigo-400 rounded-full border border-white shadow-sm" />
         )}
       </div>
 

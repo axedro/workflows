@@ -38,9 +38,6 @@ const DataPortHandle: React.FC<DataPortHandleProps> = ({ port, isConnected = fal
   const portColor = getPortColor();
   const handleType = port.type === 'input' ? 'target' : 'source';
 
-  // Debug: log what position is being passed to Handle
-  console.log('DataPortHandle - Port position:', port.position, 'Mapped to:', position, 'Port ID:', port.id);
-
   return (
     <Handle
       type={handleType}

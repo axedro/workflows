@@ -115,16 +115,16 @@ const ConditionNode: React.FC<NodeProps<ConditionNodeData>> = ({ data, selected 
       {/* Indicadores visuales específicos */}
       <div className="absolute top-2 right-2 flex flex-col gap-1">
         {hasConditionConfig && (
-          <div className="w-3 h-3 bg-green-400 rounded-full" title="Condition configured" />
+          <div className="w-3 h-3 bg-green-400 rounded-full border border-white shadow-sm" />
         )}
         {hasMultipleConditions && (
-          <div className="w-3 h-3 bg-blue-400 rounded-full" title="Multiple conditions" />
+          <div className="w-3 h-3 bg-blue-400 rounded-full border border-white shadow-sm" />
         )}
         {hasCustomExpression && (
-          <div className="w-3 h-3 bg-purple-400 rounded-full" title="Custom expression" />
+          <div className="w-3 h-3 bg-purple-400 rounded-full border border-white shadow-sm" />
         )}
         {hasOutputConfig && (
-          <div className="w-3 h-3 bg-yellow-400 rounded-full" title="Output configured" />
+          <div className="w-3 h-3 bg-yellow-400 rounded-full border border-white shadow-sm" />
         )}
       </div>
 

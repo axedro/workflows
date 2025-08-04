@@ -115,25 +115,25 @@ const EndNode: React.FC<NodeProps<EndNodeData>> = ({ data, selected }) => {
       {/* Indicadores visuales específicos */}
       <div className="absolute top-2 right-2 flex flex-col gap-1">
         {hasOutputConfig && (
-          <div className="w-3 h-3 bg-blue-400 rounded-full" title="Output configured" />
+          <div className="w-3 h-3 bg-blue-400 rounded-full border border-white shadow-sm" />
         )}
         {hasNotificationConfig && (
-          <div className="w-3 h-3 bg-green-400 rounded-full" title="Notifications configured" />
+          <div className="w-3 h-3 bg-green-400 rounded-full border border-white shadow-sm" />
         )}
         {hasDataRetention && (
-          <div className="w-3 h-3 bg-purple-400 rounded-full" title="Data retention enabled" />
+          <div className="w-3 h-3 bg-purple-400 rounded-full border border-white shadow-sm" />
         )}
         {hasEmailNotification && (
-          <div className="w-3 h-3 bg-green-400 rounded-full" title="Email notifications" />
+          <div className="w-3 h-3 bg-green-400 rounded-full border border-white shadow-sm" />
         )}
         {hasSlackNotification && (
-          <div className="w-3 h-3 bg-purple-400 rounded-full" title="Slack notifications" />
+          <div className="w-3 h-3 bg-purple-400 rounded-full border border-white shadow-sm" />
         )}
         {hasWebhookNotification && (
-          <div className="w-3 h-3 bg-indigo-400 rounded-full" title="Webhook notifications" />
+          <div className="w-3 h-3 bg-indigo-400 rounded-full border border-white shadow-sm" />
         )}
         {hasCustomFormat && (
-          <div className="w-3 h-3 bg-orange-400 rounded-full" title="Custom format" />
+          <div className="w-3 h-3 bg-orange-400 rounded-full border border-white shadow-sm" />
         )}
       </div>
 

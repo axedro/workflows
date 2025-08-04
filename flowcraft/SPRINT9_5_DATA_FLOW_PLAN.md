@@ -179,11 +179,11 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 - [x] `apps/web/src/components/workflow-editor/nodes/ConditionNode.tsx` - Configuración específica con tipos de condición
 - [x] `apps/web/src/components/workflow-editor/nodes/EndNode.tsx` - Configuración específica con tipos de resultado
 
-### Tarea 9.5.2.3: Visualización de datos 🚧 PENDIENTE
+### Tarea 9.5.2.4: Visualización de datos 🚧 PENDIENTE
 **Objetivo**: Implementar visualización del flujo de datos en los nodos.
 
 **Subtareas**:
-- [ ] Mostrar campos de datos en tooltips de puertos
+- [ ] Mostrar campos de datos en indicadores visuales
 - [ ] Implementar indicadores de transformación de datos
 - [ ] Mostrar validación de datos en tiempo real
 - [ ] Implementar preview de datos en nodos
@@ -191,11 +191,13 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 - [ ] Mostrar estadísticas de datos (campos, tipos, etc.)
 
 **Criterios de Aceptación**:
-- [ ] Tooltips muestran información detallada de campos
+- [ ] Indicadores visuales muestran información de campos
 - [ ] Indicadores visuales de transformaciones implementados
 - [ ] Validación en tiempo real visible en la UI
 - [ ] Preview de datos disponible en nodos
 - [ ] Indicadores de compatibilidad claros y visibles
+
+**Nota**: Los tooltips se han movido al Sprint 9.6 para implementación más robusta.
 
 ## Fase 9.5.3: Nodo de Condición como Rombo 🚧 PENDIENTE
 

@@ -126,22 +126,22 @@ const ActionNode: React.FC<NodeProps<ActionNodeData>> = ({ data, selected }) => 
       {/* Indicadores visuales específicos */}
       <div className="absolute top-2 right-2 flex flex-col gap-1">
         {hasActionConfig && (
-          <div className="w-3 h-3 bg-green-400 rounded-full" title="Action configured" />
+          <div className="w-3 h-3 bg-green-400 rounded-full border border-white shadow-sm" />
         )}
         {hasRetryConfig && (
-          <div className="w-3 h-3 bg-yellow-400 rounded-full" title="Retry configured" />
+          <div className="w-3 h-3 bg-yellow-400 rounded-full border border-white shadow-sm" />
         )}
         {hasHttpConfig && (
-          <div className="w-3 h-3 bg-blue-400 rounded-full" title="HTTP configured" />
+          <div className="w-3 h-3 bg-blue-400 rounded-full border border-white shadow-sm" />
         )}
         {hasEmailConfig && (
-          <div className="w-3 h-3 bg-green-400 rounded-full" title="Email configured" />
+          <div className="w-3 h-3 bg-green-400 rounded-full border border-white shadow-sm" />
         )}
         {hasSlackConfig && (
-          <div className="w-3 h-3 bg-purple-400 rounded-full" title="Slack configured" />
+          <div className="w-3 h-3 bg-purple-400 rounded-full border border-white shadow-sm" />
         )}
         {hasTransformConfig && (
-          <div className="w-3 h-3 bg-orange-400 rounded-full" title="Transform configured" />
+          <div className="w-3 h-3 bg-orange-400 rounded-full border border-white shadow-sm" />
         )}
       </div>
 
