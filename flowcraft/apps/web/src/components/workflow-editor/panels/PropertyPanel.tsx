@@ -40,7 +40,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
         if (fieldName === 'data') {
           nestedFields['data.status'] = {
             id: 'data.status',
-            name: 'Status',
+            name: 'data.status',
             type: DataType.STRING,
             required: false,
             description: 'Status field within data object',
@@ -48,7 +48,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
           };
           nestedFields['data.count'] = {
             id: 'data.count',
-            name: 'Count',
+            name: 'data.count',
             type: DataType.NUMBER,
             required: false,
             description: 'Count field within data object',
@@ -56,7 +56,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
           };
           nestedFields['data.name'] = {
             id: 'data.name',
-            name: 'Name',
+            name: 'data.name',
             type: DataType.STRING,
             required: false,
             description: 'Name field within data object',
@@ -64,7 +64,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
           };
           nestedFields['data.email'] = {
             id: 'data.email',
-            name: 'Email',
+            name: 'data.email',
             type: DataType.EMAIL,
             required: false,
             description: 'Email field within data object',
@@ -72,7 +72,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
           };
           nestedFields['data.success'] = {
             id: 'data.success',
-            name: 'Success',
+            name: 'data.success',
             type: DataType.BOOLEAN,
             required: false,
             description: 'Success flag within data object',
@@ -103,9 +103,19 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
     const rawSourceSchema = sourceNode ? getNodeOutputSchema(sourceNode.id, nodes, edges) : {};
     const rawTargetSchema = targetNode ? getNodeInputSchema(targetNode.id, nodes, edges) : {};
     
+    // Debug: Log raw schemas
+    console.log('PropertyPanel - sourceNode:', sourceNode);
+    console.log('PropertyPanel - targetNode:', targetNode);
+    console.log('PropertyPanel - rawSourceSchema:', rawSourceSchema);
+    console.log('PropertyPanel - rawTargetSchema:', rawTargetSchema);
+    
     // Generate nested fields for JSON/OBJECT types
     const sourceSchema = generateNestedFields(rawSourceSchema);
     const targetSchema = generateNestedFields(rawTargetSchema);
+    
+    // Debug: Log processed schemas
+    console.log('PropertyPanel - sourceSchema:', sourceSchema);
+    console.log('PropertyPanel - targetSchema:', targetSchema);
     
     // Create a default data flow if none exists
           const dataFlow: DataFlow = localEdge.dataFlow || {
