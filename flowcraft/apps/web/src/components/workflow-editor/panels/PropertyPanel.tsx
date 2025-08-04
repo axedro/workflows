@@ -1,31 +1,79 @@
 import React, { useState, useEffect } from 'react';
-import { EditorNode, NodeType, getNodeSchema } from '@flowcraft/shared-types';
+import { EditorNode, NodeType, getNodeSchema, EditorEdge, DataFlow } from '@flowcraft/shared-types';
 import { Tooltip } from '@flowcraft/ui';
 import { validateNode } from '../../../services/workflowValidation.service';
 import ConditionEditor from './ConditionEditor';
+import DataConfigPanel from './DataConfigPanel';
 
 interface PropertyPanelProps {
   selectedNode: EditorNode | null;
+  selectedEdge: EditorEdge | null;
   onNodeUpdate: (node: EditorNode) => void;
+  onEdgeUpdate: (edge: EditorEdge) => void;
   readOnly?: boolean;
 }
 
 const PropertyPanel: React.FC<PropertyPanelProps> = ({
   selectedNode,
+  selectedEdge,
   onNodeUpdate,
+  onEdgeUpdate,
   readOnly = false,
 }) => {
   const [localNode, setLocalNode] = useState<EditorNode | null>(selectedNode);
+  const [localEdge, setLocalEdge] = useState<EditorEdge | null>(selectedEdge);
 
-  // Update local state and run validation when selected node changes
+  // Update local state when selected node or edge changes
   useEffect(() => {
     setLocalNode(selectedNode);
-    if (selectedNode) {
-      // The validation state is now managed directly within handleInputChange
-      // and stored on the node data. This effect just syncs the localNode.
-    }
-  }, [selectedNode]);
+    setLocalEdge(selectedEdge);
+  }, [selectedNode, selectedEdge]);
 
+  // If an edge is selected, show the data configuration panel
+  if (selectedEdge && localEdge) {
+    // For now, we'll use empty schemas as placeholders
+    const sourceSchema = {};
+    const targetSchema = {};
+    
+    // Create a default data flow if none exists
+          const dataFlow: DataFlow = localEdge.dataFlow || {
+        id: `flow_${localEdge.id}`,
+        sourcePortId: localEdge.source || '',
+        targetPortId: localEdge.target || '',
+      fieldMappings: [],
+      transformations: [],
+      validation: {
+        isValid: true,
+        errors: [],
+        warnings: [],
+        portsCompatible: true,
+        requiredFieldsMapped: true,
+        typeCompatible: true,
+      },
+      enabled: true,
+    };
+
+    const handleDataFlowChange = (updatedDataFlow: DataFlow) => {
+      const updatedEdge: EditorEdge = {
+        ...localEdge,
+        dataFlow: updatedDataFlow,
+      };
+      setLocalEdge(updatedEdge);
+      onEdgeUpdate(updatedEdge);
+    };
+
+    return (
+      <DataConfigPanel
+        sourceSchema={sourceSchema}
+        targetSchema={targetSchema}
+        dataFlow={dataFlow}
+        onDataFlowChange={handleDataFlowChange}
+        readOnly={readOnly}
+      />
+    );
+  }
+
+  // If no node is selected, show the default message
   if (!selectedNode || !localNode) {
     return (
       <div className="h-full flex flex-col bg-white">
@@ -35,7 +83,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
         <div className="flex-1 flex items-center justify-center text-gray-500">
           <div className="text-center">
             <div className="text-4xl mb-2">📋</div>
-            <div>Select a node to view properties</div>
+            <div>Select a node or connection to view properties</div>
           </div>
         </div>
       </div>

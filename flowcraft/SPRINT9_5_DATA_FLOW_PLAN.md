@@ -332,23 +332,28 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 
 ## Fase 9.5.5: Panel de Configuración de Datos 🚧 PENDIENTE
 
-### Tarea 9.5.5.1: Crear panel de configuración 🚧 PENDIENTE
+### ✅ Tarea 9.5.5.1: Crear panel de configuración ✅ COMPLETADO
 **Objetivo**: Crear un panel dedicado para configurar el flujo de datos.
 
 **Subtareas**:
-- [ ] Crear componente `DataConfigPanel`
-- [ ] Implementar vista de esquemas de datos
-- [ ] Crear editor de mapeo de campos
-- [ ] Implementar configuración de transformaciones
-- [ ] Añadir validación en tiempo real
-- [ ] Crear preview de configuración
+- [x] Crear componente `DataConfigPanel`
+- [x] Implementar vista de esquemas de datos
+- [x] Crear editor de mapeo de campos
+- [x] Implementar configuración de transformaciones
+- [x] Añadir validación en tiempo real
+- [x] Crear preview de configuración
 
 **Criterios de Aceptación**:
-- [ ] Panel intuitivo y fácil de usar
-- [ ] Vista clara de esquemas de datos
-- [ ] Editor de mapeo funcional
-- [ ] Configuración de transformaciones disponible
-- [ ] Validación en tiempo real implementada
+- [x] Panel intuitivo y fácil de usar
+- [x] Vista clara de esquemas de datos
+- [x] Editor de mapeo funcional
+- [x] Configuración de transformaciones disponible
+- [x] Validación en tiempo real implementada
+
+**Archivos Creados/Modificados**:
+- `apps/web/src/components/workflow-editor/panels/DataConfigPanel.tsx` (NUEVO)
+- `apps/web/src/components/workflow-editor/panels/PropertyPanel.tsx` (MODIFICADO)
+- `apps/web/src/components/WorkflowEditor.tsx` (MODIFICADO)
 
 ### Tarea 9.5.5.2: Interfaz de mapeo de campos 🚧 PENDIENTE
 **Objetivo**: Crear interfaz para mapear campos entre nodos.
@@ -550,12 +555,12 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 
 ## Estado del Sprint
 
-### Progreso General: 85% Completado
+### Progreso General: 92% Completado
 - ✅ Fase 9.5.1: Arquitectura de Flujo de Datos (100%)
 - ✅ Fase 9.5.2: Nodos con Puertos de Datos (100%)
 - ✅ Fase 9.5.3: Nodo de Condición como Rombo (100%)
 - ✅ Fase 9.5.4: Conexiones Direccionales con Datos (100%)
-- ⏳ Fase 9.5.5: Panel de Configuración de Datos (0%)
+- ✅ Fase 9.5.5: Panel de Configuración de Datos (25%)
 - ⏳ Fase 9.5.6: Integración con Conectores (0%)
 
 ### Tareas Pendientes Críticas

@@ -43,12 +43,13 @@ const EditorCanvas: React.FC<{
   onEdgesChange: (changes: any) => void;
   onConnect: OnConnect;
   onNodeClick: (event: React.MouseEvent, node: Node) => void;
+  onEdgeClick: (event: React.MouseEvent, edge: any) => void;
   onPaneClick: () => void;
   setNodes: (nodes: Node[] | ((nodes: Node[]) => Node[])) => void;
   nodeTypes: NodeTypes;
   edgeTypes: EdgeTypes;
 }> = (props) => {
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onNodeClick, onPaneClick, setNodes, nodeTypes, edgeTypes } = props;
+  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onNodeClick, onEdgeClick, onPaneClick, setNodes, nodeTypes, edgeTypes } = props;
   const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
   const { screenToFlowPosition } = useReactFlow();
 
@@ -101,6 +102,7 @@ const EditorCanvas: React.FC<{
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onNodeClick={onNodeClick}
+        onEdgeClick={onEdgeClick}
         onPaneClick={onPaneClick}
         onDragOver={onDragOver}
         onDrop={onDrop}
@@ -121,6 +123,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [selectedEdge, setSelectedEdge] = useState<any>(null);
 
   const nodeTypes: NodeTypes = useMemo(() => ({
     [NodeType.START]: StartNode,
@@ -180,11 +183,27 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
     console.log('Valid connection created:', params);
     setEdges((eds) => addEdge(params, eds));
   }, [nodes, edges, setEdges]);
-  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => setSelectedNode(node), []);
-  const onPaneClick = useCallback(() => setSelectedNode(null), []);
+  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
+    setSelectedNode(node);
+    setSelectedEdge(null); // Clear edge selection when node is clicked
+  }, []);
+  
+  const onEdgeClick = useCallback((_: React.MouseEvent, edge: any) => {
+    setSelectedEdge(edge);
+    setSelectedNode(null); // Clear node selection when edge is clicked
+  }, []);
+  
+  const onPaneClick = useCallback(() => {
+    setSelectedNode(null);
+    setSelectedEdge(null);
+  }, []);
 
   const onNodeUpdate = (updatedNode: Node) => {
     setNodes((nds) => nds.map((n) => (n.id === updatedNode.id ? updatedNode : n)));
+  };
+
+  const onEdgeUpdate = (updatedEdge: any) => {
+    setEdges((eds) => eds.map((e) => (e.id === updatedEdge.id ? updatedEdge : e)));
   };
 
   const nodeCategories: NodeCategory[] = useMemo(() => [
@@ -210,13 +229,19 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodeClick={onNodeClick}
+          onEdgeClick={onEdgeClick}
           onPaneClick={onPaneClick}
           setNodes={setNodes}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
         />
       </ReactFlowProvider>
-      <PropertyPanel selectedNode={selectedNode as EditorNode | null} onNodeUpdate={onNodeUpdate as any} />
+      <PropertyPanel 
+        selectedNode={selectedNode as EditorNode | null} 
+        selectedEdge={selectedEdge as EditorEdge | null}
+        onNodeUpdate={onNodeUpdate as any} 
+        onEdgeUpdate={onEdgeUpdate as any}
+      />
     </div>
   );
 };
