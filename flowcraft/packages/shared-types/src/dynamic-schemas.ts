@@ -95,8 +95,8 @@ export function calculateNodeOutputSchema(
       return generateConditionNodeOutput(node, inputSchema);
       
     case NodeType.END:
-      // End nodes typically pass through input data
-      return inputSchema;
+      // End nodes don't have output fields - they are the final node
+      return {};
       
     case NodeType.HTTP_REQUEST:
       return generateHttpRequestOutput(node, inputSchema);
