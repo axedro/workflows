@@ -141,6 +141,64 @@ const EndNode: React.FC<NodeProps<EndNodeData>> = ({ data, selected }) => {
       <div className="absolute bottom-2 left-2 text-xs text-white opacity-75">
         {Object.keys(schema.input).length} fields in
       </div>
+
+      {/* Visualización de datos - Campos de entrada */}
+      <div className="absolute top-2 left-2">
+        <div className="bg-black bg-opacity-30 rounded px-2 py-1">
+          <div className="text-xs text-white font-semibold">Input Fields:</div>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {Object.keys(schema.input).slice(0, 3).map(fieldKey => (
+              <div key={fieldKey} className="text-xs bg-red-500 bg-opacity-80 text-white px-1 rounded">
+                {fieldKey}
+              </div>
+            ))}
+            {Object.keys(schema.input).length > 3 && (
+              <div className="text-xs bg-red-500 bg-opacity-80 text-white px-1 rounded">
+                +{Object.keys(schema.input).length - 3}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Visualización de datos - Tipos de resultado */}
+      <div className="absolute bottom-2 right-2">
+        <div className="bg-black bg-opacity-30 rounded px-2 py-1">
+          <div className="text-xs text-white font-semibold">Result:</div>
+          <div className="flex gap-1 mt-1">
+            {data.resultType && (
+              <div className={`text-xs px-1 rounded ${
+                data.resultType === 'success' ? 'bg-green-500 bg-opacity-80' :
+                data.resultType === 'error' ? 'bg-red-500 bg-opacity-80' :
+                'bg-yellow-500 bg-opacity-80'
+              } text-white`}>
+                {data.resultType}
+              </div>
+            )}
+            {hasOutputConfig && (
+              <div className="text-xs bg-blue-500 bg-opacity-80 text-white px-1 rounded">
+                {data.outputConfig?.format || 'json'}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Indicador de resultado final */}
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <div className={`rounded-full w-8 h-8 flex items-center justify-center ${
+          data.resultType === 'success' ? 'bg-green-500' :
+          data.resultType === 'error' ? 'bg-red-500' :
+          data.resultType === 'partial' ? 'bg-yellow-500' :
+          'bg-gray-500'
+        } bg-opacity-90`}>
+          <span className="text-white text-xs font-bold">
+            {data.resultType === 'success' ? '✓' :
+             data.resultType === 'error' ? '✗' :
+             data.resultType === 'partial' ? '!' : '●'}
+          </span>
+        </div>
+      </div>
       
       {defaultPorts.map(port => (
         <DataPortHandle

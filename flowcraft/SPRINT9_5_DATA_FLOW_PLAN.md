@@ -179,23 +179,30 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 - [x] `apps/web/src/components/workflow-editor/nodes/ConditionNode.tsx` - Configuración específica con tipos de condición
 - [x] `apps/web/src/components/workflow-editor/nodes/EndNode.tsx` - Configuración específica con tipos de resultado
 
-### Tarea 9.5.2.4: Visualización de datos 🚧 PENDIENTE
+### Tarea 9.5.2.4: Visualización de datos ✅ COMPLETADO
 **Objetivo**: Implementar visualización del flujo de datos en los nodos.
 
 **Subtareas**:
-- [ ] Mostrar campos de datos en indicadores visuales
-- [ ] Implementar indicadores de transformación de datos
-- [ ] Mostrar validación de datos en tiempo real
-- [ ] Implementar preview de datos en nodos
-- [ ] Crear indicadores de compatibilidad de tipos
-- [ ] Mostrar estadísticas de datos (campos, tipos, etc.)
+- [x] Mostrar campos de datos en indicadores visuales
+- [x] Implementar indicadores de transformación de datos
+- [x] Mostrar validación de datos en tiempo real
+- [x] Implementar preview de datos en nodos
+- [x] Crear indicadores de compatibilidad de tipos
+- [x] Mostrar estadísticas de datos (campos, tipos, etc.)
 
 **Criterios de Aceptación**:
-- [ ] Indicadores visuales muestran información de campos
-- [ ] Indicadores visuales de transformaciones implementados
-- [ ] Validación en tiempo real visible en la UI
-- [ ] Preview de datos disponible en nodos
-- [ ] Indicadores de compatibilidad claros y visibles
+- [x] Indicadores visuales muestran información de campos
+- [x] Indicadores visuales de transformaciones implementados
+- [x] Validación en tiempo real visible en la UI
+- [x] Preview de datos disponible en nodos
+- [x] Indicadores de compatibilidad claros y visibles
+
+**Archivos Creados/Modificados**:
+- [x] `apps/web/src/components/workflow-editor/nodes/StartNode.tsx` - Visualización de campos de salida y tipos
+- [x] `apps/web/src/components/workflow-editor/nodes/ActionNode.tsx` - Visualización de entrada/salida y transformaciones
+- [x] `apps/web/src/components/workflow-editor/nodes/ConditionNode.tsx` - Visualización de ramas true/false
+- [x] `apps/web/src/components/workflow-editor/nodes/EndNode.tsx` - Visualización de campos de entrada y resultados
+- [x] `apps/web/src/components/workflow-editor/utils/dataVisualization.tsx` - Componentes utilitarios para visualización
 
 **Nota**: Los tooltips se han movido al Sprint 9.6 para implementación más robusta.
 
@@ -456,7 +463,7 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 - [x] Componente `DataPortHandle` implementado
 - [x] Nodos actualizados para mostrar puertos
 - [x] Configuración específica por tipo de nodo
-- [ ] Visualización de datos en nodos
+- [x] Visualización de datos en nodos
 
 ### Nodo de Condición como Rombo
 - [ ] Forma de rombo implementada
@@ -532,19 +539,18 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 
 ## Estado del Sprint
 
-### Progreso General: 50% Completado
+### Progreso General: 65% Completado
 - ✅ Fase 9.5.1: Arquitectura de Flujo de Datos (100%)
-- ✅ Fase 9.5.2: Nodos con Puertos de Datos (75%)
+- ✅ Fase 9.5.2: Nodos con Puertos de Datos (100%)
 - ⏳ Fase 9.5.3: Nodo de Condición como Rombo (0%)
 - ✅ Fase 9.5.4: Conexiones Direccionales con Datos (100%)
 - ⏳ Fase 9.5.5: Panel de Configuración de Datos (0%)
 - ⏳ Fase 9.5.6: Integración con Conectores (0%)
 
 ### Tareas Pendientes Críticas
-1. Implementar visualización de datos en nodos
-2. Rediseñar ConditionNode como rombo
-3. Crear panel de configuración de datos
-4. Integrar esquemas de datos con conectores
+1. Rediseñar ConditionNode como rombo
+2. Crear panel de configuración de datos
+3. Integrar esquemas de datos con conectores
 
 ### Próximo Hito
 **Sistema de flujo de datos completamente funcional al final del Sprint 9.5** 
