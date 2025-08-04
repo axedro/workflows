@@ -44,6 +44,26 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
     setLocalDataFlow(dataFlow);
   }, [dataFlow]);
 
+  // Auto-generate mappings when dataFlow is empty and sourceSchema has fields
+  useEffect(() => {
+    if (dataFlow.fieldMappings.length === 0 && Object.keys(sourceSchema).length > 0) {
+      const autoMappings: FieldMapping[] = Object.keys(sourceSchema).map(sourceField => ({
+        sourceField: sourceField,
+        targetField: sourceField, // Auto-map to same name
+        required: false,
+        description: `Auto-mapped from ${sourceField}`
+      }));
+      
+      const updatedDataFlow: DataFlow = {
+        ...dataFlow,
+        fieldMappings: autoMappings,
+      };
+      
+      setLocalDataFlow(updatedDataFlow);
+      onDataFlowChange(updatedDataFlow);
+    }
+  }, [dataFlow, sourceSchema, onDataFlowChange]);
+
   // Debug: Log schemas to console
   useEffect(() => {
     console.log('DataConfigPanel - sourceSchema:', sourceSchema);
@@ -171,16 +191,17 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
   };
 
   const addFieldMapping = () => {
-    const newMapping: FieldMapping = {
-      sourceField: '',
-      targetField: '',
+    // Auto-generate mappings for all source fields
+    const newMappings: FieldMapping[] = Object.keys(sourceSchema).map(sourceField => ({
+      sourceField: sourceField,
+      targetField: sourceField, // Auto-map to same name
       required: false,
-      description: '',
-    };
-
+      description: `Auto-mapped from ${sourceField}`
+    }));
+    
     const updatedDataFlow: DataFlow = {
       ...localDataFlow,
-      fieldMappings: [...localDataFlow.fieldMappings, newMapping],
+      fieldMappings: [...localDataFlow.fieldMappings, ...newMappings],
     };
 
     setLocalDataFlow(updatedDataFlow);
@@ -256,26 +277,23 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
       errors.push(`Source field "${mapping.sourceField}" does not exist`);
     }
 
-    // Check if target field exists
-    if (!targetSchema[mapping.targetField]) {
-      errors.push(`Target field "${mapping.targetField}" does not exist`);
+    // Check if target field name is provided
+    if (!mapping.targetField || mapping.targetField.trim() === '') {
+      errors.push(`Target field name is required`);
     }
 
-    // Check type compatibility
-    const sourceField = sourceSchema[mapping.sourceField];
-    const targetField = targetSchema[mapping.targetField];
-    
-    if (sourceField && targetField && sourceField.type !== targetField.type) {
-      warnings.push(`Type mismatch: ${sourceField.type} → ${targetField.type}`);
+    // Check if target field name is valid (no spaces, special chars)
+    if (mapping.targetField && !/^[a-zA-Z_][a-zA-Z0-9_.]*$/.test(mapping.targetField)) {
+      errors.push(`Target field name must be a valid identifier (letters, numbers, dots, underscores)`);
     }
 
     return {
       isValid: errors.length === 0,
       errors,
       warnings,
-      typeCompatible: sourceField && targetField ? sourceField.type === targetField.type : false,
+      typeCompatible: true, // Since we don't validate against target schema anymore
       sourceExists: !!sourceSchema[mapping.sourceField],
-      targetExists: !!targetSchema[mapping.targetField],
+      targetExists: true, // Since target fields are free text
     };
   };
 
@@ -377,7 +395,6 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
         {localDataFlow.fieldMappings.map((mapping, index) => {
           const validation = validateFieldMapping(mapping);
           const sourceField = sourceSchema[mapping.sourceField];
-          const targetField = targetSchema[mapping.targetField];
 
           return (
             <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
@@ -421,24 +438,17 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Target Field
                   </label>
-                  <select
+                  <input
+                    type="text"
                     value={mapping.targetField}
                     onChange={(e) => handleFieldMappingChange(mapping.sourceField, { targetField: e.target.value })}
                     disabled={readOnly}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select target field</option>
-                    {Object.entries(targetSchema).map(([fieldId, field]) => (
-                      <option key={fieldId} value={fieldId}>
-                        {field.name} ({field.type})
-                      </option>
-                    ))}
-                  </select>
-                  {targetField && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      {targetField.description}
-                    </p>
-                  )}
+                    placeholder="Enter target field name"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Free text field - you can rename the target field
+                  </p>
                 </div>
               </div>
 
