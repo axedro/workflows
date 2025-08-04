@@ -22,11 +22,15 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
 }) => {
   const [localNode, setLocalNode] = useState<EditorNode | null>(selectedNode);
   const [localEdge, setLocalEdge] = useState<EditorEdge | null>(selectedEdge);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   // Update local state when selected node or edge changes
   useEffect(() => {
     setLocalNode(selectedNode);
     setLocalEdge(selectedEdge);
+    setHasUnsavedChanges(false);
+    setSaveStatus('idle');
   }, [selectedNode, selectedEdge]);
 
   // If an edge is selected, show the data configuration panel
@@ -108,12 +112,43 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
     updatedNode.data.validation = validation;
 
     setLocalNode(updatedNode);
-    onNodeUpdate(updatedNode); // Update parent state immediately
+    setHasUnsavedChanges(true);
+    setSaveStatus('idle');
+    
+    // Auto-save after a short delay
+    setTimeout(() => {
+      onNodeUpdate(updatedNode);
+      setHasUnsavedChanges(false);
+    }, 500);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (readOnly || !localNode) return;
-    onNodeUpdate(localNode);
+    
+    try {
+      setSaveStatus('saving');
+      
+      // Simulate save operation
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      onNodeUpdate(localNode);
+      setHasUnsavedChanges(false);
+      setSaveStatus('saved');
+      
+      // Reset status after 2 seconds
+      setTimeout(() => {
+        setSaveStatus('idle');
+      }, 2000);
+      
+    } catch (error) {
+      setSaveStatus('error');
+      console.error('Error saving node:', error);
+      
+      // Reset error status after 3 seconds
+      setTimeout(() => {
+        setSaveStatus('idle');
+      }, 3000);
+    }
   };
 
   const getNodeSchemaInfo = () => {
@@ -369,14 +404,35 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-800">Properties</h2>
           {!readOnly && (
-            <Tooltip content="Save changes to this node" position="left">
-              <button
-                onClick={handleSave}
-                className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
-              >
-                Save
-              </button>
-            </Tooltip>
+            <div className="flex items-center space-x-2">
+              {hasUnsavedChanges && (
+                <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
+                  Unsaved changes
+                </span>
+              )}
+              <Tooltip content="Save changes to this node" position="left">
+                <button
+                  onClick={handleSave}
+                  disabled={saveStatus === 'saving'}
+                  className={`px-3 py-1 text-sm rounded transition-colors ${
+                    saveStatus === 'saving'
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : saveStatus === 'saved'
+                      ? 'bg-green-500 text-white'
+                      : saveStatus === 'error'
+                      ? 'bg-red-500 text-white'
+                      : hasUnsavedChanges
+                      ? 'bg-blue-500 text-white hover:bg-blue-600'
+                      : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                  }`}
+                >
+                  {saveStatus === 'saving' && 'Saving...'}
+                  {saveStatus === 'saved' && 'Saved!'}
+                  {saveStatus === 'error' && 'Error'}
+                  {saveStatus === 'idle' && (hasUnsavedChanges ? 'Save' : 'Saved')}
+                </button>
+              </Tooltip>
+            </div>
           )}
         </div>
         {selectedNode && (

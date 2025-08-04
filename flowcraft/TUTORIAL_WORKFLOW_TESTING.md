@@ -81,6 +81,8 @@ Probar la funcionalidad básica de nodos, conexiones y flujo de datos.
 3. **Configurar Datos**
    - En la sección "Basic Properties", configurar Label y Description
    - En la sección "Node Configuration", configurar los campos específicos del nodo
+   - **Verificar el botón Save**: Debería mostrar "Unsaved changes" cuando hagas cambios
+   - **Probar el guardado**: Click en "Save" y verificar que cambia a "Saved!"
 
 #### 4. Testing de Validación
 1. **Probar Auto-conexión**
