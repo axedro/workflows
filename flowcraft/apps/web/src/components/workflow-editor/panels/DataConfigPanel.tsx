@@ -889,7 +889,7 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
                       {sourceField?.name} → {targetField?.name}
                     </div>
                     <div className="text-xs text-gray-500">
-                      {sourceValue} → {targetValue}
+                      {typeof sourceValue === 'object' ? JSON.stringify(sourceValue) : String(sourceValue)} → {typeof targetValue === 'object' ? JSON.stringify(targetValue) : String(targetValue)}
                     </div>
                   </div>
                   <span className={`text-xs px-2 py-1 rounded ${
