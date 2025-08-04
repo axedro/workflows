@@ -18,11 +18,21 @@ export function validateNode(node: EditorNode): NodeValidation {
   switch (node.type) {
     case NodeType.CONDITION:
       const conditionData = node.data as any; // Cast to any for now
-      if (!conditionData.condition?.variable || conditionData.condition.variable.trim() === '') {
-        errors.push('Condition variable is required');
-      }
-      if (!conditionData.condition?.value || conditionData.condition.value.trim() === '') {
-        errors.push('Condition value is required');
+      const dataConditions = conditionData.dataConditions || [];
+      
+      // Validar que haya al menos una condición
+      if (dataConditions.length === 0) {
+        errors.push('At least one condition is required');
+      } else {
+        // Validar cada condición individual
+        dataConditions.forEach((condition: any, index: number) => {
+          if (!condition.field || condition.field.trim() === '') {
+            errors.push(`Condition ${index + 1}: Field is required`);
+          }
+          if (!condition.value || condition.value.toString().trim() === '') {
+            errors.push(`Condition ${index + 1}: Value is required`);
+          }
+        });
       }
       break;
 
