@@ -428,34 +428,40 @@ function generateSlackOutput(
 }
 
 function generateDataTransformOutput(
-  node: EditorNode,
+  _node: EditorNode,
   inputSchema: Record<string, DataField>
 ): Record<string, DataField> {
-  // Data transform nodes apply transformations to input data
-  const transformConfig = (node.data as any)?.transformConfig;
+  const output: Record<string, DataField> = { ...inputSchema };
   
-  if (transformConfig && transformConfig.transformations) {
-    // Apply transformations to create new schema
-    return applyDataFlowToSchema(inputSchema, {
-      id: 'transform-flow',
-      sourcePortId: 'transform-input',
-      targetPortId: 'transform-output',
-      fieldMappings: transformConfig.fieldMappings || [],
-      transformations: transformConfig.transformations,
-      validation: { 
-        isValid: true, 
-        errors: [], 
-        warnings: [],
-        portsCompatible: true,
-        requiredFieldsMapped: true,
-        typeCompatible: true
-      },
-      enabled: true
-    });
-  }
+  // Add data transform specific fields
+  output.transformResult = {
+    id: 'transformResult',
+    name: 'Transform Result',
+    type: DataType.JSON,
+    required: true,
+    description: 'Result of data transformation',
+    example: { transformed: true, data: {} }
+  };
   
-  // If no transformations defined, pass through input
-  return inputSchema;
+  output.transformStatus = {
+    id: 'transformStatus',
+    name: 'Transform Status',
+    type: DataType.STRING,
+    required: true,
+    description: 'Status of transformation operation',
+    example: 'success'
+  };
+  
+  output.processedData = {
+    id: 'processedData',
+    name: 'Processed Data',
+    type: DataType.JSON,
+    required: false,
+    description: 'Data after transformation processing',
+    example: { status: 'processed', count: 42 }
+  };
+  
+  return output;
 }
 
 function generateTimerOutput(
