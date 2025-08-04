@@ -44,6 +44,14 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
     setLocalDataFlow(dataFlow);
   }, [dataFlow]);
 
+  // Debug: Log schemas to console
+  useEffect(() => {
+    console.log('DataConfigPanel - sourceSchema:', sourceSchema);
+    console.log('DataConfigPanel - targetSchema:', targetSchema);
+    console.log('DataConfigPanel - sourceSchema keys:', Object.keys(sourceSchema));
+    console.log('DataConfigPanel - targetSchema keys:', Object.keys(targetSchema));
+  }, [sourceSchema, targetSchema]);
+
   // Generate sample data for preview
   useEffect(() => {
     const sampleData: Record<string, any> = {};
