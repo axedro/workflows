@@ -8,8 +8,11 @@ import {
   FlowValidation,
   FieldMappingValidation,
   TransformationValidation,
-  DataType
+  DataType,
+  NodeType,
+  getNodeSchema
 } from '@flowcraft/shared-types';
+import ConnectorValidationService from '../../../services/connectorValidation.service';
 
 interface DataConfigPanelProps {
   /** Source node data schema */
@@ -32,7 +35,7 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
   readOnly = false,
 }) => {
   const [localDataFlow, setLocalDataFlow] = useState<DataFlow>(dataFlow);
-  const [activeTab, setActiveTab] = useState<'mapping' | 'transformations' | 'validation' | 'preview'>('mapping');
+  const [activeTab, setActiveTab] = useState<'mapping' | 'transformations' | 'validation' | 'preview' | 'connectors'>('mapping');
   const [previewData, setPreviewData] = useState<Record<string, any>>({});
   const [suggestions, setSuggestions] = useState<Array<{sourceField: string, targetField: string, confidence: number}>>([]);
 
@@ -1010,6 +1013,144 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
     return outputData;
   };
 
+  const renderConnectorsTab = () => {
+    const connectorTypes = [
+      { type: NodeType.HTTP_REQUEST, name: 'HTTP Request', icon: '🌐' },
+      { type: NodeType.EMAIL, name: 'Email', icon: '📧' },
+      { type: NodeType.SLACK, name: 'Slack', icon: '💬' },
+      { type: NodeType.TIMER, name: 'Timer', icon: '⏰' },
+      { type: NodeType.WEBHOOK, name: 'Webhook', icon: '🔗' },
+      { type: NodeType.DATA_TRANSFORM, name: 'Data Transform', icon: '🔄' },
+    ];
+
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-medium text-gray-900">Connector Schemas</h3>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => {
+                const config = {
+                  connectorType: 'HTTP_REQUEST',
+                  fields: {},
+                  schema: getNodeSchema(NodeType.HTTP_REQUEST).input
+                };
+                const exported = ConnectorValidationService.exportConnectorConfig(config);
+                navigator.clipboard.writeText(exported);
+                alert('Configuration exported to clipboard!');
+              }}
+              className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Export Schema
+            </button>
+            <button
+              onClick={() => {
+                const input = prompt('Paste configuration JSON:');
+                if (input) {
+                  try {
+                    ConnectorValidationService.importConnectorConfig(input);
+                    alert('Configuration imported successfully!');
+                  } catch (error) {
+                    alert(`Import failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                  }
+                }
+              }}
+              className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              Import Schema
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {connectorTypes.map((connector) => {
+            const schema = getNodeSchema(connector.type);
+            const inputFields = Object.values(schema.input);
+            const outputFields = Object.values(schema.output);
+
+            return (
+              <div key={connector.type} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center mb-3">
+                  <span className="text-2xl mr-2">{connector.icon}</span>
+                  <h4 className="font-medium text-gray-700">{connector.name}</h4>
+                </div>
+
+                <div className="space-y-3">
+                  {/* Input Fields */}
+                  <div>
+                    <h5 className="text-sm font-medium text-gray-600 mb-2">📥 Input Fields ({inputFields.length})</h5>
+                    <div className="space-y-1">
+                      {inputFields.map((field) => (
+                        <div key={field.id} className="flex items-center justify-between text-xs">
+                          <span className="text-gray-700">{field.name}</span>
+                          <div className="flex items-center space-x-1">
+                            <span className={`px-1 py-0.5 rounded text-xs ${
+                              field.required 
+                                ? 'bg-red-100 text-red-800' 
+                                : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {field.required ? 'Required' : 'Optional'}
+                            </span>
+                            <span className="px-1 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">
+                              {field.type}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Output Fields */}
+                  <div>
+                    <h5 className="text-sm font-medium text-gray-600 mb-2">📤 Output Fields ({outputFields.length})</h5>
+                    <div className="space-y-1">
+                      {outputFields.map((field) => (
+                        <div key={field.id} className="flex items-center justify-between text-xs">
+                          <span className="text-gray-700">{field.name}</span>
+                          <span className="px-1 py-0.5 bg-green-100 text-green-800 rounded text-xs">
+                            {field.type}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Validation Test */}
+                  <div className="pt-2 border-t border-gray-100">
+                    <button
+                      onClick={() => {
+                        // Create sample data for validation test
+                        const sampleData: Record<string, any> = {};
+                        inputFields.forEach(field => {
+                          sampleData[field.id] = field.example || generateSampleValue(field);
+                        });
+
+                        const validationResult = ConnectorValidationService.validateConnector({
+                          connectorType: connector.type,
+                          fields: sampleData,
+                          schema: schema.input
+                        });
+
+                        if (validationResult.isValid) {
+                          alert(`✅ ${connector.name} validation passed!`);
+                        } else {
+                          alert(`❌ ${connector.name} validation failed:\n${validationResult.errors.join('\n')}`);
+                        }
+                      }}
+                      className="w-full px-2 py-1 text-xs bg-purple-500 text-white rounded hover:bg-purple-600"
+                    >
+                      Test Validation
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   const renderValidationTab = () => {
     const allMappingsValid = localDataFlow.fieldMappings.every(mapping => 
       validateFieldMapping(mapping).isValid
@@ -1148,6 +1289,7 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
             { id: 'transformations', label: 'Transformations', icon: '⚙️' },
             { id: 'validation', label: 'Validation', icon: '✅' },
             { id: 'preview', label: 'Preview', icon: '👁️' },
+            { id: 'connectors', label: 'Connectors', icon: '🔌' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -1171,6 +1313,7 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
         {activeTab === 'transformations' && renderTransformationsTab()}
         {activeTab === 'validation' && renderValidationTab()}
         {activeTab === 'preview' && renderPreviewTab()}
+        {activeTab === 'connectors' && renderConnectorsTab()}
       </div>
     </div>
   );

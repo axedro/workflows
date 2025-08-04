@@ -420,57 +420,69 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 
 ## Fase 9.5.6: Integración con Conectores 🚧 PENDIENTE
 
-### Tarea 9.5.6.1: Definir esquemas de datos para conectores 🚧 PENDIENTE
+### ✅ Tarea 9.5.6.1: Definir esquemas de datos para conectores ✅ COMPLETADO
 **Objetivo**: Definir esquemas de datos para los conectores existentes.
 
 **Subtareas**:
-- [ ] Definir esquemas para HTTP Request
-- [ ] Definir esquemas para Email
-- [ ] Definir esquemas para Slack
-- [ ] Definir esquemas para Data Transform
-- [ ] Definir esquemas para Timer
-- [ ] Definir esquemas para Webhook
+- [x] Definir esquemas para HTTP Request
+- [x] Definir esquemas para Email
+- [x] Definir esquemas para Slack
+- [x] Definir esquemas para Data Transform
+- [x] Definir esquemas para Timer
+- [x] Definir esquemas para Webhook
 
 **Criterios de Aceptación**:
-- [ ] Esquemas definidos para todos los conectores
-- [ ] Validación específica por conector
-- [ ] Documentación de esquemas disponible
-- [ ] Ejemplos de uso proporcionados
+- [x] Esquemas definidos para todos los conectores
+- [x] Validación específica por conector
+- [x] Documentación de esquemas disponible
+- [x] Ejemplos de uso proporcionados
 
-### Tarea 9.5.6.2: Implementar importación/exportación de datos 🚧 PENDIENTE
+**Archivos Creados/Modificados**:
+- `packages/shared-types/src/node-schemas.ts` (MEJORADO)
+- `apps/web/src/services/connectorValidation.service.ts` (NUEVO)
+
+### ✅ Tarea 9.5.6.2: Implementar importación/exportación de datos ✅ COMPLETADO
 **Objetivo**: Implementar funcionalidad de importación/exportación de datos.
 
 **Subtareas**:
-- [ ] Crear exportación de esquemas de datos
-- [ ] Implementar importación de esquemas
-- [ ] Añadir validación de esquemas importados
-- [ ] Crear migración de esquemas
-- [ ] Implementar versionado de esquemas
-- [ ] Añadir backup/restore de configuraciones
+- [x] Crear exportación de esquemas de datos
+- [x] Implementar importación de esquemas
+- [x] Añadir validación de esquemas importados
+- [x] Crear migración de esquemas
+- [x] Implementar versionado de esquemas
+- [x] Añadir backup/restore de configuraciones
 
 **Criterios de Aceptación**:
-- [ ] Exportación de esquemas funcionando
-- [ ] Importación de esquemas implementada
-- [ ] Validación de esquemas importados funcionando
-- [ ] Migración de esquemas disponible
-- [ ] Versionado de esquemas implementado
+- [x] Exportación de esquemas funcionando
+- [x] Importación de esquemas implementada
+- [x] Validación de esquemas importados funcionando
+- [x] Migración de esquemas disponible
+- [x] Versionado de esquemas implementado
 
-### Tarea 9.5.6.3: Validar configuraciones de conectores 🚧 PENDIENTE
+**Archivos Creados/Modificados**:
+- `apps/web/src/services/connectorValidation.service.ts` (MEJORADO)
+- `apps/web/src/components/workflow-editor/panels/DataConfigPanel.tsx` (MEJORADO)
+
+### ✅ Tarea 9.5.6.3: Validar configuraciones de conectores ✅ COMPLETADO
 **Objetivo**: Implementar validación específica para configuraciones de conectores.
 
 **Subtareas**:
-- [ ] Validar configuraciones de HTTP Request
-- [ ] Validar configuraciones de Email
-- [ ] Validar configuraciones de Slack
-- [ ] Validar configuraciones de Data Transform
-- [ ] Validar configuraciones de Timer
-- [ ] Validar configuraciones de Webhook
+- [x] Validar configuraciones de HTTP Request
+- [x] Validar configuraciones de Email
+- [x] Validar configuraciones de Slack
+- [x] Validar configuraciones de Data Transform
+- [x] Validar configuraciones de Timer
+- [x] Validar configuraciones de Webhook
 
 **Criterios de Aceptación**:
-- [ ] Validación específica por conector implementada
-- [ ] Mensajes de error claros y útiles
-- [ ] Sugerencias de corrección disponibles
-- [ ] Validación en tiempo real funcionando
+- [x] Validación específica por conector implementada
+- [x] Mensajes de error claros y útiles
+- [x] Sugerencias de corrección disponibles
+- [x] Validación en tiempo real funcionando
+
+**Archivos Creados/Modificados**:
+- `apps/web/src/services/connectorValidation.service.ts` (MEJORADO)
+- `apps/web/src/components/workflow-editor/panels/DataConfigPanel.tsx` (MEJORADO)
 
 ## Entregables
 
@@ -564,13 +576,13 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 
 ## Estado del Sprint
 
-### Progreso General: 98% Completado
+### Progreso General: 100% Completado 🎉
 - ✅ Fase 9.5.1: Arquitectura de Flujo de Datos (100%)
 - ✅ Fase 9.5.2: Nodos con Puertos de Datos (100%)
 - ✅ Fase 9.5.3: Nodo de Condición como Rombo (100%)
 - ✅ Fase 9.5.4: Conexiones Direccionales con Datos (100%)
 - ✅ Fase 9.5.5: Panel de Configuración de Datos (100%)
-- ⏳ Fase 9.5.6: Integración con Conectores (0%)
+- ✅ Fase 9.5.6: Integración con Conectores (100%)
 
 ### Tareas Pendientes Críticas
 1. Completar editor de condiciones (Tarea 9.5.3.3)

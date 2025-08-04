@@ -116,6 +116,233 @@ export const DEFAULT_FIELDS = {
     required: false,
     description: 'Error message',
     example: 'Something went wrong'
+  } as DataField,
+
+  // HTTP Request specific fields
+  url: {
+    id: 'url',
+    name: 'URL',
+    type: DataType.URL,
+    required: true,
+    description: 'Request URL',
+    example: 'https://api.example.com/data',
+    validation: {
+      pattern: '^https?://.+'
+    }
+  } as DataField,
+
+  method: {
+    id: 'method',
+    name: 'Method',
+    type: DataType.STRING,
+    required: true,
+    description: 'HTTP method',
+    example: 'GET',
+    validation: {
+      enum: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+    }
+  } as DataField,
+
+  headers: {
+    id: 'headers',
+    name: 'Headers',
+    type: DataType.JSON,
+    required: false,
+    description: 'HTTP headers',
+    example: { 'Content-Type': 'application/json', 'Authorization': 'Bearer token' }
+  } as DataField,
+
+  body: {
+    id: 'body',
+    name: 'Body',
+    type: DataType.JSON,
+    required: false,
+    description: 'Request body',
+    example: { key: 'value' }
+  } as DataField,
+
+  responseStatus: {
+    id: 'responseStatus',
+    name: 'Response Status',
+    type: DataType.NUMBER,
+    required: false,
+    description: 'HTTP response status code',
+    example: 200,
+    validation: {
+      min: 100,
+      max: 599
+    }
+  } as DataField,
+
+  responseData: {
+    id: 'responseData',
+    name: 'Response Data',
+    type: DataType.JSON,
+    required: false,
+    description: 'Response data from HTTP request',
+    example: { result: 'success', data: [] }
+  } as DataField,
+
+  // Email specific fields
+  to: {
+    id: 'to',
+    name: 'To',
+    type: DataType.ARRAY,
+    required: true,
+    description: 'Recipient email addresses',
+    example: ['user@example.com', 'admin@example.com']
+  } as DataField,
+
+  cc: {
+    id: 'cc',
+    name: 'CC',
+    type: DataType.ARRAY,
+    required: false,
+    description: 'CC recipient email addresses',
+    example: ['cc@example.com']
+  } as DataField,
+
+  bcc: {
+    id: 'bcc',
+    name: 'BCC',
+    type: DataType.ARRAY,
+    required: false,
+    description: 'BCC recipient email addresses',
+    example: ['bcc@example.com']
+  } as DataField,
+
+  subject: {
+    id: 'subject',
+    name: 'Subject',
+    type: DataType.STRING,
+    required: true,
+    description: 'Email subject',
+    example: 'Important notification'
+  } as DataField,
+
+  emailBody: {
+    id: 'emailBody',
+    name: 'Email Body',
+    type: DataType.STRING,
+    required: true,
+    description: 'Email body content',
+    example: 'This is the email content...'
+  } as DataField,
+
+  attachments: {
+    id: 'attachments',
+    name: 'Attachments',
+    type: DataType.ARRAY,
+    required: false,
+    description: 'Email attachments',
+    example: [{ name: 'document.pdf', url: 'https://example.com/doc.pdf' }]
+  } as DataField,
+
+  // Slack specific fields
+  channel: {
+    id: 'channel',
+    name: 'Channel',
+    type: DataType.STRING,
+    required: true,
+    description: 'Slack channel name',
+    example: '#general'
+  } as DataField,
+
+  slackMessage: {
+    id: 'slackMessage',
+    name: 'Message',
+    type: DataType.STRING,
+    required: true,
+    description: 'Slack message content',
+    example: 'Hello from FlowCraft!'
+  } as DataField,
+
+  blocks: {
+    id: 'blocks',
+    name: 'Blocks',
+    type: DataType.JSON,
+    required: false,
+    description: 'Slack message blocks',
+    example: [{ type: 'section', text: { type: 'mrkdwn', text: 'Hello!' } }]
+  } as DataField,
+
+  // Timer specific fields
+  duration: {
+    id: 'duration',
+    name: 'Duration',
+    type: DataType.NUMBER,
+    required: true,
+    description: 'Timer duration in milliseconds',
+    example: 5000,
+    validation: {
+      min: 1000,
+      max: 86400000 // 24 hours
+    }
+  } as DataField,
+
+  schedule: {
+    id: 'schedule',
+    name: 'Schedule',
+    type: DataType.STRING,
+    required: false,
+    description: 'Cron schedule expression',
+    example: '0 0 * * *'
+  } as DataField,
+
+  // Data Transform specific fields
+  transformType: {
+    id: 'transformType',
+    name: 'Transform Type',
+    type: DataType.STRING,
+    required: true,
+    description: 'Type of transformation',
+    example: 'map',
+    validation: {
+      enum: ['map', 'filter', 'aggregate', 'sort', 'custom']
+    }
+  } as DataField,
+
+  transformConfig: {
+    id: 'transformConfig',
+    name: 'Transform Config',
+    type: DataType.JSON,
+    required: true,
+    description: 'Transformation configuration',
+    example: { field: 'name', operation: 'uppercase' }
+  } as DataField,
+
+  // Webhook specific fields
+  webhookUrl: {
+    id: 'webhookUrl',
+    name: 'Webhook URL',
+    type: DataType.URL,
+    required: true,
+    description: 'Webhook endpoint URL',
+    example: 'https://api.example.com/webhook',
+    validation: {
+      pattern: '^https?://.+'
+    }
+  } as DataField,
+
+  webhookMethod: {
+    id: 'webhookMethod',
+    name: 'Webhook Method',
+    type: DataType.STRING,
+    required: true,
+    description: 'HTTP method for webhook',
+    example: 'POST',
+    validation: {
+      enum: ['GET', 'POST', 'PUT', 'DELETE']
+    }
+  } as DataField,
+
+  webhookHeaders: {
+    id: 'webhookHeaders',
+    name: 'Webhook Headers',
+    type: DataType.JSON,
+    required: false,
+    description: 'Headers for webhook request',
+    example: { 'X-API-Key': 'secret-key' }
   } as DataField
 };
 
@@ -242,12 +469,16 @@ export const NODE_SCHEMAS: Record<NodeType, DataSchema> = {
   [NodeType.HTTP_REQUEST]: {
     input: {
       [DEFAULT_FIELDS.id.id]: DEFAULT_FIELDS.id,
+      [DEFAULT_FIELDS.url.id]: DEFAULT_FIELDS.url,
+      [DEFAULT_FIELDS.method.id]: DEFAULT_FIELDS.method,
+      [DEFAULT_FIELDS.headers.id]: DEFAULT_FIELDS.headers,
+      [DEFAULT_FIELDS.body.id]: DEFAULT_FIELDS.body,
       [DEFAULT_FIELDS.data.id]: DEFAULT_FIELDS.data
     },
     output: {
       [DEFAULT_FIELDS.id.id]: DEFAULT_FIELDS.id,
-      [DEFAULT_FIELDS.data.id]: DEFAULT_FIELDS.data,
-      [DEFAULT_FIELDS.status.id]: DEFAULT_FIELDS.status,
+      [DEFAULT_FIELDS.responseStatus.id]: DEFAULT_FIELDS.responseStatus,
+      [DEFAULT_FIELDS.responseData.id]: DEFAULT_FIELDS.responseData,
       [DEFAULT_FIELDS.success.id]: DEFAULT_FIELDS.success,
       [DEFAULT_FIELDS.message.id]: DEFAULT_FIELDS.message,
       [DEFAULT_FIELDS.timestamp.id]: DEFAULT_FIELDS.timestamp
@@ -259,8 +490,12 @@ export const NODE_SCHEMAS: Record<NodeType, DataSchema> = {
   [NodeType.EMAIL]: {
     input: {
       [DEFAULT_FIELDS.id.id]: DEFAULT_FIELDS.id,
-      [DEFAULT_FIELDS.email.id]: DEFAULT_FIELDS.email,
-      [DEFAULT_FIELDS.message.id]: DEFAULT_FIELDS.message,
+      [DEFAULT_FIELDS.to.id]: DEFAULT_FIELDS.to,
+      [DEFAULT_FIELDS.cc.id]: DEFAULT_FIELDS.cc,
+      [DEFAULT_FIELDS.bcc.id]: DEFAULT_FIELDS.bcc,
+      [DEFAULT_FIELDS.subject.id]: DEFAULT_FIELDS.subject,
+      [DEFAULT_FIELDS.emailBody.id]: DEFAULT_FIELDS.emailBody,
+      [DEFAULT_FIELDS.attachments.id]: DEFAULT_FIELDS.attachments,
       [DEFAULT_FIELDS.data.id]: DEFAULT_FIELDS.data
     },
     output: {
@@ -276,7 +511,9 @@ export const NODE_SCHEMAS: Record<NodeType, DataSchema> = {
   [NodeType.SLACK]: {
     input: {
       [DEFAULT_FIELDS.id.id]: DEFAULT_FIELDS.id,
-      [DEFAULT_FIELDS.message.id]: DEFAULT_FIELDS.message,
+      [DEFAULT_FIELDS.channel.id]: DEFAULT_FIELDS.channel,
+      [DEFAULT_FIELDS.slackMessage.id]: DEFAULT_FIELDS.slackMessage,
+      [DEFAULT_FIELDS.blocks.id]: DEFAULT_FIELDS.blocks,
       [DEFAULT_FIELDS.data.id]: DEFAULT_FIELDS.data
     },
     output: {
@@ -292,7 +529,9 @@ export const NODE_SCHEMAS: Record<NodeType, DataSchema> = {
   [NodeType.DATA_TRANSFORM]: {
     input: {
       [DEFAULT_FIELDS.id.id]: DEFAULT_FIELDS.id,
-      [DEFAULT_FIELDS.data.id]: DEFAULT_FIELDS.data
+      [DEFAULT_FIELDS.data.id]: DEFAULT_FIELDS.data,
+      [DEFAULT_FIELDS.transformType.id]: DEFAULT_FIELDS.transformType,
+      [DEFAULT_FIELDS.transformConfig.id]: DEFAULT_FIELDS.transformConfig
     },
     output: {
       [DEFAULT_FIELDS.id.id]: DEFAULT_FIELDS.id,
@@ -306,7 +545,9 @@ export const NODE_SCHEMAS: Record<NodeType, DataSchema> = {
   
   [NodeType.TIMER]: {
     input: {
-      [DEFAULT_FIELDS.id.id]: DEFAULT_FIELDS.id
+      [DEFAULT_FIELDS.id.id]: DEFAULT_FIELDS.id,
+      [DEFAULT_FIELDS.duration.id]: DEFAULT_FIELDS.duration,
+      [DEFAULT_FIELDS.schedule.id]: DEFAULT_FIELDS.schedule
     },
     output: {
       [DEFAULT_FIELDS.id.id]: DEFAULT_FIELDS.id,
@@ -320,6 +561,9 @@ export const NODE_SCHEMAS: Record<NodeType, DataSchema> = {
   [NodeType.WEBHOOK]: {
     input: {
       [DEFAULT_FIELDS.id.id]: DEFAULT_FIELDS.id,
+      [DEFAULT_FIELDS.webhookUrl.id]: DEFAULT_FIELDS.webhookUrl,
+      [DEFAULT_FIELDS.webhookMethod.id]: DEFAULT_FIELDS.webhookMethod,
+      [DEFAULT_FIELDS.webhookHeaders.id]: DEFAULT_FIELDS.webhookHeaders,
       [DEFAULT_FIELDS.data.id]: DEFAULT_FIELDS.data
     },
     output: {
