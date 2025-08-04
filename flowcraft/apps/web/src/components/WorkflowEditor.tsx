@@ -239,6 +239,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
       <PropertyPanel 
         selectedNode={selectedNode as EditorNode | null} 
         selectedEdge={selectedEdge as EditorEdge | null}
+        nodes={nodes as EditorNode[]}
         onNodeUpdate={onNodeUpdate as any} 
         onEdgeUpdate={onEdgeUpdate as any}
       />

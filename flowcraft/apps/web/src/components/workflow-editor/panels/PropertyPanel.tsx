@@ -8,6 +8,7 @@ import DataConfigPanel from './DataConfigPanel';
 interface PropertyPanelProps {
   selectedNode: EditorNode | null;
   selectedEdge: EditorEdge | null;
+  nodes: EditorNode[];
   onNodeUpdate: (node: EditorNode) => void;
   onEdgeUpdate: (edge: EditorEdge) => void;
   readOnly?: boolean;
@@ -16,6 +17,7 @@ interface PropertyPanelProps {
 const PropertyPanel: React.FC<PropertyPanelProps> = ({
   selectedNode,
   selectedEdge,
+  nodes,
   onNodeUpdate,
   onEdgeUpdate,
   readOnly = false,
@@ -35,9 +37,13 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
 
   // If an edge is selected, show the data configuration panel
   if (selectedEdge && localEdge) {
-    // For now, we'll use empty schemas as placeholders
-    const sourceSchema = {};
-    const targetSchema = {};
+    // Get source and target nodes
+    const sourceNode = nodes.find(node => node.id === localEdge.source);
+    const targetNode = nodes.find(node => node.id === localEdge.target);
+    
+    // Get schemas from nodes
+    const sourceSchema = sourceNode ? getNodeSchema(sourceNode.type).output : {};
+    const targetSchema = targetNode ? getNodeSchema(targetNode.type).input : {};
     
     // Create a default data flow if none exists
           const dataFlow: DataFlow = localEdge.dataFlow || {
