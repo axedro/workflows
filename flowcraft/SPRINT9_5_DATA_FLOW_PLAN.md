@@ -156,22 +156,28 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 - [x] `apps/web/src/components/workflow-editor/nodes/ConditionNode.tsx` - Integración con DataPortHandle
 - [x] `apps/web/src/components/workflow-editor/nodes/EndNode.tsx` - Integración con DataPortHandle
 
-### Tarea 9.5.2.3: Nodos específicos por tipo 🚧 PENDIENTE
+### Tarea 9.5.2.3: Nodos específicos por tipo ✅ COMPLETADO
 **Objetivo**: Implementar configuraciones específicas de datos para cada tipo de nodo.
 
 **Subtareas**:
-- [ ] Configurar `StartNode` con datos de entrada configurables
-- [ ] Configurar `ActionNode` con transformaciones de datos
-- [ ] Configurar `ConditionNode` con condiciones de datos
-- [ ] Configurar `EndNode` con formato de salida de datos
-- [ ] Implementar validación específica por tipo de nodo
-- [ ] Crear indicadores visuales específicos por tipo
+- [x] Configurar `StartNode` con datos de entrada configurables
+- [x] Configurar `ActionNode` con transformaciones de datos
+- [x] Configurar `ConditionNode` con condiciones de datos
+- [x] Configurar `EndNode` con formato de salida de datos
+- [x] Implementar validación específica por tipo de nodo
+- [x] Crear indicadores visuales específicos por tipo
 
 **Criterios de Aceptación**:
-- [ ] Cada tipo de nodo tiene configuración específica de datos
-- [ ] Validación apropiada para cada tipo de nodo
-- [ ] Indicadores visuales específicos implementados
-- [ ] Configuración persistente en el estado del nodo
+- [x] Cada tipo de nodo tiene configuración específica de datos
+- [x] Validación apropiada para cada tipo de nodo
+- [x] Indicadores visuales específicos implementados
+- [x] Configuración persistente en el estado del nodo
+
+**Archivos Creados/Modificados**:
+- [x] `apps/web/src/components/workflow-editor/nodes/StartNode.tsx` - Configuración específica con triggers
+- [x] `apps/web/src/components/workflow-editor/nodes/ActionNode.tsx` - Configuración específica con tipos de acción
+- [x] `apps/web/src/components/workflow-editor/nodes/ConditionNode.tsx` - Configuración específica con tipos de condición
+- [x] `apps/web/src/components/workflow-editor/nodes/EndNode.tsx` - Configuración específica con tipos de resultado
 
 ### Tarea 9.5.2.3: Visualización de datos 🚧 PENDIENTE
 **Objetivo**: Implementar visualización del flujo de datos en los nodos.
@@ -447,7 +453,7 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 ### Nodos con Puertos Tipados
 - [x] Componente `DataPortHandle` implementado
 - [x] Nodos actualizados para mostrar puertos
-- [ ] Configuración específica por tipo de nodo
+- [x] Configuración específica por tipo de nodo
 - [ ] Visualización de datos en nodos
 
 ### Nodo de Condición como Rombo
@@ -524,20 +530,19 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 
 ## Estado del Sprint
 
-### Progreso General: 40% Completado
+### Progreso General: 50% Completado
 - ✅ Fase 9.5.1: Arquitectura de Flujo de Datos (100%)
-- 🚧 Fase 9.5.2: Nodos con Puertos de Datos (33%)
+- ✅ Fase 9.5.2: Nodos con Puertos de Datos (75%)
 - ⏳ Fase 9.5.3: Nodo de Condición como Rombo (0%)
 - ✅ Fase 9.5.4: Conexiones Direccionales con Datos (100%)
 - ⏳ Fase 9.5.5: Panel de Configuración de Datos (0%)
 - ⏳ Fase 9.5.6: Integración con Conectores (0%)
 
 ### Tareas Pendientes Críticas
-1. Completar configuración específica por tipo de nodo
-2. Implementar visualización de datos en nodos
-3. Rediseñar ConditionNode como rombo
-4. Crear panel de configuración de datos
-5. Integrar esquemas de datos con conectores
+1. Implementar visualización de datos en nodos
+2. Rediseñar ConditionNode como rombo
+3. Crear panel de configuración de datos
+4. Integrar esquemas de datos con conectores
 
 ### Próximo Hito
 **Sistema de flujo de datos completamente funcional al final del Sprint 9.5** 
