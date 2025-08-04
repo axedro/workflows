@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { EditorNode, NodeType, getNodeSchema, EditorEdge, DataFlow } from '@flowcraft/shared-types';
+import { EditorNode, NodeType, getNodeSchema, EditorEdge, DataFlow, DataType, DataField } from '@flowcraft/shared-types';
 import { Tooltip } from '@flowcraft/ui';
 import { validateNode } from '../../../services/workflowValidation.service';
 import ConditionEditor from './ConditionEditor';
@@ -149,6 +149,62 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
         setSaveStatus('idle');
       }, 3000);
     }
+  };
+
+  // Función para generar campos anidados para objetos JSON
+  const generateNestedFields = (fields: Record<string, DataField>): Record<string, DataField> => {
+    const nestedFields: Record<string, DataField> = { ...fields };
+    
+    // Buscar campos de tipo JSON y generar campos anidados
+    Object.entries(fields).forEach(([fieldName, field]) => {
+      if (field.type === DataType.JSON || field.type === DataType.OBJECT) {
+        // Generar campos anidados comunes para el objeto data
+        if (fieldName === 'data') {
+          nestedFields['data.status'] = {
+            id: 'data.status',
+            name: 'Status',
+            type: DataType.STRING,
+            required: false,
+            description: 'Status field within data object',
+            example: 'active'
+          };
+          nestedFields['data.count'] = {
+            id: 'data.count',
+            name: 'Count',
+            type: DataType.NUMBER,
+            required: false,
+            description: 'Count field within data object',
+            example: 42
+          };
+          nestedFields['data.name'] = {
+            id: 'data.name',
+            name: 'Name',
+            type: DataType.STRING,
+            required: false,
+            description: 'Name field within data object',
+            example: 'John Doe'
+          };
+          nestedFields['data.email'] = {
+            id: 'data.email',
+            name: 'Email',
+            type: DataType.EMAIL,
+            required: false,
+            description: 'Email field within data object',
+            example: 'john@example.com'
+          };
+          nestedFields['data.success'] = {
+            id: 'data.success',
+            name: 'Success',
+            type: DataType.BOOLEAN,
+            required: false,
+            description: 'Success flag within data object',
+            example: true
+          };
+        }
+      }
+    });
+    
+    return nestedFields;
   };
 
   const getNodeSchemaInfo = () => {
@@ -349,7 +405,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
       case NodeType.CONDITION:
         const conditionData = localNode.data as any; // Cast to any for now
         const conditionSchema = getNodeSchema(NodeType.CONDITION);
-        const availableFields = conditionSchema.input;
+        const availableFields = generateNestedFields(conditionSchema.input);
         
         return (
           <div className="space-y-3">
