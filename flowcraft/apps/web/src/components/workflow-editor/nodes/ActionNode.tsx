@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { NodeProps } from '@reactflow/core';
-import { BaseNodeData, getNodePorts, NodeType, getNodeSchema } from '@flowcraft/shared-types';
+import { BaseNodeData, getNodePorts, NodeType } from '@flowcraft/shared-types';
 import DataPortHandle from './DataPortHandle';
 
 interface ActionNodeData extends BaseNodeData {
@@ -41,7 +41,7 @@ interface ActionNodeData extends BaseNodeData {
 const ActionNode: React.FC<NodeProps<ActionNodeData>> = ({ data, selected }) => {
   const isValid = data.validation?.isValid ?? true;
   const defaultPorts = getNodePorts(NodeType.ACTION);
-  const schema = getNodeSchema(NodeType.ACTION);
+
   
   // Configuración específica por tipo de acción
   const getActionIcon = () => {
@@ -145,48 +145,9 @@ const ActionNode: React.FC<NodeProps<ActionNodeData>> = ({ data, selected }) => 
         )}
       </div>
 
-      {/* Indicador de campos de entrada/salida */}
-      <div className="absolute bottom-2 left-2 text-xs text-white opacity-75">
-        {Object.keys(schema.input).length} in / {Object.keys(schema.output).length} out
-      </div>
 
-      {/* Visualización de datos - Campos de entrada */}
-      <div className="absolute top-2 left-2">
-        <div className="bg-black bg-opacity-30 rounded px-2 py-1">
-          <div className="text-xs text-white font-semibold">Input:</div>
-          <div className="flex flex-wrap gap-1 mt-1">
-            {Object.keys(schema.input).slice(0, 2).map(fieldKey => (
-              <div key={fieldKey} className="text-xs bg-blue-500 bg-opacity-80 text-white px-1 rounded">
-                {fieldKey}
-              </div>
-            ))}
-            {Object.keys(schema.input).length > 2 && (
-              <div className="text-xs bg-blue-500 bg-opacity-80 text-white px-1 rounded">
-                +{Object.keys(schema.input).length - 2}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* Visualización de datos - Campos de salida */}
-      <div className="absolute bottom-2 right-2">
-        <div className="bg-black bg-opacity-30 rounded px-2 py-1">
-          <div className="text-xs text-white font-semibold">Output:</div>
-          <div className="flex flex-wrap gap-1 mt-1">
-            {Object.keys(schema.output).slice(0, 2).map(fieldKey => (
-              <div key={fieldKey} className="text-xs bg-green-500 bg-opacity-80 text-white px-1 rounded">
-                {fieldKey}
-              </div>
-            ))}
-            {Object.keys(schema.output).length > 2 && (
-              <div className="text-xs bg-green-500 bg-opacity-80 text-white px-1 rounded">
-                +{Object.keys(schema.output).length - 2}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+
 
       {/* Indicador de transformación */}
       {hasTransformConfig && (

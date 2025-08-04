@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { NodeProps } from '@reactflow/core';
-import { BaseNodeData, getNodePorts, NodeType, getNodeSchema } from '@flowcraft/shared-types';
+import { BaseNodeData, getNodePorts, NodeType } from '@flowcraft/shared-types';
 import DataPortHandle from './DataPortHandle';
 
 interface EndNodeData extends BaseNodeData {
@@ -42,7 +42,7 @@ interface EndNodeData extends BaseNodeData {
 const EndNode: React.FC<NodeProps<EndNodeData>> = ({ data, selected }) => {
   const isValid = data.validation?.isValid ?? true;
   const defaultPorts = getNodePorts(NodeType.END);
-  const schema = getNodeSchema(NodeType.END);
+
   
   // Configuración específica por tipo de resultado
   const getEndIcon = () => {
@@ -137,52 +137,9 @@ const EndNode: React.FC<NodeProps<EndNodeData>> = ({ data, selected }) => {
         )}
       </div>
 
-      {/* Indicador de campos de entrada */}
-      <div className="absolute bottom-2 left-2 text-xs text-white opacity-75">
-        {Object.keys(schema.input).length} fields in
-      </div>
 
-      {/* Visualización de datos - Campos de entrada */}
-      <div className="absolute top-2 left-2">
-        <div className="bg-black bg-opacity-30 rounded px-2 py-1">
-          <div className="text-xs text-white font-semibold">Input Fields:</div>
-          <div className="flex flex-wrap gap-1 mt-1">
-            {Object.keys(schema.input).slice(0, 3).map(fieldKey => (
-              <div key={fieldKey} className="text-xs bg-red-500 bg-opacity-80 text-white px-1 rounded">
-                {fieldKey}
-              </div>
-            ))}
-            {Object.keys(schema.input).length > 3 && (
-              <div className="text-xs bg-red-500 bg-opacity-80 text-white px-1 rounded">
-                +{Object.keys(schema.input).length - 3}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* Visualización de datos - Tipos de resultado */}
-      <div className="absolute bottom-2 right-2">
-        <div className="bg-black bg-opacity-30 rounded px-2 py-1">
-          <div className="text-xs text-white font-semibold">Result:</div>
-          <div className="flex gap-1 mt-1">
-            {data.resultType && (
-              <div className={`text-xs px-1 rounded ${
-                data.resultType === 'success' ? 'bg-green-500 bg-opacity-80' :
-                data.resultType === 'error' ? 'bg-red-500 bg-opacity-80' :
-                'bg-yellow-500 bg-opacity-80'
-              } text-white`}>
-                {data.resultType}
-              </div>
-            )}
-            {hasOutputConfig && (
-              <div className="text-xs bg-blue-500 bg-opacity-80 text-white px-1 rounded">
-                {data.outputConfig?.format || 'json'}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+
 
       {/* Indicador de resultado final */}
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">

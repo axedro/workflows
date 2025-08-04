@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { NodeProps } from '@reactflow/core';
-import { BaseNodeData, getNodePorts, NodeType, getNodeSchema } from '@flowcraft/shared-types';
+import { BaseNodeData, getNodePorts, NodeType } from '@flowcraft/shared-types';
 import DataPortHandle from './DataPortHandle';
 
 interface ConditionNodeData extends BaseNodeData {
@@ -37,7 +37,7 @@ interface ConditionNodeData extends BaseNodeData {
 const ConditionNode: React.FC<NodeProps<ConditionNodeData>> = ({ data, selected }) => {
   const isValid = data.validation?.isValid ?? true;
   const defaultPorts = getNodePorts(NodeType.CONDITION);
-  const schema = getNodeSchema(NodeType.CONDITION);
+
   
   // Configuración específica por tipo de condición
   const getConditionIcon = () => {
@@ -87,8 +87,7 @@ const ConditionNode: React.FC<NodeProps<ConditionNodeData>> = ({ data, selected 
   const hasMultipleConditions = data.conditionConfig?.conditions && data.conditionConfig.conditions.length > 1;
   const hasCustomExpression = data.conditionConfig?.customExpression;
   const hasOutputConfig = data.outputConfig && (data.outputConfig.trueBranch || data.outputConfig.falseBranch);
-  const hasTrueBranchConfig = data.outputConfig?.trueBranch && Object.keys(data.outputConfig.trueBranch).length > 0;
-  const hasFalseBranchConfig = data.outputConfig?.falseBranch && Object.keys(data.outputConfig.falseBranch).length > 0;
+
 
   return (
     <div
@@ -159,64 +158,11 @@ const ConditionNode: React.FC<NodeProps<ConditionNodeData>> = ({ data, selected 
         <div className="text-sm text-white font-bold bg-red-500 px-2 py-1 rounded">F</div>
       </div>
 
-      {/* Indicador de campos de entrada/salida */}
-      <div 
-        className="absolute bottom-3 left-3 text-sm text-white opacity-75"
-        style={{ transform: 'rotate(-45deg)' }}
-      >
-        {Object.keys(schema.input).length} in / {Object.keys(schema.output).length} out
-      </div>
 
-      {/* Visualización de datos - Campo de entrada */}
-      <div 
-        className="absolute top-3 left-3"
-        style={{ transform: 'rotate(-45deg)' }}
-      >
-        <div className="bg-black bg-opacity-30 rounded px-3 py-2">
-          <div className="text-sm text-white font-semibold">Input:</div>
-          <div className="flex flex-wrap gap-1 mt-1">
-            {Object.keys(schema.input).slice(0, 2).map(fieldKey => (
-              <div key={fieldKey} className="text-xs bg-blue-500 bg-opacity-80 text-white px-2 py-1 rounded">
-                {fieldKey}
-              </div>
-            ))}
-            {Object.keys(schema.input).length > 2 && (
-              <div className="text-xs bg-blue-500 bg-opacity-80 text-white px-2 py-1 rounded">
-                +{Object.keys(schema.input).length - 2}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* Visualización de datos - Ramas de salida */}
-      <div 
-        className="absolute bottom-3 right-3"
-        style={{ transform: 'rotate(-45deg)' }}
-      >
-        <div className="bg-black bg-opacity-30 rounded px-3 py-2">
-          <div className="text-sm text-white font-semibold">Branches:</div>
-          <div className="flex gap-1 mt-1">
-            <div className="text-xs bg-green-500 bg-opacity-80 text-white px-2 py-1 rounded">
-              True
-            </div>
-            <div className="text-xs bg-red-500 bg-opacity-80 text-white px-2 py-1 rounded">
-              False
-            </div>
-          </div>
-          {/* Información específica de ramas */}
-          {hasTrueBranchConfig && (
-            <div className="text-xs text-green-300 mt-1">
-              ✓ Configured
-            </div>
-          )}
-          {hasFalseBranchConfig && (
-            <div className="text-xs text-red-300 mt-1">
-              ✓ Configured
-            </div>
-          )}
-        </div>
-      </div>
+
+
+
 
       {/* Indicador de condición activa */}
       {hasConditionConfig && (
@@ -230,35 +176,7 @@ const ConditionNode: React.FC<NodeProps<ConditionNodeData>> = ({ data, selected 
         </div>
       )}
 
-      {/* Información de condición específica */}
-      {hasMultipleConditions && (
-        <div 
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 translate-y-12"
-          style={{ transform: 'rotate(-45deg)' }}
-        >
-          <div className="bg-black bg-opacity-30 rounded px-3 py-2">
-            <div className="text-sm text-white font-semibold">Multi-Condition</div>
-            <div className="text-sm text-blue-300">
-              {data.conditionConfig?.conditions?.length || 0} rules
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Información de expresión personalizada */}
-      {hasCustomExpression && (
-        <div 
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-12"
-          style={{ transform: 'rotate(-45deg)' }}
-        >
-          <div className="bg-black bg-opacity-30 rounded px-3 py-2">
-            <div className="text-sm text-white font-semibold">Custom Expr</div>
-            <div className="text-sm text-purple-300">
-              Active
-            </div>
-          </div>
-        </div>
-      )}
       
       {/* Conectores con posicionamiento personalizado */}
       {defaultPorts.map(port => {

@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { NodeProps } from '@reactflow/core';
-import { BaseNodeData, getNodePorts, NodeType, getNodeSchema } from '@flowcraft/shared-types';
+import { BaseNodeData, getNodePorts, NodeType } from '@flowcraft/shared-types';
 import DataPortHandle from './DataPortHandle';
 
 interface StartNodeData extends BaseNodeData {
@@ -21,7 +21,7 @@ interface StartNodeData extends BaseNodeData {
 const StartNode: React.FC<NodeProps<StartNodeData>> = ({ data, selected }) => {
   const isValid = data.validation?.isValid ?? true;
   const defaultPorts = getNodePorts(NodeType.START);
-  const schema = getNodeSchema(NodeType.START);
+
   
   // Configuración específica por tipo de trigger
   const getTriggerIcon = () => {
@@ -94,48 +94,9 @@ const StartNode: React.FC<NodeProps<StartNodeData>> = ({ data, selected }) => {
         )}
       </div>
 
-      {/* Indicador de campos de salida */}
-      <div className="absolute bottom-2 left-2 text-xs text-white opacity-75">
-        {Object.keys(schema.output).length} fields
-      </div>
 
-      {/* Visualización de datos - Campos disponibles */}
-      <div className="absolute top-2 left-2">
-        <div className="bg-black bg-opacity-30 rounded px-2 py-1">
-          <div className="text-xs text-white font-semibold">Output Fields:</div>
-          <div className="flex flex-wrap gap-1 mt-1">
-            {Object.keys(schema.output).slice(0, 3).map(fieldKey => (
-              <div key={fieldKey} className="text-xs bg-white bg-opacity-20 text-white px-1 rounded">
-                {fieldKey}
-              </div>
-            ))}
-            {Object.keys(schema.output).length > 3 && (
-              <div className="text-xs bg-white bg-opacity-20 text-white px-1 rounded">
-                +{Object.keys(schema.output).length - 3}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* Indicador de tipos de datos */}
-      <div className="absolute bottom-2 right-2">
-        <div className="bg-black bg-opacity-30 rounded px-2 py-1">
-          <div className="text-xs text-white font-semibold">Types:</div>
-          <div className="flex gap-1 mt-1">
-            {Object.values(schema.output).slice(0, 2).map((field, index) => (
-              <div key={index} className="text-xs bg-white bg-opacity-20 text-white px-1 rounded">
-                {field.type}
-              </div>
-            ))}
-            {Object.values(schema.output).length > 2 && (
-              <div className="text-xs bg-white bg-opacity-20 text-white px-1 rounded">
-                +{Object.values(schema.output).length - 2}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+
 
       {defaultPorts.map(port => (
         <DataPortHandle
