@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { EditorNode, NodeType } from '@flowcraft/shared-types';
+import { EditorNode, NodeType, getNodeSchema } from '@flowcraft/shared-types';
 import { Tooltip } from '@flowcraft/ui';
 import { validateNode } from '../../../services/workflowValidation.service';
+import ConditionEditor from './ConditionEditor';
 
 interface PropertyPanelProps {
   selectedNode: EditorNode | null;
@@ -193,71 +194,19 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
 
       case NodeType.CONDITION:
         const conditionData = localNode.data as any; // Cast to any for now
+        const conditionSchema = getNodeSchema(NodeType.CONDITION);
+        const availableFields = conditionSchema.input;
+        
         return (
           <div className="space-y-3">
-            <div>
-              <Tooltip
-                content="Variable or field to evaluate in the condition"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Variable
-                </label>
-              </Tooltip>
-              <input
-                type="text"
-                value={conditionData.condition?.variable || ''}
-                onChange={e => handleInputChange('condition', { ...conditionData.condition, variable: e.target.value })}
-                placeholder="status"
-                disabled={readOnly}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-              />
-            </div>
-
-            <div>
-              <Tooltip
-                content="Comparison operator for the condition"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Operator
-                </label>
-              </Tooltip>
-              <select
-                value={conditionData.condition?.operator || 'equals'}
-                onChange={e => handleInputChange('condition', { ...conditionData.condition, operator: e.target.value })}
-                disabled={readOnly}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-              >
-                <option value="equals">Equals</option>
-                <option value="not_equals">Not Equals</option>
-                <option value="greater_than">Greater Than</option>
-                <option value="less_than">Less Than</option>
-                <option value="contains">Contains</option>
-                <option value="not_contains">Not Contains</option>
-                <option value="is_empty">Is Empty</option>
-                <option value="is_not_empty">Is Not Empty</option>
-              </select>
-            </div>
-
-            <div>
-              <Tooltip
-                content="Value to compare against the variable"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Value
-                </label>
-              </Tooltip>
-              <input
-                type="text"
-                value={conditionData.condition?.value || ''}
-                onChange={e => handleInputChange('condition', { ...conditionData.condition, value: e.target.value })}
-                placeholder="success"
-                disabled={readOnly}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-              />
-            </div>
+            <ConditionEditor
+              conditions={conditionData.dataConditions || []}
+              availableFields={availableFields}
+              onConditionsChange={(newConditions) => 
+                handleInputChange('dataConditions', newConditions)
+              }
+              className=""
+            />
           </div>
         );
 

@@ -248,23 +248,27 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 - [x] `packages/shared-types/src/node-schemas.ts` - Esquemas de ramas true/false
 - [x] `apps/web/src/components/workflow-editor/nodes/ConditionNode.tsx` - Visualización de ramas
 
-### Tarea 9.5.3.3: Editor de condición 🚧 PENDIENTE
+### Tarea 9.5.3.3: Editor de condición ✅ COMPLETADO
 **Objetivo**: Crear interfaz para configurar condiciones de datos.
 
 **Subtareas**:
-- [ ] Crear panel de configuración de condiciones
-- [ ] Implementar selector de campos de datos
-- [ ] Implementar selector de operadores
-- [ ] Crear editor de valores de condición
-- [ ] Implementar validación de condiciones
-- [ ] Añadir preview de evaluación de condiciones
+- [x] Crear panel de configuración de condiciones
+- [x] Implementar selector de campos de datos
+- [x] Implementar selector de operadores
+- [x] Crear editor de valores de condición
+- [x] Implementar validación de condiciones
+- [x] Añadir preview de evaluación de condiciones
 
 **Criterios de Aceptación**:
-- [ ] Panel de configuración intuitivo
-- [ ] Selector de campos con autocompletado
-- [ ] Operadores soportados: equals, not_equals, greater_than, less_than, contains, etc.
-- [ ] Validación en tiempo real de condiciones
-- [ ] Preview de evaluación disponible
+- [x] Panel de configuración intuitivo
+- [x] Selector de campos con autocompletado
+- [x] Operadores soportados: equals, not_equals, greater_than, less_than, contains, etc.
+- [x] Validación en tiempo real de condiciones
+- [x] Preview de evaluación disponible
+
+**Archivos Creados/Modificados**:
+- [x] `apps/web/src/components/workflow-editor/panels/ConditionEditor.tsx` - Editor completo de condiciones
+- [x] `apps/web/src/components/workflow-editor/panels/PropertyPanel.tsx` - Integración del editor de condiciones
 
 ## Fase 9.5.4: Conexiones Direccionales con Datos ✅ COMPLETADO
 
@@ -475,7 +479,7 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 ### Nodo de Condición como Rombo
 - [x] Forma de rombo implementada
 - [x] Lógica de flujo condicional
-- [ ] Editor de condiciones
+- [x] Editor de condiciones
 
 ### Conexiones Direccionales ✅ COMPLETADO
 - [x] Aristas con información de datos
@@ -546,10 +550,10 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 
 ## Estado del Sprint
 
-### Progreso General: 75% Completado
+### Progreso General: 85% Completado
 - ✅ Fase 9.5.1: Arquitectura de Flujo de Datos (100%)
 - ✅ Fase 9.5.2: Nodos con Puertos de Datos (100%)
-- ✅ Fase 9.5.3: Nodo de Condición como Rombo (67%)
+- ✅ Fase 9.5.3: Nodo de Condición como Rombo (100%)
 - ✅ Fase 9.5.4: Conexiones Direccionales con Datos (100%)
 - ⏳ Fase 9.5.5: Panel de Configuración de Datos (0%)
 - ⏳ Fase 9.5.6: Integración con Conectores (0%)
