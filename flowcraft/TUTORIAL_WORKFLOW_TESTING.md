@@ -138,7 +138,7 @@ Probar el nodo de condición (rombo) y el sistema de transformaciones de datos.
 2. **Añadir Condición**
    - Click en "Add Condition"
    - Configurar:
-     - Field: "status"
+     - Field: "data.status" (nota: usar data.status, no solo status)
      - Operator: "equals"
      - Value: "active"
    - Verificar que aparece en la lista de condiciones
@@ -146,7 +146,7 @@ Probar el nodo de condición (rombo) y el sistema de transformaciones de datos.
 3. **Añadir Segunda Condición**
    - Click en "Add Condition"
    - Configurar:
-     - Field: "count"
+     - Field: "data.count" (nota: usar data.count, no solo count)
      - Operator: "greater_than"
      - Value: "10"
    - Verificar que ambas condiciones aparecen
@@ -155,6 +155,11 @@ Probar el nodo de condición (rombo) y el sistema de transformaciones de datos.
    - En la sección "Evaluation Preview"
    - Verificar que se muestran datos de ejemplo
    - Verificar que se evalúa correctamente
+
+**Nota Importante**: Para acceder a campos anidados en el objeto `data`, usar la notación de punto:
+- `data.status` para acceder a `{ data: { status: "active" } }`
+- `data.count` para acceder a `{ data: { count: 15 } }`
+- `data.user.name` para acceder a `{ data: { user: { name: "John" } } }`
 
 #### 3. Configurar Data Flow
 1. **Seleccionar Conexión Start → Condition**

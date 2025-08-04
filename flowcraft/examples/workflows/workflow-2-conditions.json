@@ -26,14 +26,14 @@
           "conditions": [
             {
               "id": "cond-1",
-              "field": "status",
+              "field": "data.status",
               "operator": "equals",
               "value": "active",
               "description": "Verificar si el estado es activo"
             },
             {
               "id": "cond-2",
-              "field": "count",
+              "field": "data.count",
               "operator": "greater_than",
               "value": "10",
               "description": "Verificar si el conteo es mayor a 10"
@@ -95,16 +95,10 @@
       "dataFlow": {
         "fieldMappings": [
           {
-            "sourceField": "data.status",
-            "targetField": "status",
+            "sourceField": "data",
+            "targetField": "data",
             "required": true,
-            "description": "Mapear estado de datos"
-          },
-          {
-            "sourceField": "data.count",
-            "targetField": "count",
-            "required": true,
-            "description": "Mapear conteo de datos"
+            "description": "Mapear datos completos"
           }
         ],
         "transformations": [
