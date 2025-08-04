@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { EditorNode, NodeType, getNodeSchema, EditorEdge, DataFlow, DataType, DataField } from '@flowcraft/shared-types';
+import { EditorNode, NodeType, EditorEdge, DataFlow, DataType, DataField, getNodeInputSchema, getNodeOutputSchema } from '@flowcraft/shared-types';
 import { Tooltip } from '@flowcraft/ui';
 import { validateNode } from '../../../services/workflowValidation.service';
 import ConditionEditor from './ConditionEditor';
@@ -9,6 +9,7 @@ interface PropertyPanelProps {
   selectedNode: EditorNode | null;
   selectedEdge: EditorEdge | null;
   nodes: EditorNode[];
+  edges: EditorEdge[];
   onNodeUpdate: (node: EditorNode) => void;
   onEdgeUpdate: (edge: EditorEdge) => void;
   readOnly?: boolean;
@@ -18,6 +19,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
   selectedNode,
   selectedEdge,
   nodes,
+  edges,
   onNodeUpdate,
   onEdgeUpdate,
   readOnly = false,
@@ -41,9 +43,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
     const sourceNode = nodes.find(node => node.id === localEdge.source);
     const targetNode = nodes.find(node => node.id === localEdge.target);
     
-    // Get schemas from nodes
-    const sourceSchema = sourceNode ? getNodeSchema(sourceNode.type).output : {};
-    const targetSchema = targetNode ? getNodeSchema(targetNode.type).input : {};
+    // Get dynamic schemas from nodes
+    const sourceSchema = sourceNode ? getNodeOutputSchema(sourceNode.id, nodes, edges) : {};
+    const targetSchema = targetNode ? getNodeInputSchema(targetNode.id, nodes, edges) : {};
     
     // Create a default data flow if none exists
           const dataFlow: DataFlow = localEdge.dataFlow || {
@@ -217,9 +219,11 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
     if (!localNode) return null;
 
     try {
-      const schema = getNodeSchema(localNode.type);
-      const inputFields = Object.values(schema.input);
-      const outputFields = Object.values(schema.output);
+      // Get dynamic schemas based on actual connections
+      const inputSchema = getNodeInputSchema(localNode.id, nodes, edges);
+      const outputSchema = getNodeOutputSchema(localNode.id, nodes, edges);
+      const inputFields = Object.values(inputSchema);
+      const outputFields = Object.values(outputSchema);
 
       return (
         <div className="space-y-4 mb-6">
@@ -410,8 +414,8 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
 
       case NodeType.CONDITION:
         const conditionData = localNode.data as any; // Cast to any for now
-        const conditionSchema = getNodeSchema(NodeType.CONDITION);
-        const availableFields = generateNestedFields(conditionSchema.input);
+        const conditionInputSchema = getNodeInputSchema(localNode.id, nodes, edges);
+        const availableFields = generateNestedFields(conditionInputSchema);
         
         return (
           <div className="space-y-3">
