@@ -47,20 +47,26 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
   // Auto-generate mappings when dataFlow is empty and sourceSchema has fields
   useEffect(() => {
     if (dataFlow.fieldMappings.length === 0 && Object.keys(sourceSchema).length > 0) {
-      const autoMappings: FieldMapping[] = Object.keys(sourceSchema).map(sourceField => ({
-        sourceField: sourceField,
-        targetField: sourceField, // Auto-map to same name
-        required: false,
-        description: `Auto-mapped from ${sourceField}`
-      }));
+      // Only auto-generate if we don't already have mappings for these fields
+      const existingSourceFields = new Set(dataFlow.fieldMappings.map(m => m.sourceField));
+      const newSourceFields = Object.keys(sourceSchema).filter(field => !existingSourceFields.has(field));
       
-      const updatedDataFlow: DataFlow = {
-        ...dataFlow,
-        fieldMappings: autoMappings,
-      };
-      
-      setLocalDataFlow(updatedDataFlow);
-      onDataFlowChange(updatedDataFlow);
+      if (newSourceFields.length > 0) {
+        const autoMappings: FieldMapping[] = newSourceFields.map(sourceField => ({
+          sourceField: sourceField,
+          targetField: sourceField, // Auto-map to same name
+          required: false,
+          description: `Auto-mapped from ${sourceField}`
+        }));
+        
+        const updatedDataFlow: DataFlow = {
+          ...dataFlow,
+          fieldMappings: [...dataFlow.fieldMappings, ...autoMappings],
+        };
+        
+        setLocalDataFlow(updatedDataFlow);
+        onDataFlowChange(updatedDataFlow);
+      }
     }
   }, [dataFlow, sourceSchema, onDataFlowChange]);
 
