@@ -30,17 +30,9 @@ export function calculateNodeInputSchema(
   const incomingEdges = edges.filter(edge => edge.target === nodeId);
   
   if (incomingEdges.length === 0) {
-    // No incoming connections - use default schema based on node type
-    const node = nodes.find(n => n.id === nodeId);
-    if (!node) return {};
-    
-    if (node.type === NodeType.START) {
-      // Start nodes have no input
-      return {};
-    }
-    
-    // For other nodes without input, return default input schema based on node type
-    return getDefaultInputSchema(node.type);
+    // No incoming connections - return empty schema
+    // Nodes without connections should not have input schemas
+    return {};
   }
   
   // Process each incoming edge
@@ -522,126 +514,7 @@ function generateWebhookOutput(
   return output;
 }
 
-// ===== DEFAULT SCHEMA GENERATORS =====
 
-/**
- * Get default input schema for a node type when no connections exist
- */
-function getDefaultInputSchema(nodeType: NodeType): Record<string, DataField> {
-  switch (nodeType) {
-    case NodeType.CONDITION:
-      return {
-        id: {
-          id: 'id',
-          name: 'ID',
-          type: DataType.STRING,
-          required: true,
-          description: 'Unique identifier',
-          example: 'cond-123'
-        },
-        timestamp: {
-          id: 'timestamp',
-          name: 'Timestamp',
-          type: DataType.DATE,
-          required: true,
-          description: 'Execution timestamp',
-          example: new Date().toISOString()
-        },
-        data: {
-          id: 'data',
-          name: 'Data',
-          type: DataType.JSON,
-          required: false,
-          description: 'Input data to evaluate',
-          example: { status: 'active', count: 42 }
-        }
-      };
-      
-    case NodeType.ACTION:
-    case NodeType.HTTP_REQUEST:
-    case NodeType.EMAIL:
-    case NodeType.SLACK:
-    case NodeType.DATA_TRANSFORM:
-      return {
-        id: {
-          id: 'id',
-          name: 'ID',
-          type: DataType.STRING,
-          required: true,
-          description: 'Unique identifier',
-          example: 'action-123'
-        },
-        timestamp: {
-          id: 'timestamp',
-          name: 'Timestamp',
-          type: DataType.DATE,
-          required: true,
-          description: 'Execution timestamp',
-          example: new Date().toISOString()
-        },
-        data: {
-          id: 'data',
-          name: 'Data',
-          type: DataType.JSON,
-          required: false,
-          description: 'Input data to process',
-          example: { status: 'active', count: 42 }
-        }
-      };
-      
-    case NodeType.END:
-      return {
-        id: {
-          id: 'id',
-          name: 'ID',
-          type: DataType.STRING,
-          required: true,
-          description: 'Unique identifier',
-          example: 'end-123'
-        },
-        timestamp: {
-          id: 'timestamp',
-          name: 'Timestamp',
-          type: DataType.DATE,
-          required: true,
-          description: 'Execution timestamp',
-          example: new Date().toISOString()
-        },
-        data: {
-          id: 'data',
-          name: 'Data',
-          type: DataType.JSON,
-          required: false,
-          description: 'Final data to output',
-          example: { status: 'completed', result: 'success' }
-        }
-      };
-      
-    case NodeType.TIMER:
-    case NodeType.WEBHOOK:
-      return {
-        id: {
-          id: 'id',
-          name: 'ID',
-          type: DataType.STRING,
-          required: true,
-          description: 'Unique identifier',
-          example: 'trigger-123'
-        },
-        timestamp: {
-          id: 'timestamp',
-          name: 'Timestamp',
-          type: DataType.DATE,
-          required: true,
-          description: 'Execution timestamp',
-          example: new Date().toISOString()
-        }
-      };
-      
-    default:
-      return {};
-  }
-}
 
 // ===== UTILITY FUNCTIONS =====
 
