@@ -19,17 +19,6 @@ export const DataStats: React.FC<DataStatsProps> = ({ schema, title = "Data Stat
   const outputFields = Object.keys(schema.output);
   const totalFields = inputFields.length + outputFields.length;
 
-  const getTypeCounts = (fields: Record<string, DataField>) => {
-    const counts: Record<string, number> = {};
-    Object.values(fields).forEach(field => {
-      counts[field.type] = (counts[field.type] || 0) + 1;
-    });
-    return counts;
-  };
-
-  const inputTypeCounts = getTypeCounts(schema.input);
-  const outputTypeCounts = getTypeCounts(schema.output);
-
   return (
     <div className={`bg-black bg-opacity-30 rounded px-2 py-1 ${className}`}>
       <div className="text-xs text-white font-semibold">{title}</div>

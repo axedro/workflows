@@ -219,23 +219,6 @@ export const NODE_SCHEMAS: Record<NodeType, DataSchema> = {
       [DEFAULT_FIELDS.data.id]: DEFAULT_FIELDS.data,
       [DEFAULT_FIELDS.success.id]: DEFAULT_FIELDS.success
     },
-    // Esquemas específicos para ramas true/false
-    trueBranch: {
-      [DEFAULT_FIELDS.id.id]: DEFAULT_FIELDS.id,
-      [DEFAULT_FIELDS.data.id]: DEFAULT_FIELDS.data,
-      [DEFAULT_FIELDS.success.id]: {
-        ...DEFAULT_FIELDS.success,
-        example: true
-      }
-    },
-    falseBranch: {
-      [DEFAULT_FIELDS.id.id]: DEFAULT_FIELDS.id,
-      [DEFAULT_FIELDS.data.id]: DEFAULT_FIELDS.data,
-      [DEFAULT_FIELDS.success.id]: {
-        ...DEFAULT_FIELDS.success,
-        example: false
-      }
-    },
     description: 'Condition node schema - filters data based on conditions',
     version: '1.0'
   },

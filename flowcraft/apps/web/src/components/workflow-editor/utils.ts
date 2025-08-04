@@ -16,6 +16,7 @@ export const getNodeInfo = (nodeType: NodeType) => {
       [NodeType.DATA_TRANSFORM]: { name: 'Data Transform', description: 'Modify data', icon: '∬' },
       [NodeType.TIMER]: { name: 'Timer', description: 'Delay execution', icon: '🕒' },
       [NodeType.WEBHOOK]: { name: 'Webhook', description: 'Listen for webhooks', icon: '🔗' },
+      [NodeType.TEST]: { name: 'Test', description: 'Test node for debugging', icon: '🧪' },
     };
     return nodeInfo[nodeType] || { name: 'Unknown', description: 'Unknown node', icon: '?' };
 };
@@ -33,6 +34,7 @@ export const getNodeDimensions = (nodeType: NodeType) => {
         [NodeType.DATA_TRANSFORM]: { width: 160, height: 140 },
         [NodeType.TIMER]: { width: 140, height: 120 },
         [NodeType.WEBHOOK]: { width: 160, height: 140 },
+        [NodeType.TEST]: { width: 192, height: 192 },
     };
     return dimensions[nodeType] || { width: 120, height: 100 };
 };
