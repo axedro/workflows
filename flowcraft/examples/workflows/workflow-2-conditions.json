@@ -1,0 +1,226 @@
+{
+  "id": "workflow-2-conditions",
+  "name": "Workflow 2: Condiciones y Transformaciones",
+  "description": "Workflow con nodo de condición (rombo) y transformaciones de datos",
+  "version": "1.0",
+  "createdAt": "2024-01-15T10:30:00Z",
+  "updatedAt": "2024-01-15T10:30:00Z",
+  "nodes": [
+    {
+      "id": "start-1",
+      "type": "START",
+      "position": { "x": 200, "y": 50 },
+      "data": {
+        "label": "Start",
+        "description": "Nodo de inicio"
+      }
+    },
+    {
+      "id": "condition-1",
+      "type": "CONDITION",
+      "position": { "x": 200, "y": 200 },
+      "data": {
+        "label": "Check Status",
+        "description": "Verificar estado de datos",
+        "conditionConfig": {
+          "conditions": [
+            {
+              "id": "cond-1",
+              "field": "status",
+              "operator": "equals",
+              "value": "active",
+              "description": "Verificar si el estado es activo"
+            },
+            {
+              "id": "cond-2",
+              "field": "count",
+              "operator": "greater_than",
+              "value": "10",
+              "description": "Verificar si el conteo es mayor a 10"
+            }
+          ],
+          "logic": "AND"
+        }
+      }
+    },
+    {
+      "id": "action-true",
+      "type": "ACTION",
+      "position": { "x": 400, "y": 150 },
+      "data": {
+        "label": "Process Success",
+        "description": "Procesar datos válidos",
+        "actionConfig": {
+          "actionType": "success_processing",
+          "parameters": {
+            "transformType": "uppercase",
+            "addTimestamp": true
+          }
+        }
+      }
+    },
+    {
+      "id": "action-false",
+      "type": "ACTION",
+      "position": { "x": 400, "y": 250 },
+      "data": {
+        "label": "Process Error",
+        "description": "Procesar datos inválidos",
+        "actionConfig": {
+          "actionType": "error_processing",
+          "parameters": {
+            "logError": true,
+            "sendNotification": true
+          }
+        }
+      }
+    },
+    {
+      "id": "end-1",
+      "type": "END",
+      "position": { "x": 600, "y": 200 },
+      "data": {
+        "label": "End",
+        "description": "Nodo final"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "source": "start-1",
+      "target": "condition-1",
+      "sourceHandle": "start-output",
+      "targetHandle": "condition-input",
+      "dataFlow": {
+        "fieldMappings": [
+          {
+            "sourceField": "data.status",
+            "targetField": "status",
+            "required": true,
+            "description": "Mapear estado de datos"
+          },
+          {
+            "sourceField": "data.count",
+            "targetField": "count",
+            "required": true,
+            "description": "Mapear conteo de datos"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "trans-1",
+            "type": "TRANSFORM",
+            "field": "status",
+            "expression": "toUpperCase",
+            "order": 1,
+            "description": "Convertir estado a mayúsculas",
+            "enabled": true
+          }
+        ],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "edge-2",
+      "source": "condition-1",
+      "target": "action-true",
+      "sourceHandle": "condition-true",
+      "targetHandle": "action-input",
+      "dataFlow": {
+        "fieldMappings": [
+          {
+            "sourceField": "data",
+            "targetField": "validData",
+            "required": true,
+            "description": "Mapear datos válidos"
+          }
+        ],
+        "transformations": [],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "edge-3",
+      "source": "condition-1",
+      "target": "action-false",
+      "sourceHandle": "condition-false",
+      "targetHandle": "action-input",
+      "dataFlow": {
+        "fieldMappings": [
+          {
+            "sourceField": "data",
+            "targetField": "invalidData",
+            "required": true,
+            "description": "Mapear datos inválidos"
+          }
+        ],
+        "transformations": [],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "edge-4",
+      "source": "action-true",
+      "target": "end-1",
+      "sourceHandle": "action-output",
+      "targetHandle": "end-input",
+      "dataFlow": {
+        "fieldMappings": [
+          {
+            "sourceField": "processedData",
+            "targetField": "successResult",
+            "required": true,
+            "description": "Mapear resultado exitoso"
+          }
+        ],
+        "transformations": [],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "edge-5",
+      "source": "action-false",
+      "target": "end-1",
+      "sourceHandle": "action-output",
+      "targetHandle": "end-input",
+      "dataFlow": {
+        "fieldMappings": [
+          {
+            "sourceField": "errorData",
+            "targetField": "errorResult",
+            "required": true,
+            "description": "Mapear resultado de error"
+          }
+        ],
+        "transformations": [],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "author": "FlowCraft Tutorial",
+    "tags": ["conditions", "transformations", "tutorial", "testing"],
+    "difficulty": "intermediate"
+  }
+} 

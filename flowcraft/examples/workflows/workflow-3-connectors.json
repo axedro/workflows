@@ -1,0 +1,230 @@
+{
+  "id": "workflow-3-connectors",
+  "name": "Workflow 3: Conectores HTTP y Email",
+  "description": "Workflow con conectores HTTP Request y Email con validaciones específicas",
+  "version": "1.0",
+  "createdAt": "2024-01-15T11:00:00Z",
+  "updatedAt": "2024-01-15T11:00:00Z",
+  "nodes": [
+    {
+      "id": "start-1",
+      "type": "START",
+      "position": { "x": 200, "y": 50 },
+      "data": {
+        "label": "Start",
+        "description": "Nodo de inicio"
+      }
+    },
+    {
+      "id": "http-request-1",
+      "type": "HTTP_REQUEST",
+      "position": { "x": 200, "y": 150 },
+      "data": {
+        "label": "Fetch User Data",
+        "description": "Obtener datos de usuario desde API",
+        "actionConfig": {
+          "url": "https://jsonplaceholder.typicode.com/users/1",
+          "method": "GET",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": null,
+          "timeout": 5000
+        }
+      }
+    },
+    {
+      "id": "condition-1",
+      "type": "CONDITION",
+      "position": { "x": 200, "y": 250 },
+      "data": {
+        "label": "Check Response",
+        "description": "Verificar respuesta HTTP",
+        "conditionConfig": {
+          "conditions": [
+            {
+              "id": "cond-1",
+              "field": "responseStatus",
+              "operator": "equals",
+              "value": "200",
+              "description": "Verificar si la respuesta es exitosa"
+            }
+          ],
+          "logic": "AND"
+        }
+      }
+    },
+    {
+      "id": "email-1",
+      "type": "EMAIL",
+      "position": { "x": 400, "y": 200 },
+      "data": {
+        "label": "Send Notification",
+        "description": "Enviar notificación por email",
+        "actionConfig": {
+          "to": ["admin@example.com", "manager@example.com"],
+          "cc": ["support@example.com"],
+          "bcc": [],
+          "subject": "User Data Retrieved Successfully",
+          "emailBody": "The API request returned status {{responseStatus}}. User data: {{responseData.name}}",
+          "attachments": [],
+          "isHtml": false
+        }
+      }
+    },
+    {
+      "id": "end-1",
+      "type": "END",
+      "position": { "x": 600, "y": 200 },
+      "data": {
+        "label": "End",
+        "description": "Nodo final"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "source": "start-1",
+      "target": "http-request-1",
+      "sourceHandle": "start-output",
+      "targetHandle": "http-request-input",
+      "dataFlow": {
+        "fieldMappings": [
+          {
+            "sourceField": "data",
+            "targetField": "requestData",
+            "required": false,
+            "description": "Mapear datos de entrada para la petición"
+          }
+        ],
+        "transformations": [],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "edge-2",
+      "source": "http-request-1",
+      "target": "condition-1",
+      "sourceHandle": "http-request-output",
+      "targetHandle": "condition-input",
+      "dataFlow": {
+        "fieldMappings": [
+          {
+            "sourceField": "responseStatus",
+            "targetField": "responseStatus",
+            "required": true,
+            "description": "Mapear código de estado de respuesta"
+          },
+          {
+            "sourceField": "responseData",
+            "targetField": "responseData",
+            "required": true,
+            "description": "Mapear datos de respuesta"
+          },
+          {
+            "sourceField": "success",
+            "targetField": "success",
+            "required": false,
+            "description": "Mapear estado de éxito"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "trans-1",
+            "type": "TRANSFORM",
+            "field": "responseData",
+            "expression": "toString",
+            "order": 1,
+            "description": "Convertir datos de respuesta a string",
+            "enabled": true
+          }
+        ],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "edge-3",
+      "source": "condition-1",
+      "target": "email-1",
+      "sourceHandle": "condition-true",
+      "targetHandle": "email-input",
+      "dataFlow": {
+        "fieldMappings": [
+          {
+            "sourceField": "responseStatus",
+            "targetField": "responseStatus",
+            "required": true,
+            "description": "Mapear código de estado para el email"
+          },
+          {
+            "sourceField": "responseData",
+            "targetField": "responseData",
+            "required": true,
+            "description": "Mapear datos de respuesta para el email"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "trans-2",
+            "type": "FORMAT",
+            "field": "responseData",
+            "formatType": "json",
+            "pattern": "pretty",
+            "order": 1,
+            "description": "Formatear datos como JSON legible",
+            "enabled": true
+          }
+        ],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "edge-4",
+      "source": "email-1",
+      "target": "end-1",
+      "sourceHandle": "email-output",
+      "targetHandle": "end-input",
+      "dataFlow": {
+        "fieldMappings": [
+          {
+            "sourceField": "success",
+            "targetField": "emailSent",
+            "required": true,
+            "description": "Mapear estado de envío de email"
+          },
+          {
+            "sourceField": "message",
+            "targetField": "emailMessage",
+            "required": false,
+            "description": "Mapear mensaje de resultado"
+          }
+        ],
+        "transformations": [],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "author": "FlowCraft Tutorial",
+    "tags": ["http", "email", "connectors", "tutorial", "testing"],
+    "difficulty": "intermediate"
+  }
+} 

@@ -1,0 +1,103 @@
+{
+  "id": "workflow-1-basic",
+  "name": "Workflow 1: Flujo Básico",
+  "description": "Workflow básico para probar nodos, conexiones y flujo de datos",
+  "version": "1.0",
+  "createdAt": "2024-01-15T10:00:00Z",
+  "updatedAt": "2024-01-15T10:00:00Z",
+  "nodes": [
+    {
+      "id": "start-1",
+      "type": "START",
+      "position": { "x": 100, "y": 100 },
+      "data": {
+        "label": "Start",
+        "description": "Nodo de inicio del workflow"
+      }
+    },
+    {
+      "id": "action-1",
+      "type": "ACTION",
+      "position": { "x": 300, "y": 100 },
+      "data": {
+        "label": "Process Data",
+        "description": "Procesar datos de entrada",
+        "actionConfig": {
+          "actionType": "data_processing",
+          "parameters": {
+            "transformType": "uppercase",
+            "filterActive": true
+          }
+        }
+      }
+    },
+    {
+      "id": "end-1",
+      "type": "END",
+      "position": { "x": 500, "y": 100 },
+      "data": {
+        "label": "End",
+        "description": "Nodo final del workflow"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "source": "start-1",
+      "target": "action-1",
+      "sourceHandle": "start-output",
+      "targetHandle": "action-input",
+      "dataFlow": {
+        "fieldMappings": [
+          {
+            "sourceField": "data",
+            "targetField": "inputData",
+            "required": true,
+            "description": "Mapear datos de entrada"
+          }
+        ],
+        "transformations": [],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "edge-2",
+      "source": "action-1",
+      "target": "end-1",
+      "sourceHandle": "action-output",
+      "targetHandle": "end-input",
+      "dataFlow": {
+        "fieldMappings": [
+          {
+            "sourceField": "processedData",
+            "targetField": "finalData",
+            "required": true,
+            "description": "Mapear datos procesados"
+          },
+          {
+            "sourceField": "success",
+            "targetField": "success",
+            "required": false,
+            "description": "Mapear estado de éxito"
+          }
+        ],
+        "transformations": [],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "author": "FlowCraft Tutorial",
+    "tags": ["basic", "tutorial", "testing"],
+    "difficulty": "beginner"
+  }
+} 
