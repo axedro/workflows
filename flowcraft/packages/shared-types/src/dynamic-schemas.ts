@@ -315,7 +315,7 @@ function generateConditionNodeOutput(
   _node: EditorNode,
   inputSchema: Record<string, DataField>
 ): Record<string, DataField> {
-  // Condition nodes create separate output schemas for true/false branches
+  // Condition nodes create a cleaner output schema
   const output: Record<string, DataField> = {};
   
   // Add condition evaluation result
@@ -328,22 +328,11 @@ function generateConditionNodeOutput(
     example: true
   };
   
-  // Add input data to both branches with proper namespacing
+  // Add input data as a single set of fields (not duplicated)
   Object.entries(inputSchema).forEach(([key, field]) => {
-    // True branch fields
-    output[`trueBranch.${key}`] = {
+    output[key] = {
       ...field,
-      id: `trueBranch.${key}`,
-      name: `${field.name} (True Branch)`,
-      description: `${field.description} - Available in true branch`
-    };
-    
-    // False branch fields
-    output[`falseBranch.${key}`] = {
-      ...field,
-      id: `falseBranch.${key}`,
-      name: `${field.name} (False Branch)`,
-      description: `${field.description} - Available in false branch`
+      description: `${field.description} - Available in both true and false branches`
     };
   });
   
