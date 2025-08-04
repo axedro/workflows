@@ -97,7 +97,7 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 - [x] `packages/shared-types/src/data-validation.ts` - Sistema de validación completo
 - [x] `packages/shared-types/src/index.ts` - Exportaciones actualizadas
 
-## Fase 9.5.2: Nodos con Puertos de Datos 🚧 EN PROGRESO
+## Fase 9.5.2: Nodos con Puertos de Datos ✅ COMPLETADO
 
 ### Tarea 9.5.2.1: Rediseñar nodos con puertos ✅ COMPLETADO
 **Objetivo**: Actualizar los componentes de nodos para mostrar y manejar puertos de datos.
@@ -514,16 +514,76 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 - [x] Prevención de auto-conexiones y duplicados
 - [x] Validación de dirección (output → input only)
 
-### Panel de Configuración
-- [ ] Panel de configuración de datos
-- [ ] Interfaz de mapeo de campos
-- [ ] Transformaciones básicas
-- [ ] Preview y testing
+### Panel de Configuración ✅ COMPLETADO
+- [x] Panel de configuración de datos
+- [x] Interfaz de mapeo de campos
+- [x] Transformaciones básicas
+- [x] Preview y testing
 
-### Integración con Conectores
-- [ ] Esquemas de datos para conectores
-- [ ] Importación/exportación de datos
-- [ ] Validación de configuraciones
+### Integración con Conectores ✅ COMPLETADO
+- [x] Esquemas de datos para conectores
+- [x] Importación/exportación de datos
+- [x] Validación de configuraciones
+
+## Fase 9.5.7: Sistema de Esquemas Dinámicos ✅ COMPLETADO 🆕
+
+### Tarea 9.5.7.1: Implementar cálculo dinámico de esquemas ✅ COMPLETADO
+**Objetivo**: Eliminar esquemas hardcodeados y calcular esquemas basados en conexiones reales.
+
+**Subtareas**:
+- [x] Crear función `calculateNodeInputSchema()` para esquemas de entrada dinámicos
+- [x] Crear función `calculateNodeOutputSchema()` para esquemas de salida dinámicos
+- [x] Implementar generadores específicos por tipo de nodo
+- [x] Aplicar transformaciones de data flow en esquemas
+- [x] Integrar con PropertyPanel para esquemas dinámicos
+
+**Criterios de Aceptación**:
+- [x] Los nodos sin conexiones entrantes tienen esquemas de entrada vacíos
+- [x] Los esquemas de entrada se calculan basados en las conexiones reales
+- [x] Las transformaciones de data flow se aplican correctamente
+- [x] Los esquemas de salida reflejan la configuración específica del nodo
+- [x] El sistema funciona con todos los tipos de nodos
+
+**Archivos Creados/Modificados**:
+- [x] `packages/shared-types/src/dynamic-schemas.ts` - Sistema de esquemas dinámicos
+- [x] `packages/shared-types/src/index.ts` - Exportaciones actualizadas
+- [x] `apps/web/src/components/workflow-editor/panels/PropertyPanel.tsx` - Integración
+- [x] `apps/web/src/components/WorkflowEditor.tsx` - Paso de edges al PropertyPanel
+
+### Tarea 9.5.7.2: Generadores específicos por tipo de nodo ✅ COMPLETADO
+**Objetivo**: Implementar lógica específica para generar esquemas de salida por tipo de nodo.
+
+**Subtareas**:
+- [x] `generateStartNodeOutput()` - Datos iniciales basados en trigger type
+- [x] `generateActionNodeOutput()` - Datos con resultados de acción
+- [x] `generateConditionNodeOutput()` - Ramas true/false con datos condicionales
+- [x] `generateHttpRequestOutput()` - Datos de respuesta HTTP
+- [x] `generateEmailOutput()` - Datos de envío de email
+- [x] `generateSlackOutput()` - Datos de envío de Slack
+- [x] `generateDataTransformOutput()` - Datos transformados
+- [x] `generateTimerOutput()` - Datos de trigger de timer
+- [x] `generateWebhookOutput()` - Datos de webhook
+
+**Criterios de Aceptación**:
+- [x] Cada tipo de nodo genera esquemas de salida apropiados
+- [x] Los esquemas incluyen campos específicos del tipo de nodo
+- [x] Los datos de entrada se preservan en la salida cuando es apropiado
+- [x] Los campos específicos del nodo se añaden correctamente
+
+### Tarea 9.5.7.3: Aplicación de transformaciones ✅ COMPLETADO
+**Objetivo**: Aplicar transformaciones de data flow a los esquemas dinámicamente.
+
+**Subtareas**:
+- [x] Implementar `applyDataFlowToSchema()` para aplicar mapeos
+- [x] Implementar `applyTransformationToField()` para transformaciones
+- [x] Soporte para transformaciones RENAME, TRANSFORM, FORMAT
+- [x] Integración con tipos de transformación existentes
+
+**Criterios de Aceptación**:
+- [x] Los mapeos de campos se aplican correctamente
+- [x] Las transformaciones modifican los esquemas apropiadamente
+- [x] Los tipos de datos se preservan o transforman correctamente
+- [x] El sistema es extensible para nuevas transformaciones
 
 ## Métricas de Éxito
 
@@ -583,14 +643,16 @@ Implementar un sistema completo de flujo de datos entre nodos del workflow, incl
 - ✅ Fase 9.5.4: Conexiones Direccionales con Datos (100%)
 - ✅ Fase 9.5.5: Panel de Configuración de Datos (100%)
 - ✅ Fase 9.5.6: Integración con Conectores (100%)
+- ✅ Fase 9.5.7: Sistema de Esquemas Dinámicos (100%) 🆕
 
-### Tareas Pendientes Críticas
-1. Completar editor de condiciones (Tarea 9.5.3.3)
-2. Crear panel de configuración de datos
-3. Integrar esquemas de datos con conectores
+### Tareas Completadas
+1. ✅ Editor de condiciones con campos anidados
+2. ✅ Panel de configuración de datos con mapeos y transformaciones
+3. ✅ Integración completa con esquemas de conectores
+4. ✅ Sistema de esquemas dinámicos basado en conexiones reales
 
-### Próximo Hito
-**Sistema de flujo de datos completamente funcional al final del Sprint 9.5** 
+### Hito Alcanzado ✅
+**Sistema de flujo de datos completamente funcional con esquemas dinámicos** 
 
 ## Criterios de Aceptación para el nodo Test
 

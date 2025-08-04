@@ -9,6 +9,7 @@
 6. [Workflow 5: Pipeline de Datos Avanzado](#workflow-5-pipeline-de-datos-avanzado)
 7. [Testing de Validaciones](#testing-de-validaciones)
 8. [Testing de Importación/Exportación](#testing-de-importaciónexportación)
+9. [Testing de Esquemas Dinámicos](#testing-de-esquemas-dinámicos)
 
 ---
 
@@ -468,6 +469,133 @@ Start → Data Transform → Condition → [True: HTTP Request, False: Data Tran
 - [ ] Exportar esquemas
 - [ ] Importar esquemas
 
+### ✅ Esquemas Dinámicos
+- [ ] Esquemas de entrada vacíos para nodos sin conexiones
+- [ ] Esquemas calculados basados en conexiones reales
+- [ ] Transformaciones aplicadas en el flujo de datos
+- [ ] Generadores específicos por tipo de nodo
+- [ ] Eliminación de esquemas hardcodeados
+
+---
+
+## 🔄 Testing de Esquemas Dinámicos
+
+### Objetivo
+Probar el nuevo sistema de esquemas dinámicos que calcula los esquemas de entrada/salida basándose en las conexiones reales del workflow.
+
+### Workflow de Prueba: START → CONDITION → ACTION → END
+
+#### 1. Crear Workflow Básico
+1. **Crear nodos en orden**:
+   - START (arriba izquierda)
+   - CONDITION (centro)
+   - ACTION (derecha)
+   - END (abajo derecha)
+
+2. **Conectar nodos**:
+   - START → CONDITION
+   - CONDITION → ACTION
+   - ACTION → END
+
+#### 2. Verificar Esquemas Dinámicos
+
+##### **Nodo START (sin conexiones entrantes)**
+1. **Seleccionar nodo START**
+2. **Ir a panel de propiedades**
+3. **Verificar sección "Data Schema"**:
+   - 📥 **Input Fields**: Debería estar vacío (sin campos)
+   - 📤 **Output Fields**: Debería mostrar campos generados dinámicamente:
+     - `id` (STRING)
+     - `timestamp` (DATE)
+     - `data` (JSON) con ejemplo: `{ status: "active", count: 42 }`
+
+##### **Nodo CONDITION (con conexión desde START)**
+1. **Seleccionar nodo CONDITION**
+2. **Verificar sección "Data Schema"**:
+   - 📥 **Input Fields**: Debería mostrar los campos de salida del START:
+     - `id` (STRING)
+     - `timestamp` (DATE)
+     - `data` (JSON)
+   - 📤 **Output Fields**: Debería mostrar campos condicionales:
+     - `conditionResult` (BOOLEAN)
+     - `trueBranch.id`, `trueBranch.timestamp`, `trueBranch.data`
+     - `falseBranch.id`, `falseBranch.timestamp`, `falseBranch.data`
+
+##### **Nodo ACTION (con conexión desde CONDITION)**
+1. **Seleccionar nodo ACTION**
+2. **Verificar sección "Data Schema"**:
+   - 📥 **Input Fields**: Debería mostrar campos de la rama condicional
+   - 📤 **Output Fields**: Debería incluir campos adicionales:
+     - `actionResult` (JSON)
+     - `executionTime` (NUMBER)
+
+##### **Nodo END (con conexión desde ACTION)**
+1. **Seleccionar nodo END**
+2. **Verificar sección "Data Schema"**:
+   - 📥 **Input Fields**: Debería mostrar todos los campos de salida del ACTION
+   - 📤 **Output Fields**: Debería estar vacío (nodo final)
+
+#### 3. Probar Transformaciones de Data Flow
+
+##### **Configurar Transformación en START → CONDITION**
+1. **Seleccionar conexión START → CONDITION**
+2. **Ir a pestaña "Transformations"**
+3. **Añadir transformación**:
+   - Type: `TRANSFORM`
+   - Field: `data.status`
+   - Expression: `toUpperCase`
+4. **Verificar que el esquema de entrada del CONDITION refleja la transformación**
+
+##### **Configurar Mapeo de Campos en CONDITION → ACTION**
+1. **Seleccionar conexión CONDITION → ACTION**
+2. **Ir a pestaña "Mapping"**
+3. **Añadir mapeo**:
+   - Source: `trueBranch.data`
+   - Target: `inputData`
+4. **Verificar que el esquema de entrada del ACTION refleja el mapeo**
+
+#### 4. Probar Nodos sin Conexiones
+
+##### **Crear Nodo Aislado**
+1. **Añadir un nuevo ACTION node sin conectar**
+2. **Seleccionar el nodo**
+3. **Verificar que el esquema de entrada está vacío**
+4. **Verificar que el esquema de salida muestra campos por defecto**
+
+#### 5. Probar Diferentes Tipos de Nodos
+
+##### **HTTP Request Node**
+1. **Reemplazar ACTION con HTTP_REQUEST**
+2. **Verificar esquemas específicos**:
+   - Input: campos de configuración HTTP
+   - Output: campos de respuesta HTTP (`responseStatus`, `responseData`, `responseHeaders`)
+
+##### **Email Node**
+1. **Reemplazar ACTION con EMAIL**
+2. **Verificar esquemas específicos**:
+   - Input: campos de configuración de email
+   - Output: campos de resultado (`emailSent`, `messageId`)
+
+##### **Data Transform Node**
+1. **Reemplazar ACTION con DATA_TRANSFORM**
+2. **Configurar transformaciones**
+3. **Verificar que el esquema de salida refleja las transformaciones aplicadas**
+
+### Resultado Esperado
+
+#### **✅ Esquemas Dinámicos Funcionando**:
+- Nodos sin conexiones tienen esquemas de entrada vacíos
+- Esquemas de entrada se calculan basados en conexiones reales
+- Transformaciones se aplican correctamente en el flujo
+- Esquemas de salida reflejan la configuración específica del nodo
+- Cada tipo de nodo genera esquemas apropiados
+
+#### **✅ Eliminación de Esquemas Hardcodeados**:
+- No hay campos de entrada antes de conexiones
+- Los datos fluyen real y dinámicamente
+- Las transformaciones se reflejan en los esquemas
+- El sistema es escalable para workflows complejos
+
 ---
 
 ## 🚨 Troubleshooting
@@ -508,5 +636,14 @@ Este tutorial cubre todas las funcionalidades implementadas en el Sprint 9.5:
 4. **Conexiones Direccionales con Animaciones**
 5. **Panel de Configuración de Datos**
 6. **Integración Completa con Conectores**
+7. **Sistema de Esquemas Dinámicos** 🆕
+
+### 🚀 Funcionalidades Clave del Sistema de Esquemas Dinámicos:
+
+- **Esquemas Calculados en Tiempo Real**: Los esquemas de entrada/salida se calculan dinámicamente basándose en las conexiones reales del workflow
+- **Eliminación de Esquemas Hardcodeados**: Los nodos no tienen datos de entrada hasta que se conectan
+- **Transformaciones Aplicadas**: Las transformaciones de data flow se reflejan en los esquemas
+- **Generadores Específicos por Tipo**: Cada tipo de nodo genera esquemas apropiados
+- **Flujo de Datos Real**: Los datos fluyen real y dinámicamente a través del workflow
 
 ¡El sistema está listo para workflows complejos y producción! 🚀 

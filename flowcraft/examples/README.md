@@ -10,7 +10,8 @@ examples/
 ├── workflows/                   # Workflows de ejemplo
 │   ├── workflow-1-basic.json    # Workflow básico
 │   ├── workflow-2-conditions.json # Workflow con condiciones
-│   └── workflow-3-connectors.json # Workflow con conectores
+│   ├── workflow-3-connectors.json # Workflow con conectores
+│   └── workflow-6-dynamic-schemas.json # Workflow de esquemas dinámicos
 └── testing/                     # Herramientas de testing
     └── test-workflow-features.sh # Script de testing automatizado
 ```
@@ -87,6 +88,26 @@ cd flowcraft
 3. Probar las validaciones
 4. Verificar el flujo de datos
 5. Testing de la pestaña de conectores
+
+### 🔄 Workflow 6: Esquemas Dinámicos
+**Archivo**: `workflows/workflow-6-dynamic-schemas.json`
+
+**Descripción**: Workflow avanzado que demuestra el sistema de esquemas dinámicos con diferentes tipos de nodos y transformaciones.
+
+**Características**:
+- Sistema de esquemas dinámicos completo
+- Múltiples tipos de nodos (START, CONDITION, HTTP_REQUEST, DATA_TRANSFORM, EMAIL, SLACK, END)
+- Transformaciones de data flow
+- Flujo condicional con ramas true/false
+- Esquemas calculados basados en conexiones reales
+- Eliminación de esquemas hardcodeados
+
+**Uso**:
+1. Importar el workflow
+2. Seleccionar cada nodo y verificar sus esquemas dinámicos
+3. Probar las transformaciones en las conexiones
+4. Verificar que los esquemas se calculan correctamente
+5. Testing del sistema de esquemas dinámicos
 
 ## 🧪 Testing Automatizado
 

@@ -1,0 +1,444 @@
+{
+  "id": "workflow-6-dynamic-schemas",
+  "name": "Dynamic Schemas Demo",
+  "description": "Workflow para demostrar el sistema de esquemas dinámicos con transformaciones y diferentes tipos de nodos",
+  "version": "1.0",
+  "createdAt": "2024-01-01T00:00:00Z",
+  "updatedAt": "2024-01-01T00:00:00Z",
+  "nodes": [
+    {
+      "id": "start-1",
+      "type": "START",
+      "position": { "x": 100, "y": 100 },
+      "data": {
+        "label": "Dynamic Start",
+        "description": "Nodo inicial con datos dinámicos",
+        "triggerType": "webhook",
+        "webhookUrl": "https://api.example.com/webhook",
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "condition-1",
+      "type": "CONDITION",
+      "position": { "x": 400, "y": 100 },
+      "data": {
+        "label": "Dynamic Condition",
+        "description": "Condición con esquemas dinámicos",
+        "dataConditions": [
+          {
+            "id": "cond-1",
+            "field": "webhookData.status",
+            "operator": "equals",
+            "value": "success",
+            "enabled": true,
+            "description": "Verificar si el webhook fue exitoso"
+          },
+          {
+            "id": "cond-2",
+            "field": "webhookData.count",
+            "operator": "greater_than",
+            "value": "5",
+            "enabled": true,
+            "description": "Verificar si hay suficientes elementos"
+          }
+        ],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "http-request-1",
+      "type": "HTTP_REQUEST",
+      "position": { "x": 700, "y": 50 },
+      "data": {
+        "label": "Dynamic HTTP Request",
+        "description": "HTTP Request con esquemas dinámicos",
+        "actionConfig": {
+          "url": "https://api.example.com/data",
+          "method": "POST",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{token}}"
+          },
+          "body": {
+            "data": "{{trueBranch.webhookData}}",
+            "timestamp": "{{trueBranch.timestamp}}"
+          }
+        },
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "data-transform-1",
+      "type": "DATA_TRANSFORM",
+      "position": { "x": 700, "y": 200 },
+      "data": {
+        "label": "Dynamic Data Transform",
+        "description": "Transformación de datos con esquemas dinámicos",
+        "transformConfig": {
+          "fieldMappings": [
+            {
+              "sourceField": "falseBranch.webhookData",
+              "targetField": "processedData",
+              "required": true,
+              "description": "Mapear datos de la rama falsa"
+            }
+          ],
+          "transformations": [
+            {
+              "id": "trans-1",
+              "type": "TRANSFORM",
+              "config": {
+                "transformType": "toUpperCase"
+              },
+              "description": "Convertir a mayúsculas",
+              "order": 1,
+              "enabled": true
+            },
+            {
+              "id": "trans-2",
+              "type": "FORMAT",
+              "config": {
+                "formatType": "date"
+              },
+              "description": "Formatear fecha",
+              "order": 2,
+              "enabled": true
+            }
+          ]
+        },
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "email-1",
+      "type": "EMAIL",
+      "position": { "x": 1000, "y": 50 },
+      "data": {
+        "label": "Dynamic Email",
+        "description": "Email con esquemas dinámicos",
+        "actionConfig": {
+          "to": "admin@example.com",
+          "subject": "HTTP Request Result: {{responseStatus}}",
+          "emailBody": "Response data: {{responseData}}",
+          "attachments": []
+        },
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "slack-1",
+      "type": "SLACK",
+      "position": { "x": 1000, "y": 200 },
+      "data": {
+        "label": "Dynamic Slack",
+        "description": "Slack con esquemas dinámicos",
+        "actionConfig": {
+          "channel": "#alerts",
+          "slackMessage": "Data processed: {{processedData}}",
+          "blocks": []
+        },
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "end-1",
+      "type": "END",
+      "position": { "x": 1300, "y": 125 },
+      "data": {
+        "label": "Dynamic End",
+        "description": "Nodo final con esquemas dinámicos",
+        "resultType": "success",
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "source": "start-1",
+      "target": "condition-1",
+      "sourceHandle": "start-output",
+      "targetHandle": "condition-input",
+      "dataFlow": {
+        "id": "flow-1",
+        "sourcePortId": "start-output",
+        "targetPortId": "condition-input",
+        "fieldMappings": [
+          {
+            "sourceField": "webhookData",
+            "targetField": "webhookData",
+            "required": true,
+            "description": "Mapear datos del webhook"
+          },
+          {
+            "sourceField": "timestamp",
+            "targetField": "timestamp",
+            "required": true,
+            "description": "Mapear timestamp"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "trans-1",
+            "type": "TRANSFORM",
+            "config": {
+              "transformType": "toUpperCase"
+            },
+            "description": "Convertir status a mayúsculas",
+            "order": 1,
+            "enabled": true
+          }
+        ],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": [],
+          "portsCompatible": true,
+          "requiredFieldsMapped": true,
+          "typeCompatible": true
+        },
+        "enabled": true
+      }
+    },
+    {
+      "id": "edge-2",
+      "source": "condition-1",
+      "target": "http-request-1",
+      "sourceHandle": "condition-true",
+      "targetHandle": "http-request-input",
+      "dataFlow": {
+        "id": "flow-2",
+        "sourcePortId": "condition-true",
+        "targetPortId": "http-request-input",
+        "fieldMappings": [
+          {
+            "sourceField": "trueBranch.webhookData",
+            "targetField": "inputData",
+            "required": true,
+            "description": "Mapear datos de la rama verdadera"
+          },
+          {
+            "sourceField": "trueBranch.timestamp",
+            "targetField": "requestTimestamp",
+            "required": true,
+            "description": "Mapear timestamp"
+          }
+        ],
+        "transformations": [],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": [],
+          "portsCompatible": true,
+          "requiredFieldsMapped": true,
+          "typeCompatible": true
+        },
+        "enabled": true
+      }
+    },
+    {
+      "id": "edge-3",
+      "source": "condition-1",
+      "target": "data-transform-1",
+      "sourceHandle": "condition-false",
+      "targetHandle": "data-transform-input",
+      "dataFlow": {
+        "id": "flow-3",
+        "sourcePortId": "condition-false",
+        "targetPortId": "data-transform-input",
+        "fieldMappings": [
+          {
+            "sourceField": "falseBranch.webhookData",
+            "targetField": "inputData",
+            "required": true,
+            "description": "Mapear datos de la rama falsa"
+          }
+        ],
+        "transformations": [],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": [],
+          "portsCompatible": true,
+          "requiredFieldsMapped": true,
+          "typeCompatible": true
+        },
+        "enabled": true
+      }
+    },
+    {
+      "id": "edge-4",
+      "source": "http-request-1",
+      "target": "email-1",
+      "sourceHandle": "http-request-output",
+      "targetHandle": "email-input",
+      "dataFlow": {
+        "id": "flow-4",
+        "sourcePortId": "http-request-output",
+        "targetPortId": "email-input",
+        "fieldMappings": [
+          {
+            "sourceField": "responseStatus",
+            "targetField": "responseStatus",
+            "required": true,
+            "description": "Mapear status de respuesta"
+          },
+          {
+            "sourceField": "responseData",
+            "targetField": "responseData",
+            "required": true,
+            "description": "Mapear datos de respuesta"
+          }
+        ],
+        "transformations": [],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": [],
+          "portsCompatible": true,
+          "requiredFieldsMapped": true,
+          "typeCompatible": true
+        },
+        "enabled": true
+      }
+    },
+    {
+      "id": "edge-5",
+      "source": "data-transform-1",
+      "target": "slack-1",
+      "sourceHandle": "data-transform-output",
+      "targetHandle": "slack-input",
+      "dataFlow": {
+        "id": "flow-5",
+        "sourcePortId": "data-transform-output",
+        "targetPortId": "slack-input",
+        "fieldMappings": [
+          {
+            "sourceField": "processedData",
+            "targetField": "processedData",
+            "required": true,
+            "description": "Mapear datos procesados"
+          }
+        ],
+        "transformations": [],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": [],
+          "portsCompatible": true,
+          "requiredFieldsMapped": true,
+          "typeCompatible": true
+        },
+        "enabled": true
+      }
+    },
+    {
+      "id": "edge-6",
+      "source": "email-1",
+      "target": "end-1",
+      "sourceHandle": "email-output",
+      "targetHandle": "end-input",
+      "dataFlow": {
+        "id": "flow-6",
+        "sourcePortId": "email-output",
+        "targetPortId": "end-input",
+        "fieldMappings": [
+          {
+            "sourceField": "emailSent",
+            "targetField": "emailSent",
+            "required": true,
+            "description": "Mapear resultado de email"
+          },
+          {
+            "sourceField": "messageId",
+            "targetField": "messageId",
+            "required": false,
+            "description": "Mapear ID del mensaje"
+          }
+        ],
+        "transformations": [],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": [],
+          "portsCompatible": true,
+          "requiredFieldsMapped": true,
+          "typeCompatible": true
+        },
+        "enabled": true
+      }
+    },
+    {
+      "id": "edge-7",
+      "source": "slack-1",
+      "target": "end-1",
+      "sourceHandle": "slack-output",
+      "targetHandle": "end-input",
+      "dataFlow": {
+        "id": "flow-7",
+        "sourcePortId": "slack-output",
+        "targetPortId": "end-input",
+        "fieldMappings": [
+          {
+            "sourceField": "messageSent",
+            "targetField": "slackMessageSent",
+            "required": true,
+            "description": "Mapear resultado de Slack"
+          },
+          {
+            "sourceField": "channel",
+            "targetField": "slackChannel",
+            "required": false,
+            "description": "Mapear canal de Slack"
+          }
+        ],
+        "transformations": [],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": [],
+          "portsCompatible": true,
+          "requiredFieldsMapped": true,
+          "typeCompatible": true
+        },
+        "enabled": true
+      }
+    }
+  ],
+  "metadata": {
+    "author": "FlowCraft Team",
+    "tags": ["dynamic-schemas", "demo", "tutorial"],
+    "complexity": "advanced",
+    "estimatedExecutionTime": "30s",
+    "description": "Este workflow demuestra el sistema de esquemas dinámicos con diferentes tipos de nodos, transformaciones y flujo de datos condicional. Perfecto para probar cómo los esquemas se calculan dinámicamente basándose en las conexiones reales del workflow."
+  }
+} 

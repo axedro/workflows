@@ -31,49 +31,56 @@
 
 ---
 
-### Sprint 9.5: Sistema de Flujo de Datos (1 semana) 🆕 NUEVO
+### Sprint 9.5: Sistema de Flujo de Datos (1 semana) ✅ COMPLETADO
 **Objetivo:** Implementar sistema completo de flujo de datos entre nodos
 
-#### Data Flow Architecture
-- [ ] Definir modelo de datos (DataField, DataPort, DataFlow)
-- [ ] Tipos de datos (string, number, boolean, object, array)
-- [ ] Sistema de validación de tipos de datos
-- [ ] Mapeo de campos entre nodos
+#### Data Flow Architecture ✅
+- [x] Definir modelo de datos (DataField, DataPort, DataFlow)
+- [x] Tipos de datos (string, number, boolean, object, array)
+- [x] Sistema de validación de tipos de datos
+- [x] Mapeo de campos entre nodos
 
-#### Nodos con Puertos de Datos
-- [ ] Rediseñar nodos con puertos input/output tipados
-- [ ] StartNode: Solo output port con datos iniciales
-- [ ] ActionNode: Input port + output port con transformación
-- [ ] ConditionNode: Input port + 2 output ports (true/false)
-- [ ] EndNode: Solo input port para datos finales
-- [ ] Visualización de campos de datos en tiempo real
+#### Nodos con Puertos de Datos ✅
+- [x] Rediseñar nodos con puertos input/output tipados
+- [x] StartNode: Solo output port con datos iniciales
+- [x] ActionNode: Input port + output port con transformación
+- [x] ConditionNode: Input port + 2 output ports (true/false)
+- [x] EndNode: Solo input port para datos finales
+- [x] Visualización de campos de datos en tiempo real
 
-#### Nodo de Condición como Rombo
-- [ ] Cambiar forma de ConditionNode de rectángulo a rombo
-- [ ] Una entrada (top) y dos salidas (true/false)
-- [ ] Lógica de flujo de datos condicional
-- [ ] Transmitir datos solo por la rama que cumple condición
-- [ ] Editor de condiciones con campos disponibles
+#### Nodo de Condición como Rombo ✅
+- [x] Cambiar forma de ConditionNode de rectángulo a rombo
+- [x] Una entrada (top) y dos salidas (true/false)
+- [x] Lógica de flujo de datos condicional
+- [x] Transmitir datos solo por la rama que cumple condición
+- [x] Editor de condiciones con campos disponibles
 
-#### Conexiones Direccionales con Datos
-- [ ] Flechas direccionales claras con sentido de flujo
-- [ ] Mostrar campos de datos que fluyen en conexiones
-- [ ] Validación de compatibilidad de tipos entre puertos
-- [ ] Prevenir conexiones incompatibles
-- [ ] Animación de flujo de datos
+#### Conexiones Direccionales con Datos ✅
+- [x] Flechas direccionales claras con sentido de flujo
+- [x] Mostrar campos de datos que fluyen en conexiones
+- [x] Validación de compatibilidad de tipos entre puertos
+- [x] Prevenir conexiones incompatibles
+- [x] Animación de flujo de datos
 
-#### Panel de Configuración de Datos
-- [ ] Panel para configurar mapeo de campos
-- [ ] Drag & drop para mapear campos de entrada a salida
-- [ ] Transformaciones básicas (rename, filter, transform)
-- [ ] Preview de datos resultantes
-- [ ] Testing de transformaciones con datos reales
+#### Panel de Configuración de Datos ✅
+- [x] Panel para configurar mapeo de campos
+- [x] Drag & drop para mapear campos de entrada a salida
+- [x] Transformaciones básicas (rename, filter, transform)
+- [x] Preview de datos resultantes
+- [x] Testing de transformaciones con datos reales
 
-#### Integración con Conectores
-- [ ] Definir esquemas de datos para cada conector
-- [ ] Importación de datos desde fuentes externas
-- [ ] Exportación de datos a formatos estándar
-- [ ] Validación de configuraciones de conectores
+#### Integración con Conectores ✅
+- [x] Definir esquemas de datos para cada conector
+- [x] Importación de datos desde fuentes externas
+- [x] Exportación de datos a formatos estándar
+- [x] Validación de configuraciones de conectores
+
+#### Sistema de Esquemas Dinámicos ✅ 🆕
+- [x] Cálculo dinámico de esquemas de entrada/salida
+- [x] Esquemas basados en conexiones reales del workflow
+- [x] Aplicación de transformaciones en el flujo de datos
+- [x] Generadores específicos por tipo de nodo
+- [x] Eliminación de esquemas hardcodeados
 
 **Entregables:**
 - Sistema completo de flujo de datos
@@ -82,8 +89,9 @@
 - Conexiones direccionales con validación
 - Panel de configuración de datos
 - Integración con conectores
+- Sistema de esquemas dinámicos
 
-**Estado:** PENDIENTE - Sprint crítico para funcionalidad de workflow automation
+**Estado:** ✅ 100% COMPLETADO - Sistema de flujo de datos funcional con esquemas dinámicos
 
 ---
 
