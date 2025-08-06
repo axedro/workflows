@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useReactFlow } from '@reactflow/core';
-import { Tooltip } from '@flowcraft/ui';
+import { useTranslation } from '../../../hooks/i18n';
 
 interface EnhancedControlsProps {
   showZoom?: boolean;
@@ -8,6 +8,10 @@ interface EnhancedControlsProps {
   showInteractive?: boolean;
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
   className?: string;
+  onSave?: () => void;
+  onExport?: () => void;
+  isSaving?: boolean;
+  lastSaved?: Date | null;
 }
 
 const EnhancedControls: React.FC<EnhancedControlsProps> = ({
@@ -16,7 +20,12 @@ const EnhancedControls: React.FC<EnhancedControlsProps> = ({
   showInteractive: _showInteractive = true,
   position = 'top-right',
   className = '',
+  onSave,
+  onExport,
+  isSaving = false,
+  lastSaved = null,
 }) => {
+  const { t } = useTranslation('common');
   const { zoomIn, zoomOut, fitView, getViewport } = useReactFlow();
   const [currentZoom, setCurrentZoom] = useState(1);
 
@@ -117,84 +126,11 @@ const EnhancedControls: React.FC<EnhancedControlsProps> = ({
 
         {/* Zoom In Button */}
         {showZoom && (
-          <Tooltip content="Zoom In (Ctrl/Cmd + +)" position="left">
-            <button
-              onClick={handleZoomIn}
-              className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors pointer-events-auto"
-              aria-label="Zoom In"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.35-4.35" />
-                <path d="M11 8v6" />
-                <path d="M8 11h6" />
-              </svg>
-            </button>
-          </Tooltip>
-        )}
-
-        {/* Zoom Out Button */}
-        {showZoom && (
-          <Tooltip content="Zoom Out (Ctrl/Cmd + -)" position="left">
-            <button
-              onClick={handleZoomOut}
-              className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors pointer-events-auto"
-              aria-label="Zoom Out"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.35-4.35" />
-                <path d="M8 11h6" />
-              </svg>
-            </button>
-          </Tooltip>
-        )}
-
-        {/* Fit View Button */}
-        {showFitView && (
-          <Tooltip content="Fit to View (Ctrl/Cmd + 0)" position="left">
-            <button
-              onClick={handleFitView}
-              className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors pointer-events-auto"
-              aria-label="Fit to View"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M8 3H5a2 2 0 0 0-2 2v3" />
-                <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
-                <path d="M3 16v3a2 2 0 0 0 2 2h3" />
-                <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
-              </svg>
-            </button>
-          </Tooltip>
-        )}
-
-        {/* Reset View Button */}
-        <Tooltip content="Reset View" position="left">
           <button
-            onClick={handleResetView}
+            onClick={handleZoomIn}
             className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors pointer-events-auto"
-            aria-label="Reset View"
+            aria-label="Zoom In"
+            title="Zoom In (Ctrl/Cmd + +)"
           >
             <svg
               width="16"
@@ -204,46 +140,147 @@ const EnhancedControls: React.FC<EnhancedControlsProps> = ({
               stroke="currentColor"
               strokeWidth="2"
             >
-              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-              <path d="M21 3v5h-5" />
-              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-              <path d="M3 21v-5h5" />
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+              <path d="M11 8v6" />
+              <path d="M8 11h6" />
             </svg>
           </button>
-        </Tooltip>
+        )}
+
+        {/* Zoom Out Button */}
+        {showZoom && (
+          <button
+            onClick={handleZoomOut}
+            className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors pointer-events-auto"
+            aria-label="Zoom Out"
+            title="Zoom Out (Ctrl/Cmd + -)"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+              <path d="M8 11h6" />
+            </svg>
+          </button>
+        )}
+
+        {/* Fit View Button */}
+        {showFitView && (
+          <button
+            onClick={handleFitView}
+            className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors pointer-events-auto"
+            aria-label="Fit to View"
+            title={t('fit_to_view_shortcut')}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+              <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
+              <path d="M3 16v3a2 2 0 0 0 2 2h3" />
+              <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+            </svg>
+          </button>
+        )}
+
+        {/* Reset View Button */}
+        <button
+          onClick={handleResetView}
+          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors pointer-events-auto"
+          aria-label="Reset View"
+          title="Reset View"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+            <path d="M21 3v5h-5" />
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+            <path d="M3 21v-5h5" />
+          </svg>
+        </button>
+
+        {/* Save Button */}
+        {onSave && (
+          <div className="border-t border-gray-200 pt-1 mt-1">
+            <button
+              onClick={onSave}
+              disabled={isSaving}
+              className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-green-600 hover:bg-green-50 rounded transition-colors pointer-events-auto disabled:opacity-50"
+              aria-label="Save Workflow"
+              title={`Save Workflow${lastSaved ? ` (Last saved: ${lastSaved.toLocaleTimeString()})` : ''}`}
+            >
+              {isSaving ? (
+                <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" strokeDasharray="31.416" strokeDashoffset="31.416">
+                    <animate attributeName="stroke-dasharray" dur="2s" values="0 31.416;15.708 15.708;0 31.416" repeatCount="indefinite" />
+                    <animate attributeName="stroke-dashoffset" dur="2s" values="0;-15.708;-31.416" repeatCount="indefinite" />
+                  </circle>
+                </svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                  <polyline points="17,21 17,13 7,13 7,21" />
+                  <polyline points="7,3 7,8 15,8" />
+                </svg>
+              )}
+            </button>
+          </div>
+        )}
+
+        {/* Export Button */}
+        {onExport && (
+          <button
+            onClick={onExport}
+            className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors pointer-events-auto"
+            aria-label="Export Workflow"
+            title={t('export_workflow')}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7,10 12,15 17,10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+          </button>
+        )}
 
         {/* Keyboard Shortcuts Help */}
         <div className="border-t border-gray-200 pt-1 mt-1">
-          <Tooltip
-            content={
-              <div className="text-xs">
-                <div className="font-semibold mb-1">Keyboard Shortcuts:</div>
-                <div>Ctrl/Cmd + + : Zoom In</div>
-                <div>Ctrl/Cmd + - : Zoom Out</div>
-                <div>Ctrl/Cmd + 0 : Fit View</div>
-                <div>Escape : Clear Selection</div>
-              </div>
-            }
-            position="left"
+          <button
+            className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors pointer-events-auto"
+            aria-label="Keyboard Shortcuts"
+            title="Keyboard Shortcuts: Ctrl/Cmd + + (Zoom In), Ctrl/Cmd + - (Zoom Out), Ctrl/Cmd + 0 (Fit View), Escape (Clear Selection)"
           >
-            <button
-              className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors pointer-events-auto"
-              aria-label="Keyboard Shortcuts"
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                <path d="M12 17h.01" />
-              </svg>
-            </button>
-          </Tooltip>
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <path d="M12 17h.01" />
+            </svg>
+          </button>
         </div>
       </div>
     </div>

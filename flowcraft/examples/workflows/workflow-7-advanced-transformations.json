@@ -1,0 +1,282 @@
+{
+  "id": "workflow-7-advanced-transformations",
+  "name": "Advanced Data Transformations Demo",
+  "description": "Workflow demonstrating advanced data transformations with dropdown target field selection",
+  "version": "1.0.0",
+  "createdAt": "2025-08-06T12:00:00Z",
+  "updatedAt": "2025-08-06T12:00:00Z",
+  "nodes": [
+    {
+      "id": "start-1",
+      "type": "START",
+      "position": { "x": 100, "y": 100 },
+      "data": {
+        "label": "Start",
+        "inputPorts": [],
+        "outputPorts": [
+          {
+            "id": "start-output",
+            "name": "Output",
+            "type": "output",
+            "position": "right",
+            "fields": [
+              {
+                "id": "userData",
+                "name": "User Data",
+                "type": "object",
+                "required": true,
+                "example": {
+                  "firstName": "John",
+                  "lastName": "Doe",
+                  "email": "john.doe@example.com",
+                  "age": 30,
+                  "salary": 50000,
+                  "department": "Engineering",
+                  "fullAddress": "123 Main St, New York, NY 10001"
+                }
+              },
+              {
+                "id": "timestamp",
+                "name": "Timestamp",
+                "type": "date",
+                "required": true,
+                "example": "2025-08-06T12:00:00Z"
+              },
+              {
+                "id": "status",
+                "name": "Status",
+                "type": "string",
+                "required": true,
+                "example": "active"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "data-transform-1",
+      "type": "DATA_TRANSFORM",
+      "position": { "x": 400, "y": 100 },
+      "data": {
+        "label": "Advanced Transformations",
+        "inputPorts": [
+          {
+            "id": "data-transform-input",
+            "name": "Input",
+            "type": "input",
+            "position": "left",
+            "fields": []
+          }
+        ],
+        "outputPorts": [
+          {
+            "id": "data-transform-output",
+            "name": "Output",
+            "type": "output",
+            "position": "right",
+            "fields": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "end-1",
+      "type": "END",
+      "position": { "x": 700, "y": 100 },
+      "data": {
+        "label": "End",
+        "inputPorts": [
+          {
+            "id": "end-input",
+            "name": "Input",
+            "type": "input",
+            "position": "left",
+            "fields": []
+          }
+        ],
+        "outputPorts": []
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "source": "start-1",
+      "target": "data-transform-1",
+      "sourceHandle": "start-output",
+      "targetHandle": "data-transform-input",
+      "dataFlow": {
+        "id": "flow-1",
+        "sourcePortId": "start-output",
+        "targetPortId": "data-transform-input",
+        "fieldMappings": [
+          {
+            "sourceField": "userData",
+            "targetField": "userData",
+            "required": true,
+            "description": "Map user data"
+          },
+          {
+            "sourceField": "timestamp",
+            "targetField": "timestamp",
+            "required": true,
+            "description": "Map timestamp"
+          },
+          {
+            "sourceField": "status",
+            "targetField": "status",
+            "required": true,
+            "description": "Map status"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "trans-1",
+            "type": "RENAME",
+            "config": {
+              "oldName": "userData",
+              "newName": "employeeData"
+            },
+            "description": "Rename userData to employeeData",
+            "order": 1,
+            "enabled": true
+          },
+          {
+            "id": "trans-2",
+            "type": "TRANSFORM",
+            "config": {
+              "field": "status",
+              "expression": "toUpperCase"
+            },
+            "description": "Convert status to uppercase",
+            "order": 2,
+            "enabled": true
+          },
+          {
+            "id": "trans-3",
+            "type": "CONCATENATE",
+            "config": {
+              "fields": ["employeeData.firstName", "employeeData.lastName"],
+              "targetField": "fullName",
+              "separator": " "
+            },
+            "description": "Concatenate first and last name",
+            "order": 3,
+            "enabled": true
+          },
+          {
+            "id": "trans-4",
+            "type": "FORMAT",
+            "config": {
+              "field": "timestamp",
+              "formatType": "date",
+              "pattern": "YYYY-MM-DD"
+            },
+            "description": "Format timestamp as date",
+            "order": 4,
+            "enabled": true
+          },
+          {
+            "id": "trans-5",
+            "type": "SPLIT",
+            "config": {
+              "sourceField": "employeeData.fullAddress",
+              "targetFields": "street,city,state,zip",
+              "separator": ","
+            },
+            "description": "Split address into components",
+            "order": 5,
+            "enabled": true
+          },
+          {
+            "id": "trans-6",
+            "type": "AGGREGATE",
+            "config": {
+              "fields": ["employeeData.age", "employeeData.salary"],
+              "targetField": "employeeMetrics",
+              "function": "average"
+            },
+            "description": "Calculate average age and salary",
+            "order": 6,
+            "enabled": true
+          },
+          {
+            "id": "trans-7",
+            "type": "VALIDATE",
+            "config": {
+              "field": "employeeData.email",
+              "rule": "email"
+            },
+            "description": "Validate email format",
+            "order": 7,
+            "enabled": true
+          }
+        ],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": [],
+          "portsCompatible": true,
+          "requiredFieldsMapped": true,
+          "typeCompatible": true
+        },
+        "enabled": true
+      }
+    },
+    {
+      "id": "edge-2",
+      "source": "data-transform-1",
+      "target": "end-1",
+      "sourceHandle": "data-transform-output",
+      "targetHandle": "end-input",
+      "dataFlow": {
+        "id": "flow-2",
+        "sourcePortId": "data-transform-output",
+        "targetPortId": "end-input",
+        "fieldMappings": [
+          {
+            "sourceField": "employeeData",
+            "targetField": "finalEmployeeData",
+            "required": true,
+            "description": "Map transformed employee data"
+          },
+          {
+            "sourceField": "fullName",
+            "targetField": "fullName",
+            "required": true,
+            "description": "Map full name"
+          },
+          {
+            "sourceField": "timestamp",
+            "targetField": "formattedTimestamp",
+            "required": true,
+            "description": "Map formatted timestamp"
+          },
+          {
+            "sourceField": "status",
+            "targetField": "status",
+            "required": true,
+            "description": "Map status"
+          }
+        ],
+        "transformations": [],
+        "validation": {
+          "isValid": true,
+          "errors": [],
+          "warnings": [],
+          "portsCompatible": true,
+          "requiredFieldsMapped": true,
+          "typeCompatible": true
+        },
+        "enabled": true
+      }
+    }
+  ],
+  "metadata": {
+    "author": "FlowCraft Tutorial",
+    "tags": ["advanced", "transformations", "dropdown", "testing"],
+    "difficulty": "intermediate",
+    "description": "This workflow demonstrates advanced data transformations with dropdown target field selection, including rename, transform, concatenate, format, split, aggregate, and validate operations."
+  }
+} 

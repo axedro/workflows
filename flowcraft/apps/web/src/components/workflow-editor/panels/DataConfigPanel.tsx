@@ -119,6 +119,15 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
     }
   };
 
+  // Helper function to get available fields for dropdowns
+  const getAvailableFields = (schema: Record<string, DataField>): Array<{value: string, label: string, type: string}> => {
+    return Object.entries(schema).map(([fieldId, field]) => ({
+      value: fieldId,
+      label: `${field.name} (${field.type})`,
+      type: field.type
+    }));
+  };
+
   const generateFieldSuggestions = (sourceSchema: Record<string, DataField>, targetSchema: Record<string, DataField>) => {
     const suggestions: Array<{sourceField: string, targetField: string, confidence: number}> = [];
     
@@ -310,18 +319,73 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
     // Basic validation based on transformation type
     switch (transformation.type) {
       case TransformationType.RENAME:
+        if (!transformation.config.oldName) {
+          errors.push('Old field name is required for rename transformation');
+        }
         if (!transformation.config.newName) {
-          errors.push('New name is required for rename transformation');
+          errors.push('New field name is required for rename transformation');
         }
         break;
       case TransformationType.FILTER:
-        if (!transformation.config.condition) {
-          errors.push('Filter condition is required');
+        if (!transformation.config.field) {
+          errors.push('Filter field is required');
+        }
+        if (!transformation.config.operator) {
+          errors.push('Filter operator is required');
+        }
+        if (transformation.config.value === undefined || transformation.config.value === '') {
+          errors.push('Filter value is required');
         }
         break;
       case TransformationType.TRANSFORM:
+        if (!transformation.config.field) {
+          errors.push('Target field is required for transform');
+        }
         if (!transformation.config.expression) {
           errors.push('Transform expression is required');
+        }
+        break;
+      case TransformationType.FORMAT:
+        if (!transformation.config.field) {
+          errors.push('Target field is required for format');
+        }
+        if (!transformation.config.formatType) {
+          errors.push('Format type is required');
+        }
+        break;
+      case TransformationType.CONCATENATE:
+        if (!transformation.config.fields || transformation.config.fields.length === 0) {
+          errors.push('Source fields are required for concatenate');
+        }
+        if (!transformation.config.targetField) {
+          errors.push('Target field is required for concatenate');
+        }
+        break;
+      case TransformationType.AGGREGATE:
+        if (!transformation.config.fields || transformation.config.fields.length === 0) {
+          errors.push('Source fields are required for aggregate');
+        }
+        if (!transformation.config.targetField) {
+          errors.push('Target field is required for aggregate');
+        }
+        if (!transformation.config.function) {
+          errors.push('Aggregation function is required');
+        }
+        break;
+      case TransformationType.SPLIT:
+        if (!transformation.config.sourceField) {
+          errors.push('Source field is required for split');
+        }
+        if (!transformation.config.targetFields) {
+          errors.push('Target fields are required for split');
+        }
+        break;
+      case TransformationType.VALIDATE:
+        if (!transformation.config.field) {
+          errors.push('Target field is required for validation');
+        }
+        if (!transformation.config.rule) {
+          errors.push('Validation rule is required');
         }
         break;
     }
@@ -614,16 +678,21 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Old Field Name
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={transformation.config.oldName || ''}
                       onChange={(e) => updateTransformation(transformation.id, { 
                         config: { ...transformation.config, oldName: e.target.value }
                       })}
                       disabled={readOnly}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Enter old field name"
-                    />
+                    >
+                      <option value="">Select source field</option>
+                      {getAvailableFields(sourceSchema).map(field => (
+                        <option key={field.value} value={field.value}>
+                          {field.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -649,16 +718,21 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Filter Field
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={transformation.config.field || ''}
                       onChange={(e) => updateTransformation(transformation.id, { 
                         config: { ...transformation.config, field: e.target.value }
                       })}
                       disabled={readOnly}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Enter field name to filter"
-                    />
+                    >
+                      <option value="">Select field to filter</option>
+                      {getAvailableFields(sourceSchema).map(field => (
+                        <option key={field.value} value={field.value}>
+                          {field.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -706,16 +780,21 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Target Field
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={transformation.config.field || ''}
                       onChange={(e) => updateTransformation(transformation.id, { 
                         config: { ...transformation.config, field: e.target.value }
                       })}
                       disabled={readOnly}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Enter field name to format"
-                    />
+                    >
+                      <option value="">Select field to format</option>
+                      {getAvailableFields(sourceSchema).map(field => (
+                        <option key={field.value} value={field.value}>
+                          {field.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -761,16 +840,21 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Target Field
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={transformation.config.field || ''}
                       onChange={(e) => updateTransformation(transformation.id, { 
                         config: { ...transformation.config, field: e.target.value }
                       })}
                       disabled={readOnly}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Enter field name to transform"
-                    />
+                    >
+                      <option value="">Select field to transform</option>
+                      {getAvailableFields(sourceSchema).map(field => (
+                        <option key={field.value} value={field.value}>
+                          {field.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -792,6 +876,249 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
                       <option value="trim">Trim Whitespace</option>
                       <option value="capitalize">Capitalize First Letter</option>
                     </select>
+                  </div>
+                </div>
+              )}
+
+              {transformation.type === TransformationType.CONCATENATE && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Source Fields
+                    </label>
+                    <select
+                      multiple
+                      value={transformation.config.fields || []}
+                      onChange={(e) => {
+                        const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                        updateTransformation(transformation.id, { 
+                          config: { ...transformation.config, fields: selectedOptions }
+                        });
+                      }}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      size={4}
+                    >
+                      {getAvailableFields(sourceSchema).map(field => (
+                        <option key={field.value} value={field.value}>
+                          {field.label}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500">Hold Ctrl/Cmd to select multiple fields</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Target Field
+                    </label>
+                    <input
+                      type="text"
+                      value={transformation.config.targetField || ''}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, targetField: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter target field name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Separator
+                    </label>
+                    <input
+                      type="text"
+                      value={transformation.config.separator || ' '}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, separator: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Separator between fields (default: space)"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {transformation.type === TransformationType.AGGREGATE && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Source Fields
+                    </label>
+                    <select
+                      multiple
+                      value={transformation.config.fields || []}
+                      onChange={(e) => {
+                        const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                        updateTransformation(transformation.id, { 
+                          config: { ...transformation.config, fields: selectedOptions }
+                        });
+                      }}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      size={4}
+                    >
+                      {getAvailableFields(sourceSchema).map(field => (
+                        <option key={field.value} value={field.value}>
+                          {field.label}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500">Hold Ctrl/Cmd to select multiple fields</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Target Field
+                    </label>
+                    <input
+                      type="text"
+                      value={transformation.config.targetField || ''}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, targetField: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter target field name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Aggregation Function
+                    </label>
+                    <select
+                      value={transformation.config.function || ''}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, function: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select function</option>
+                      <option value="sum">Sum</option>
+                      <option value="average">Average</option>
+                      <option value="min">Minimum</option>
+                      <option value="max">Maximum</option>
+                      <option value="count">Count</option>
+                      <option value="concat">Concatenate</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {transformation.type === TransformationType.SPLIT && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Source Field
+                    </label>
+                    <select
+                      value={transformation.config.sourceField || ''}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, sourceField: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select field to split</option>
+                      {getAvailableFields(sourceSchema).map(field => (
+                        <option key={field.value} value={field.value}>
+                          {field.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Target Fields
+                    </label>
+                    <input
+                      type="text"
+                      value={transformation.config.targetFields || ''}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, targetFields: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Comma-separated field names (e.g., field1,field2,field3)"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Separator
+                    </label>
+                    <input
+                      type="text"
+                      value={transformation.config.separator || ','}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, separator: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Separator to split by (default: comma)"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {transformation.type === TransformationType.VALIDATE && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Target Field
+                    </label>
+                    <select
+                      value={transformation.config.field || ''}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, field: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select field to validate</option>
+                      {getAvailableFields(sourceSchema).map(field => (
+                        <option key={field.value} value={field.value}>
+                          {field.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Validation Rule
+                    </label>
+                    <select
+                      value={transformation.config.rule || ''}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, rule: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select validation rule</option>
+                      <option value="required">Required</option>
+                      <option value="email">Email Format</option>
+                      <option value="url">URL Format</option>
+                      <option value="number">Number</option>
+                      <option value="minLength">Minimum Length</option>
+                      <option value="maxLength">Maximum Length</option>
+                      <option value="pattern">Regular Expression</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Validation Value
+                    </label>
+                    <input
+                      type="text"
+                      value={transformation.config.value || ''}
+                      onChange={(e) => updateTransformation(transformation.id, { 
+                        config: { ...transformation.config, value: e.target.value }
+                      })}
+                      disabled={readOnly}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Validation value (e.g., min length, pattern)"
+                    />
                   </div>
                 </div>
               )}
@@ -1028,6 +1355,103 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
                     }
                     break;
                 }
+              }
+            }
+            break;
+          case TransformationType.CONCATENATE:
+            if (transformation.config.fields && transformation.config.targetField) {
+              const fields: string[] = transformation.config.fields;
+              const separator = transformation.config.separator || ' ';
+              const values = fields.map((field: string) => outputData[field]).filter((v: any) => v !== undefined);
+              outputData[transformation.config.targetField] = values.join(separator);
+            }
+            break;
+          case TransformationType.AGGREGATE:
+            if (transformation.config.fields && transformation.config.targetField && transformation.config.function) {
+              const fields: string[] = transformation.config.fields;
+              const values = fields.map((field: string) => outputData[field]).filter((v: any) => v !== undefined);
+              
+              switch (transformation.config.function) {
+                case 'sum':
+                  outputData[transformation.config.targetField] = values.reduce((sum: number, val: any) => sum + Number(val), 0);
+                  break;
+                case 'average':
+                  const sum = values.reduce((acc: number, val: any) => acc + Number(val), 0);
+                  outputData[transformation.config.targetField] = values.length > 0 ? sum / values.length : 0;
+                  break;
+                case 'min':
+                  outputData[transformation.config.targetField] = Math.min(...values.map((v: any) => Number(v)));
+                  break;
+                case 'max':
+                  outputData[transformation.config.targetField] = Math.max(...values.map((v: any) => Number(v)));
+                  break;
+                case 'count':
+                  outputData[transformation.config.targetField] = values.length;
+                  break;
+                case 'concat':
+                  outputData[transformation.config.targetField] = values.join('');
+                  break;
+              }
+            }
+            break;
+          case TransformationType.SPLIT:
+            if (transformation.config.sourceField && transformation.config.targetFields) {
+              const sourceValue = outputData[transformation.config.sourceField];
+              if (sourceValue !== undefined) {
+                const separator = transformation.config.separator || ',';
+                const parts = String(sourceValue).split(separator);
+                const targetFields = transformation.config.targetFields.split(',').map((f: string) => f.trim());
+                
+                targetFields.forEach((targetField: string, index: number) => {
+                  if (parts[index] !== undefined) {
+                    outputData[targetField] = parts[index];
+                  }
+                });
+              }
+            }
+            break;
+          case TransformationType.VALIDATE:
+            if (transformation.config.field && transformation.config.rule) {
+              const value = outputData[transformation.config.field];
+              let isValid = true;
+              
+              switch (transformation.config.rule) {
+                case 'required':
+                  isValid = value !== undefined && value !== null && value !== '';
+                  break;
+                case 'email':
+                  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                  isValid = emailRegex.test(String(value));
+                  break;
+                case 'url':
+                  try {
+                    new URL(String(value));
+                    isValid = true;
+                  } catch {
+                    isValid = false;
+                  }
+                  break;
+                case 'number':
+                  isValid = !isNaN(Number(value));
+                  break;
+                case 'minLength':
+                  isValid = String(value).length >= Number(transformation.config.value);
+                  break;
+                case 'maxLength':
+                  isValid = String(value).length <= Number(transformation.config.value);
+                  break;
+                case 'pattern':
+                  const regex = new RegExp(transformation.config.value);
+                  isValid = regex.test(String(value));
+                  break;
+              }
+              
+              if (!isValid) {
+                // Add validation error to the field
+                outputData[`${transformation.config.field}_valid`] = false;
+                outputData[`${transformation.config.field}_error`] = `Validation failed for rule: ${transformation.config.rule}`;
+              } else {
+                outputData[`${transformation.config.field}_valid`] = true;
               }
             }
             break;

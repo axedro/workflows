@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -29,6 +30,10 @@ import NodePalette, { OnNodeDragStart } from './workflow-editor/panels/NodePalet
 import PropertyPanel from './workflow-editor/panels/PropertyPanel';
 import EnhancedControls from './workflow-editor/panels/EnhancedControls';
 import TestNode from './workflow-editor/nodes/TestNode';
+import { useWorkflowStore } from '../stores/workflowStore';
+import { Header } from './Header';
+import { useTranslation } from '../hooks/i18n';
+import { WorkflowExportModal } from './WorkflowExportModal';
 
 
 interface WorkflowEditorProps {
@@ -48,8 +53,12 @@ const EditorCanvas: React.FC<{
   setNodes: (nodes: Node[] | ((nodes: Node[]) => Node[])) => void;
   nodeTypes: NodeTypes;
   edgeTypes: EdgeTypes;
+  onSave: () => void;
+  onExport: () => void;
+  isSaving: boolean;
+  lastSaved: Date | null;
 }> = (props) => {
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onNodeClick, onEdgeClick, onPaneClick, setNodes, nodeTypes, edgeTypes } = props;
+  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onNodeClick, onEdgeClick, onPaneClick, setNodes, nodeTypes, edgeTypes, onSave, onExport, isSaving, lastSaved } = props;
   const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
   const { screenToFlowPosition } = useReactFlow();
 
@@ -113,24 +122,81 @@ const EditorCanvas: React.FC<{
       >
         <Background variant={BackgroundVariant.Dots} />
         <MiniMap className="bg-white border border-gray-200 rounded-md shadow-sm" />
-        <EnhancedControls />
+        <EnhancedControls
+          onSave={onSave}
+          onExport={onExport}
+          isSaving={isSaving}
+          lastSaved={lastSaved}
+        />
       </ReactFlow>
     </div>
   );
 };
 
 const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], initialEdges = [] }) => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { t } = useTranslation('workflows');
+  const { t: tCommon } = useTranslation('common');
+  const { currentWorkflow, fetchWorkflow, updateWorkflow } = useWorkflowStore();
+  
+  // Estados para campos editables
+  const [workflowName, setWorkflowName] = useState('');
+  const [workflowDescription, setWorkflowDescription] = useState('');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<any>(null);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // Función para volver al dashboard
+  const handleBackToDashboard = () => {
+    navigate('/dashboard');
+  };
+
+  // Función para guardar cambios en nombre y descripción
+  const handleSaveWorkflowInfo = async () => {
+    if (!id || id === 'new') return;
+
+    try {
+      await updateWorkflow(id, {
+        name: workflowName,
+        description: workflowDescription
+      });
+      setIsEditingName(false);
+      setIsEditingDescription(false);
+    } catch (error) {
+      console.error('Failed to save workflow info:', error);
+    }
+  };
+
+  // Función para cancelar edición
+  const handleCancelEdit = () => {
+    setWorkflowName(currentWorkflow?.name || '');
+    setWorkflowDescription(currentWorkflow?.description || '');
+    setIsEditingName(false);
+    setIsEditingDescription(false);
+  };
 
   const nodeTypes: NodeTypes = useMemo(() => ({
     [NodeType.START]: StartNode,
     [NodeType.END]: EndNode,
     [NodeType.ACTION]: ActionNode,
     [NodeType.CONDITION]: ConditionNode,
-    [NodeType.TEST]: TestNode, // <-- nuevo nodo
+    [NodeType.LOOP]: ActionNode,
+    [NodeType.HTTP_REQUEST]: ActionNode,
+    [NodeType.EMAIL]: ActionNode,
+    [NodeType.SLACK]: ActionNode,
+    [NodeType.DATA_TRANSFORM]: ActionNode,
+    [NodeType.TIMER]: ActionNode,
+    [NodeType.WEBHOOK]: ActionNode,
+    [NodeType.TEST]: TestNode,
   }), []);
 
   const edgeTypes: EdgeTypes = useMemo(() => ({
@@ -198,6 +264,71 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
     setSelectedEdge(null);
   }, []);
 
+  // Load workflow data
+  useEffect(() => {
+    if (id && id !== 'new') {
+      fetchWorkflow(id);
+    }
+  }, [id, fetchWorkflow]);
+
+  // Update local state when workflow is loaded
+  useEffect(() => {
+    if (currentWorkflow && currentWorkflow.definition) {
+      setNodes((currentWorkflow.definition.nodes || []) as Node<any, string | undefined>[]);
+      setEdges(currentWorkflow.definition.edges || []);
+    }
+  }, [currentWorkflow, setNodes, setEdges]);
+
+  // Update editable fields when workflow data changes
+  useEffect(() => {
+    if (currentWorkflow) {
+      setWorkflowName(currentWorkflow.name || '');
+      setWorkflowDescription(currentWorkflow.description || '');
+    }
+  }, [currentWorkflow]);
+
+  // Auto-save functionality
+  const saveWorkflow = useCallback(async () => {
+    if (!id || id === 'new') return;
+
+    setIsSaving(true);
+    try {
+      const definition = {
+        nodes,
+        edges,
+        metadata: currentWorkflow?.definition?.metadata || {
+                      author: t('default_author'),
+          tags: [],
+                      difficulty: t('difficulty.beginner')
+        }
+      };
+
+      await updateWorkflow(id, { definition });
+      setLastSaved(new Date());
+    } catch (error) {
+      console.error('Failed to save workflow:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [id, nodes, edges, currentWorkflow, updateWorkflow]);
+
+  // Auto-save on changes
+  useEffect(() => {
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    if (id && id !== 'new' && nodes.length > 0) {
+      autoSaveTimeoutRef.current = setTimeout(saveWorkflow, 2000); // Save after 2 seconds of inactivity
+    }
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [nodes, edges, id, saveWorkflow]);
+
   const onNodeUpdate = (updatedNode: Node) => {
     setNodes((nds) => nds.map((n) => (n.id === updatedNode.id ? updatedNode : n)));
   };
@@ -219,31 +350,182 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <NodePalette categories={nodeCategories} onNodeDragStart={onNodeDragStart} />
-      <ReactFlowProvider>
-        <EditorCanvas
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onNodeClick={onNodeClick}
-          onEdgeClick={onEdgeClick}
-          onPaneClick={onPaneClick}
-          setNodes={setNodes}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header />
+      
+      {/* Workflow Header */}
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            {/* Back Button */}
+            <button
+              onClick={handleBackToDashboard}
+              className="flex items-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              {t('back_to_dashboard') || 'Volver al Dashboard'}
+            </button>
+
+            {/* Workflow Info */}
+            <div className="flex-1 mx-8">
+              <div className="flex items-center space-x-4">
+                {/* Workflow Name */}
+                <div className="flex-1">
+                  {isEditingName ? (
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="text"
+                        value={workflowName}
+                        onChange={(e) => setWorkflowName(e.target.value)}
+                        className="text-2xl font-bold text-gray-900 dark:text-white bg-transparent border-b border-gray-300 focus:border-blue-500 focus:outline-none"
+                        autoFocus
+                      />
+                      <button
+                        onClick={handleSaveWorkflowInfo}
+                        className="text-green-600 hover:text-green-700"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        {workflowName || t('untitled_workflow') || 'Workflow sin título'}
+                      </h1>
+                      <button
+                        onClick={() => setIsEditingName(true)}
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Workflow Description */}
+              <div className="mt-2">
+                {isEditingDescription ? (
+                  <div className="flex items-start space-x-2">
+                    <textarea
+                      value={workflowDescription}
+                      onChange={(e) => setWorkflowDescription(e.target.value)}
+                      className="flex-1 text-gray-600 dark:text-gray-400 bg-transparent border-b border-gray-300 focus:border-blue-500 focus:outline-none resize-none"
+                      rows={2}
+                      placeholder={t('workflow_description_placeholder') || 'Describe el propósito de este workflow...'}
+                      autoFocus
+                    />
+                    <div className="flex space-x-1">
+                      <button
+                        onClick={handleSaveWorkflowInfo}
+                        className="text-green-600 hover:text-green-700"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start space-x-2">
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {workflowDescription || t('no_description') || 'Sin descripción'}
+                    </p>
+                    <button
+                      onClick={() => setIsEditingDescription(true)}
+                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Save Status */}
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {isSaving ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {tCommon('saving') || 'Guardando...'}
+                </span>
+              ) : lastSaved ? (
+                <span>{t('last_saved') || 'Último guardado'}: {lastSaved.toLocaleTimeString()}</span>
+              ) : (
+                                  <span>{t('not_saved') || 'No guardado'}</span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Editor Content */}
+      <div className="flex h-[calc(100vh-120px)] bg-gray-100">
+        <NodePalette categories={nodeCategories} onNodeDragStart={onNodeDragStart} />
+        <ReactFlowProvider>
+          <EditorCanvas
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onNodeClick={onNodeClick}
+            onEdgeClick={onEdgeClick}
+            onPaneClick={onPaneClick}
+            setNodes={setNodes}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            onSave={saveWorkflow}
+            onExport={() => setShowExportModal(true)}
+            isSaving={isSaving}
+            lastSaved={lastSaved}
+          />
+        </ReactFlowProvider>
+        <PropertyPanel 
+          selectedNode={selectedNode as EditorNode | null} 
+          selectedEdge={selectedEdge as EditorEdge | null}
+          nodes={nodes as EditorNode[]}
+          edges={edges as EditorEdge[]}
+          onNodeUpdate={onNodeUpdate as any} 
+          onEdgeUpdate={onEdgeUpdate as any}
         />
-      </ReactFlowProvider>
-      <PropertyPanel 
-        selectedNode={selectedNode as EditorNode | null} 
-        selectedEdge={selectedEdge as EditorEdge | null}
-        nodes={nodes as EditorNode[]}
-        edges={edges as EditorEdge[]}
-        onNodeUpdate={onNodeUpdate as any} 
-        onEdgeUpdate={onEdgeUpdate as any}
-      />
+      </div>
+
+      {/* Export Modal */}
+      {id && id !== 'new' && (
+        <WorkflowExportModal
+          isOpen={showExportModal}
+          onClose={() => setShowExportModal(false)}
+          workflowId={id}
+        />
+      )}
     </div>
   );
 };

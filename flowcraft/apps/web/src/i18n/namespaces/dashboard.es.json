@@ -1,0 +1,21 @@
+{
+  "title": "Dashboard",
+  "welcome": "Bienvenido a FlowCraft",
+  "stats.workflows": "Workflows",
+  "stats.executions": "Ejecuciones",
+  "stats.connectors": "Conectores",
+  "quick_actions.title": "Acciones Rápidas",
+  "quick_actions.create_workflow": "Crear Workflow",
+  "quick_actions.create_workflow_desc": "Crear un nuevo workflow desde cero",
+  "quick_actions.import_workflow": "Importar Workflow",
+  "quick_actions.import_workflow_desc": "Importar workflow desde archivo JSON",
+  "quick_actions.manage_connectors": "Gestionar Conectores",
+  "quick_actions.manage_connectors_desc": "Configurar conectores y APIs",
+  "quick_actions.view_analytics": "Ver Analytics",
+  "quick_actions.view_analytics_desc": "Analizar rendimiento de workflows",
+  "recent_workflows.title": "Workflows Recientes",
+  "recent_workflows.view_all": "Ver Todos",
+  "recent_workflows.no_description": "Sin descripción",
+  "recent_workflows.empty": "No hay workflows creados",
+  "recent_workflows.create_first": "Crear Primer Workflow"
+} 

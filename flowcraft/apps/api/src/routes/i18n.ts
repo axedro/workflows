@@ -12,6 +12,12 @@ interface UpsertTranslationBody {
   approved?: boolean;
 }
 
+interface BulkLoadTranslationsBody {
+  namespace: string;
+  language: string;
+  translations: Record<string, string>;
+}
+
 export async function i18nRoutes(fastify: FastifyInstance) {
   // Get all active languages
   fastify.get(
@@ -401,6 +407,75 @@ export async function i18nRoutes(fastify: FastifyInstance) {
         return reply.status(500).send({
           error: 'Internal Server Error',
           message: 'Failed to invalidate cache',
+        });
+      }
+    }
+  );
+
+  // Bulk load translations (admin only)
+  fastify.post(
+    '/translations',
+    {
+      schema: {
+        description: 'Bulk load translations for a namespace and language',
+        tags: ['i18n'],
+        body: {
+          type: 'object',
+          required: ['namespace', 'language', 'translations'],
+          properties: {
+            namespace: { type: 'string' },
+            language: { type: 'string' },
+            translations: {
+              type: 'object',
+              additionalProperties: { type: 'string' },
+            },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              message: { type: 'string' },
+              count: { type: 'number' },
+            },
+          },
+          400: {
+            type: 'object',
+            properties: {
+              error: { type: 'string' },
+              message: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+    async (
+      request: FastifyRequest<{
+        Body: BulkLoadTranslationsBody;
+      }>,
+      reply: FastifyReply
+    ) => {
+      try {
+        const { namespace, language, translations } = request.body;
+
+        // Load translations into the database
+        const count = await i18nService.bulkLoadTranslations(
+          namespace,
+          language,
+          translations
+        );
+
+        return {
+          success: true,
+          message: 'Translations loaded successfully',
+          count,
+        };
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.status(500).send({
+          error: 'Internal Server Error',
+          message: 'Failed to load translations',
         });
       }
     }

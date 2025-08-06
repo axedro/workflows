@@ -24,7 +24,7 @@ if (!i18n.isInitialized) {
       // Backend configuration
       backend: {
         // Load from our API endpoints
-        loadPath: `${API_BASE_URL}/i18n/translations/{{lng}}/{{ns}}`,
+        loadPath: `${API_BASE_URL}/i18n/translations/{{lng}}?namespace={{ns}}`,
 
         // Request options
         requestOptions: {
@@ -61,15 +61,15 @@ if (!i18n.isInitialized) {
             const translations = data.translations || {};
             const transformedTranslations: Record<string, string> = {};
 
-            // Extract namespace from URL (e.g., /es/common -> common)
-            const urlParts = url.split('/');
-            const namespace = urlParts[urlParts.length - 1];
+            // Extract namespace from URL query parameter
+            const urlObj = new URL(url);
+            const namespace = urlObj.searchParams.get('namespace') || '';
 
-            // Transform keys: "common.sign_in" -> "sign_in" for namespace "common"
+            // Transform keys: "auth.login.title" -> "login.title" for namespace "auth"
             Object.entries(translations).forEach(([key, value]) => {
               if (typeof key === 'string' && typeof value === 'string') {
                 if (key.startsWith(`${namespace}.`)) {
-                  // Remove namespace prefix: "common.sign_in" -> "sign_in"
+                  // Remove namespace prefix: "auth.login.title" -> "login.title"
                   const keyWithoutNamespace = key.substring(
                     namespace.length + 1
                   );
@@ -122,7 +122,7 @@ if (!i18n.isInitialized) {
       },
 
       // Namespace settings
-      ns: ['common', 'auth', 'dashboard', 'landing'], // Default namespaces
+      ns: ['common', 'auth', 'dashboard', 'workflows', 'landing'], // Default namespaces
       defaultNS: 'common', // Default namespace
 
       // Interpolation settings

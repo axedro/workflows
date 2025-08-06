@@ -296,6 +296,79 @@ export class I18nService {
     // Invalidate cache
     await this.invalidateCache(languageCode);
   }
+
+  /**
+   * Bulk load translations for a namespace and language
+   */
+  async bulkLoadTranslations(
+    namespace: string,
+    languageCode: string,
+    translations: Record<string, string>
+  ): Promise<number> {
+    // Find language
+    const language = await prisma.language.findUnique({
+      where: { code: languageCode },
+    });
+
+    if (!language) {
+      throw new Error(`Language ${languageCode} not found`);
+    }
+
+    let count = 0;
+
+    // Process each translation
+    for (const [key, value] of Object.entries(translations)) {
+      try {
+        // Find or create translation key
+        let translationKey = await prisma.translationKey.findUnique({
+          where: { key },
+        });
+
+        if (!translationKey) {
+          translationKey = await prisma.translationKey.create({
+            data: {
+              key,
+              namespace,
+              category: 'auto-generated',
+              description: `Auto-generated key for ${key}`,
+            },
+          });
+        }
+
+        // Upsert translation
+        await prisma.translation.upsert({
+          where: {
+            languageId_keyId: {
+              languageId: language.id,
+              keyId: translationKey.id,
+            },
+          },
+          update: {
+            value,
+            isApproved: true,
+            approvedAt: new Date(),
+          },
+          create: {
+            languageId: language.id,
+            keyId: translationKey.id,
+            value,
+            isApproved: true,
+            approvedAt: new Date(),
+          },
+        });
+
+        count++;
+      } catch (error) {
+        console.error(`Error processing translation key ${key}:`, error);
+        // Continue with other translations
+      }
+    }
+
+    // Invalidate cache for this namespace and language
+    await this.invalidateCache(languageCode, namespace);
+
+    return count;
+  }
 }
 
 // Export singleton instance

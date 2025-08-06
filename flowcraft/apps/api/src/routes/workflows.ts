@@ -7,6 +7,7 @@ import {
   createVersionSchema,
 } from '../services/workflow.service.js';
 import { WorkflowValidationService } from '../services/workflowValidation.service.js';
+import { authenticate } from '../middleware/auth.middleware.js';
 
 const workflowService = new WorkflowService();
 const validationService = new WorkflowValidationService();
@@ -39,6 +40,7 @@ export async function workflowRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/',
     {
+      preValidation: [authenticate],
       schema: {
         description: 'Create a new workflow',
         tags: ['workflows'],
@@ -131,6 +133,7 @@ export async function workflowRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/',
     {
+      preValidation: [authenticate],
       schema: {
         description: 'List workflows with pagination and filters',
         tags: ['workflows'],
@@ -207,6 +210,7 @@ export async function workflowRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/:id',
     {
+      preValidation: [authenticate],
       schema: {
         description: 'Get workflow by ID with versions',
         tags: ['workflows'],
@@ -290,6 +294,7 @@ export async function workflowRoutes(fastify: FastifyInstance) {
   fastify.put(
     '/:id',
     {
+      preValidation: [authenticate],
       schema: {
         description: 'Update workflow',
         tags: ['workflows'],
@@ -403,6 +408,7 @@ export async function workflowRoutes(fastify: FastifyInstance) {
   fastify.delete(
     '/:id',
     {
+      preValidation: [authenticate],
       schema: {
         description: 'Delete workflow',
         tags: ['workflows'],

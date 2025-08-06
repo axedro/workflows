@@ -11,6 +11,7 @@ const LandingPage = React.lazy(() =>
   }))
 );
 const Dashboard = React.lazy(() => import('./components/Dashboard'));
+const WorkflowsPage = React.lazy(() => import('./components/WorkflowsPage'));
 const WorkflowEditor = React.lazy(() => import('./components/WorkflowEditor'));
 const Auth = React.lazy(() => import('./components/Auth'));
 const UserProfile = React.lazy(() =>
@@ -41,6 +42,14 @@ function App() {
             element={
               <ProtectedRoute fallback={<Navigate to="/auth" replace />}>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/workflows"
+            element={
+              <ProtectedRoute fallback={<Navigate to="/auth" replace />}>
+                <WorkflowsPage />
               </ProtectedRoute>
             }
           />

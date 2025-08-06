@@ -38,60 +38,130 @@ interface ActionNodeData extends BaseNodeData {
   };
 }
 
-const ActionNode: React.FC<NodeProps<ActionNodeData>> = ({ data, selected }) => {
+const ActionNode: React.FC<NodeProps<ActionNodeData>> = ({ data, selected, type }) => {
   const isValid = data.validation?.isValid ?? true;
-  const defaultPorts = getNodePorts(NodeType.ACTION);
+  
+  // Usar los puertos que se pasan en data, o obtenerlos del tipo de nodo como fallback
+  const nodeType = type as NodeType;
+  const inputPorts = data.inputPorts || getNodePorts(nodeType)?.filter(port => port.type === 'input') || [];
+  const outputPorts = data.outputPorts || getNodePorts(nodeType)?.filter(port => port.type === 'output') || [];
+  const defaultPorts = [...inputPorts, ...outputPorts];
+
+  // Debug logs
+  console.log('ActionNode - nodeType:', nodeType);
+  console.log('ActionNode - data.inputPorts:', data.inputPorts);
+  console.log('ActionNode - data.outputPorts:', data.outputPorts);
+  console.log('ActionNode - inputPorts:', inputPorts);
+  console.log('ActionNode - outputPorts:', outputPorts);
+  console.log('ActionNode - defaultPorts:', defaultPorts);
 
   
   // Configuración específica por tipo de acción
   const getActionIcon = () => {
-    switch (data.actionType) {
-      case 'http':
+    // Primero verificar el tipo de nodo real
+    switch (nodeType) {
+      case NodeType.HTTP_REQUEST:
         return '🌐';
-      case 'email':
+      case NodeType.EMAIL:
         return '📧';
-      case 'slack':
+      case NodeType.SLACK:
         return '💬';
-      case 'transform':
+      case NodeType.DATA_TRANSFORM:
         return '🔄';
-      case 'custom':
-        return '⚙️';
+      case NodeType.TIMER:
+        return '⏰';
+      case NodeType.WEBHOOK:
+        return '🔗';
+      case NodeType.LOOP:
+        return '🔄';
       default:
-        return '⚙️';
+        // Fallback a actionType si es un ACTION genérico
+        switch (data.actionType) {
+          case 'http':
+            return '🌐';
+          case 'email':
+            return '📧';
+          case 'slack':
+            return '💬';
+          case 'transform':
+            return '🔄';
+          case 'custom':
+            return '⚙️';
+          default:
+            return '⚙️';
+        }
     }
   };
 
   const getActionColor = () => {
-    switch (data.actionType) {
-      case 'http':
+    // Primero verificar el tipo de nodo real
+    switch (nodeType) {
+      case NodeType.HTTP_REQUEST:
         return 'from-blue-400 to-blue-600';
-      case 'email':
+      case NodeType.EMAIL:
         return 'from-green-400 to-green-600';
-      case 'slack':
+      case NodeType.SLACK:
         return 'from-purple-400 to-purple-600';
-      case 'transform':
+      case NodeType.DATA_TRANSFORM:
         return 'from-orange-400 to-orange-600';
-      case 'custom':
-        return 'from-gray-400 to-gray-600';
+      case NodeType.TIMER:
+        return 'from-yellow-400 to-yellow-600';
+      case NodeType.WEBHOOK:
+        return 'from-indigo-400 to-indigo-600';
+      case NodeType.LOOP:
+        return 'from-pink-400 to-pink-600';
       default:
-        return 'from-blue-400 to-blue-600';
+        // Fallback a actionType si es un ACTION genérico
+        switch (data.actionType) {
+          case 'http':
+            return 'from-blue-400 to-blue-600';
+          case 'email':
+            return 'from-green-400 to-green-600';
+          case 'slack':
+            return 'from-purple-400 to-purple-600';
+          case 'transform':
+            return 'from-orange-400 to-orange-600';
+          case 'custom':
+            return 'from-gray-400 to-gray-600';
+          default:
+            return 'from-blue-400 to-blue-600';
+        }
     }
   };
 
   const getActionLabel = () => {
-    switch (data.actionType) {
-      case 'http':
+    // Primero verificar el tipo de nodo real
+    switch (nodeType) {
+      case NodeType.HTTP_REQUEST:
         return 'HTTP Request';
-      case 'email':
+      case NodeType.EMAIL:
         return 'Send Email';
-      case 'slack':
+      case NodeType.SLACK:
         return 'Slack Message';
-      case 'transform':
+      case NodeType.DATA_TRANSFORM:
         return 'Transform Data';
-      case 'custom':
-        return 'Custom Action';
+      case NodeType.TIMER:
+        return 'Timer';
+      case NodeType.WEBHOOK:
+        return 'Webhook';
+      case NodeType.LOOP:
+        return 'Loop';
       default:
-        return data.label || 'Action';
+        // Fallback a actionType si es un ACTION genérico
+        switch (data.actionType) {
+          case 'http':
+            return 'HTTP Request';
+          case 'email':
+            return 'Send Email';
+          case 'slack':
+            return 'Slack Message';
+          case 'transform':
+            return 'Transform Data';
+          case 'custom':
+            return 'Custom Action';
+          default:
+            return data.label || 'Action';
+        }
     }
   };
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NodeType, NodeCategory } from '@flowcraft/shared-types';
-import { Tooltip } from '@flowcraft/ui';
 import { getNodeInfo } from '../utils';
+import { useTranslation } from '../../../hooks/i18n';
 
 export type OnNodeDragStart = (event: React.DragEvent, nodeType: NodeType) => void;
 
@@ -28,6 +28,7 @@ const getNodeColor = (nodeType: NodeType) => {
 };
 
 const NodePalette: React.FC<NodePaletteProps> = ({ categories, onNodeDragStart }) => {
+  const { t } = useTranslation('common');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [draggedNode, setDraggedNode] = useState<NodeType | null>(null);
@@ -48,7 +49,7 @@ const NodePalette: React.FC<NodePaletteProps> = ({ categories, onNodeDragStart }
         <h2 className="text-lg font-semibold mb-3">Node Library</h2>
         <input
           type="text"
-          placeholder="Search nodes..."
+          placeholder={t('search')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full px-3 py-2 border rounded text-sm"
@@ -58,7 +59,7 @@ const NodePalette: React.FC<NodePaletteProps> = ({ categories, onNodeDragStart }
               onClick={() => setSelectedCategory(null)}
               className={`px-2 py-1 text-xs rounded ${selectedCategory === null ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
             >
-              All
+              {t('all')}
             </button>
           {categories.map(cat => (
             <button 
@@ -85,33 +86,33 @@ const NodePalette: React.FC<NodePaletteProps> = ({ categories, onNodeDragStart }
                 const nodeInfo = getNodeInfo(nodeType);
                 const isDragging = draggedNode === nodeType;
                 return (
-                  <Tooltip key={nodeType} content={nodeInfo.description} position="right">
-                    <div
-                      draggable
-                      onDragStart={(e) => {
-                        setDraggedNode(nodeType);
-                        onNodeDragStart(e, nodeType);
-                      }}
-                      onDragEnd={handleDragEnd}
-                      className={`flex items-center p-2 rounded-md cursor-move transition-all ${isDragging ? 'opacity-50 scale-95 shadow-lg' : 'hover:bg-gray-100'}`}
-                    >
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center mr-3" style={{ backgroundColor: getNodeColor(nodeType) + '20' }}>
-                        <span className="text-sm" style={{ color: getNodeColor(nodeType) }}>{nodeInfo.icon || 'N'}</span>
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-sm">{nodeInfo.name}</div>
-                        <div className="text-xs text-gray-500">{nodeInfo.description}</div>
-                      </div>
-                      <div className="text-gray-400">⋮⋮</div>
+                  <div
+                    key={nodeType}
+                    draggable
+                    onDragStart={(e) => {
+                      setDraggedNode(nodeType);
+                      onNodeDragStart(e, nodeType);
+                    }}
+                    onDragEnd={handleDragEnd}
+                    className={`flex items-center p-2 rounded-md cursor-move transition-all ${isDragging ? 'opacity-50 scale-95 shadow-lg' : 'hover:bg-gray-100'}`}
+                    title={nodeInfo.description}
+                  >
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center mr-3" style={{ backgroundColor: getNodeColor(nodeType) + '20' }}>
+                      <span className="text-sm" style={{ color: getNodeColor(nodeType) }}>{nodeInfo.icon || 'N'}</span>
                     </div>
-                  </Tooltip>
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">{nodeInfo.name}</div>
+                      <div className="text-xs text-gray-500">{nodeInfo.description}</div>
+                    </div>
+                    <div className="text-gray-400">⋮⋮</div>
+                  </div>
                 );
               })}
             </div>
           </div>
         ))}
         {filteredCategories.length === 0 && (
-            <div className="text-center py-8 text-gray-500">No nodes found.</div>
+            <div className="text-center py-8 text-gray-500">{t('no_nodes_found')}</div>
         )}
       </div>
     </div>

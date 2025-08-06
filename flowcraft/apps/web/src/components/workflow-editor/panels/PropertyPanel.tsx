@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { EditorNode, NodeType, EditorEdge, DataFlow, DataType, DataField, getNodeInputSchema, getNodeOutputSchema } from '@flowcraft/shared-types';
 import { Tooltip } from '@flowcraft/ui';
-import { validateNode } from '../../../services/workflowValidation.service';
+
+import ConnectorValidationService from '../../../services/connectorValidation.service';
 import ConditionEditor from './ConditionEditor';
 import DataConfigPanel from './DataConfigPanel';
 
@@ -28,6 +29,8 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
   const [localEdge, setLocalEdge] = useState<EditorEdge | null>(selectedEdge);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
+  const [validationWarnings, setValidationWarnings] = useState<Record<string, string[]>>({});
 
   // Función para generar campos anidados para objetos JSON
   const generateNestedFields = (fields: Record<string, DataField>): Record<string, DataField> => {
@@ -85,12 +88,143 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
     return nestedFields;
   };
 
+  // Función para validar campos en tiempo real
+  const validateField = (fieldName: string, value: any, nodeType: NodeType) => {
+    if (!nodeType) return;
+
+    try {
+      const validationConfig = {
+        connectorType: nodeType,
+        fields: { [fieldName]: value },
+        schema: {} // Por ahora usamos un schema vacío, podríamos obtenerlo del nodo
+      };
+
+      const result = ConnectorValidationService.validateConnector(validationConfig);
+      
+      // Filtrar errores y warnings para el campo específico
+      const fieldErrors = result.errors.filter(error => 
+        error.toLowerCase().includes(fieldName.toLowerCase()) ||
+        error.toLowerCase().includes('url') && fieldName === 'url'
+      );
+      const fieldWarnings = result.warnings.filter(warning => 
+        warning.toLowerCase().includes(fieldName.toLowerCase())
+      );
+
+      setValidationErrors(prev => ({
+        ...prev,
+        [fieldName]: fieldErrors
+      }));
+      
+      setValidationWarnings(prev => ({
+        ...prev,
+        [fieldName]: fieldWarnings
+      }));
+
+    } catch (error) {
+      console.error('Validation error:', error);
+    }
+  };
+
+  // Función helper para renderizar campos con validación
+  const renderFieldWithValidation = (
+    fieldName: string,
+    value: any,
+    onChange: (value: any) => void,
+    type: 'text' | 'url' | 'number' | 'textarea' | 'select',
+    placeholder?: string,
+    options?: { value: string; label: string }[],
+    rows?: number
+  ) => {
+    const errors = validationErrors[fieldName] || [];
+    const warnings = validationWarnings[fieldName] || [];
+    const hasError = errors.length > 0;
+    const hasWarning = warnings.length > 0;
+
+    const getInputClassName = () => {
+      let baseClass = "w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:border-transparent disabled:bg-gray-100";
+      
+      if (hasError) {
+        baseClass += " border-red-300 focus:ring-red-500";
+      } else if (hasWarning) {
+        baseClass += " border-yellow-300 focus:ring-yellow-500";
+      } else {
+        baseClass += " border-gray-300 focus:ring-blue-500";
+      }
+      
+      return baseClass;
+    };
+
+    return (
+      <div className="space-y-1">
+        {type === 'select' ? (
+          <select
+            value={value || ''}
+            onChange={e => onChange(e.target.value)}
+            disabled={readOnly}
+            className={getInputClassName()}
+          >
+            {options?.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        ) : type === 'textarea' ? (
+          <textarea
+            value={value || ''}
+            onChange={e => onChange(e.target.value)}
+            placeholder={placeholder}
+            rows={rows || 3}
+            disabled={readOnly}
+            className={getInputClassName()}
+          />
+        ) : (
+          <input
+            type={type}
+            value={value || ''}
+            onChange={e => onChange(e.target.value)}
+            placeholder={placeholder}
+            disabled={readOnly}
+            className={getInputClassName()}
+          />
+        )}
+        
+        {/* Mostrar errores */}
+        {hasError && (
+          <div className="text-red-600 text-xs">
+            {errors.map((error, index) => (
+              <div key={index} className="flex items-center">
+                <span className="mr-1">⚠️</span>
+                {error}
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {/* Mostrar warnings */}
+        {hasWarning && !hasError && (
+          <div className="text-yellow-600 text-xs">
+            {warnings.map((warning, index) => (
+              <div key={index} className="flex items-center">
+                <span className="mr-1">⚠️</span>
+                {warning}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Update local state when selected node or edge changes
   useEffect(() => {
     setLocalNode(selectedNode);
     setLocalEdge(selectedEdge);
     setHasUnsavedChanges(false);
     setSaveStatus('idle');
+    // Limpiar validaciones al cambiar de nodo
+    setValidationErrors({});
+    setValidationWarnings({});
   }, [selectedNode, selectedEdge]);
 
   // If an edge is selected, show the data configuration panel
@@ -173,31 +307,22 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
   }
 
   const handleInputChange = (field: string, value: any) => {
-    if (readOnly || !localNode) return;
+    if (!localNode) return;
 
-    const updatedNodeData = {
-      ...localNode.data,
-      [field]: value,
-    };
-
-    const updatedNode: EditorNode = {
+    const updatedNode = {
       ...localNode,
-      data: updatedNodeData,
+      data: {
+        ...localNode.data,
+        [field]: value
+      }
     };
-
-    // Run validation on the updated node data
-    const validation = validateNode(updatedNode);
-    updatedNode.data.validation = validation;
 
     setLocalNode(updatedNode);
     setHasUnsavedChanges(true);
     setSaveStatus('idle');
-    
-    // Auto-save after a short delay
-    setTimeout(() => {
-      onNodeUpdate(updatedNode);
-      setHasUnsavedChanges(false);
-    }, 500);
+
+    // Validar el campo en tiempo real
+    validateField(field, value, localNode.type);
   };
 
   const handleSave = async () => {
@@ -468,6 +593,354 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 <option value="partial">Partial Success</option>
                 <option value="custom">Custom</option>
               </select>
+            </div>
+          </div>
+        );
+
+      case NodeType.HTTP_REQUEST:
+        const httpData = localNode.data as any; // Cast to any for now
+        return (
+          <div className="space-y-3">
+            <div>
+              <Tooltip
+                content="HTTP method for the request"
+                position="right"
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Method
+                </label>
+              </Tooltip>
+              {renderFieldWithValidation(
+                'method',
+                httpData.method || 'GET',
+                (value) => handleInputChange('method', value),
+                'select',
+                undefined,
+                [
+                  { value: 'GET', label: 'GET' },
+                  { value: 'POST', label: 'POST' },
+                  { value: 'PUT', label: 'PUT' },
+                  { value: 'DELETE', label: 'DELETE' },
+                  { value: 'PATCH', label: 'PATCH' }
+                ]
+              )}
+            </div>
+
+            <div>
+              <Tooltip
+                content="URL endpoint for the HTTP request"
+                position="right"
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  URL
+                </label>
+              </Tooltip>
+              {renderFieldWithValidation(
+                'url',
+                httpData.url || '',
+                (value) => handleInputChange('url', value),
+                'url',
+                'https://api.example.com/endpoint'
+              )}
+            </div>
+
+            <div>
+              <Tooltip
+                content="HTTP headers for the request (JSON format)"
+                position="right"
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Headers
+                </label>
+              </Tooltip>
+              <textarea
+                value={httpData.headers ? JSON.stringify(httpData.headers, null, 2) : '{\n  "Content-Type": "application/json"\n}'}
+                onChange={e => {
+                  try {
+                    const headers = JSON.parse(e.target.value);
+                    handleInputChange('headers', headers);
+                  } catch (error) {
+                    // Keep the raw text if it's not valid JSON
+                    handleInputChange('headers', e.target.value);
+                  }
+                }}
+                placeholder='{\n  "Content-Type": "application/json",\n  "Authorization": "Bearer token"\n}'
+                rows={4}
+                disabled={readOnly}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+              />
+            </div>
+
+            <div>
+              <Tooltip
+                content="Request body for POST/PUT/PATCH requests (JSON format)"
+                position="right"
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Body
+                </label>
+              </Tooltip>
+              <textarea
+                value={httpData.body ? JSON.stringify(httpData.body, null, 2) : ''}
+                onChange={e => {
+                  try {
+                    const body = JSON.parse(e.target.value);
+                    handleInputChange('body', body);
+                  } catch (error) {
+                    // Keep the raw text if it's not valid JSON
+                    handleInputChange('body', e.target.value);
+                  }
+                }}
+                placeholder='{\n  "key": "value",\n  "data": "example"\n}'
+                rows={4}
+                disabled={readOnly}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+              />
+            </div>
+
+            <div>
+              <Tooltip
+                content="Maximum number of retry attempts if the request fails"
+                position="right"
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Max Retries
+                </label>
+              </Tooltip>
+              {renderFieldWithValidation(
+                'maxRetries',
+                httpData.maxRetries || 3,
+                (value) => handleInputChange('maxRetries', parseInt(value)),
+                'number',
+                undefined,
+                undefined
+              )}
+            </div>
+
+            <div>
+              <Tooltip
+                content="Timeout for the request in milliseconds"
+                position="right"
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Timeout (ms)
+                </label>
+              </Tooltip>
+              {renderFieldWithValidation(
+                'timeout',
+                httpData.timeout || 30000,
+                (value) => handleInputChange('timeout', parseInt(value)),
+                'number',
+                undefined,
+                undefined
+              )}
+            </div>
+          </div>
+        );
+
+      case NodeType.EMAIL:
+        const emailData = localNode.data as any; // Cast to any for now
+        return (
+          <div className="space-y-3">
+            <div>
+              <Tooltip
+                content="Email addresses to send the message to"
+                position="right"
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  To
+                </label>
+              </Tooltip>
+              <textarea
+                value={emailData.to ? JSON.stringify(emailData.to, null, 2) : ''}
+                onChange={e => {
+                  try {
+                    const to = JSON.parse(e.target.value);
+                    handleInputChange('to', to);
+                  } catch (error) {
+                    // Keep the raw text if it's not valid JSON
+                    handleInputChange('to', e.target.value);
+                  }
+                }}
+                placeholder='[\n  "recipient@example.com",\n  "another@example.com"\n]'
+                rows={3}
+                disabled={readOnly}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+              />
+            </div>
+
+            <div>
+              <Tooltip
+                content="Email addresses to CC"
+                position="right"
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  CC
+                </label>
+              </Tooltip>
+              <textarea
+                value={emailData.cc ? JSON.stringify(emailData.cc, null, 2) : ''}
+                onChange={e => {
+                  try {
+                    const cc = JSON.parse(e.target.value);
+                    handleInputChange('cc', cc);
+                  } catch (error) {
+                    handleInputChange('cc', e.target.value);
+                  }
+                }}
+                placeholder='[\n  "cc@example.com"\n]'
+                rows={2}
+                disabled={readOnly}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+              />
+            </div>
+
+            <div>
+              <Tooltip
+                content="Subject line of the email"
+                position="right"
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Subject
+                </label>
+              </Tooltip>
+              <input
+                type="text"
+                value={emailData.subject || ''}
+                onChange={e => handleInputChange('subject', e.target.value)}
+                placeholder="Email subject"
+                disabled={readOnly}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+              />
+            </div>
+
+            <div>
+              <Tooltip
+                content="Email body content"
+                position="right"
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Body
+                </label>
+              </Tooltip>
+              <textarea
+                value={emailData.emailBody || ''}
+                onChange={e => handleInputChange('emailBody', e.target.value)}
+                placeholder="Email body content..."
+                rows={6}
+                disabled={readOnly}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+              />
+            </div>
+
+            <div>
+              <Tooltip
+                content="Maximum number of retry attempts if sending fails"
+                position="right"
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Max Retries
+                </label>
+              </Tooltip>
+              <input
+                type="number"
+                value={emailData.maxRetries || 3}
+                onChange={e => handleInputChange('maxRetries', parseInt(e.target.value))}
+                min="0"
+                max="10"
+                disabled={readOnly}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+              />
+            </div>
+          </div>
+        );
+
+      case NodeType.SLACK:
+        const slackData = localNode.data as any; // Cast to any for now
+        return (
+          <div className="space-y-3">
+            <div>
+              <Tooltip
+                content="Slack channel to send the message to"
+                position="right"
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Channel
+                </label>
+              </Tooltip>
+              <input
+                type="text"
+                value={slackData.channel || ''}
+                onChange={e => handleInputChange('channel', e.target.value)}
+                placeholder="#general"
+                disabled={readOnly}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+              />
+            </div>
+
+            <div>
+              <Tooltip
+                content="Slack message content"
+                position="right"
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Message
+                </label>
+              </Tooltip>
+              <textarea
+                value={slackData.message || ''}
+                onChange={e => handleInputChange('message', e.target.value)}
+                placeholder="Your Slack message here..."
+                rows={4}
+                disabled={readOnly}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+              />
+            </div>
+
+            <div>
+              <Tooltip
+                content="Slack message attachments (JSON format)"
+                position="right"
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Attachments
+                </label>
+              </Tooltip>
+              <textarea
+                value={slackData.attachments ? JSON.stringify(slackData.attachments, null, 2) : ''}
+                onChange={e => {
+                  try {
+                    const attachments = JSON.parse(e.target.value);
+                    handleInputChange('attachments', attachments);
+                  } catch (error) {
+                    handleInputChange('attachments', e.target.value);
+                  }
+                }}
+                placeholder='[\n  {\n    "title": "Attachment Title",\n    "text": "Attachment text",\n    "color": "good"\n  }\n]'
+                rows={4}
+                disabled={readOnly}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+              />
+            </div>
+
+            <div>
+              <Tooltip
+                content="Maximum number of retry attempts if sending fails"
+                position="right"
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Max Retries
+                </label>
+              </Tooltip>
+              <input
+                type="number"
+                value={slackData.maxRetries || 3}
+                onChange={e => handleInputChange('maxRetries', parseInt(e.target.value))}
+                min="0"
+                max="10"
+                disabled={readOnly}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+              />
             </div>
           </div>
         );
