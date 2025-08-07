@@ -27,7 +27,14 @@
 - Biblioteca de nodos básica
 - Gestión de estado del editor
 
-**Estado:** 65% COMPLETADO - En progreso
+**Estado:** 90% COMPLETADO - Funcionalidad principal implementada
+
+**Últimas actualizaciones:**
+- ✅ Workflow persistence arreglado - nodes ahora se guardan y cargan correctamente
+- ✅ Schema validation mejorado en API con `additionalProperties: true`
+- ✅ Auto-save funcionando correctamente
+- ✅ Debugging logs removidos del código de producción
+- ✅ Validación de workflow re-habilitada
 
 ---
 

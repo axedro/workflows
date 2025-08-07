@@ -104,6 +104,7 @@ export const useWorkflowStore = create<WorkflowState>(set => ({
       const workflow = await apiService.getWorkflow(id);
       set({ currentWorkflow: workflow, isLoading: false });
     } catch (error) {
+      console.error('Error fetching workflow:', error);
       set({
         error:
           error instanceof Error ? error.message : 'Failed to fetch workflow',

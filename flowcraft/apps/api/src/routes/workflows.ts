@@ -61,7 +61,10 @@ export async function workflowRoutes(fastify: FastifyInstance) {
               id: { type: 'string' },
               name: { type: 'string' },
               description: { type: 'string' },
-              definition: { type: 'object' },
+              definition: { 
+                type: 'object',
+                additionalProperties: true  // Allow any properties in definition
+              },
               status: { type: 'string' },
               version: { type: 'number' },
               createdAt: { type: 'string' },
@@ -228,7 +231,10 @@ export async function workflowRoutes(fastify: FastifyInstance) {
               id: { type: 'string' },
               name: { type: 'string' },
               description: { type: 'string' },
-              definition: { type: 'object' },
+              definition: { 
+                type: 'object',
+                additionalProperties: true  // Allow any properties in definition
+              },
               status: { type: 'string' },
               version: { type: 'number' },
               createdAt: { type: 'string' },
@@ -264,6 +270,7 @@ export async function workflowRoutes(fastify: FastifyInstance) {
         const user = request.user as any;
         const { id } = workflowIdParamsSchema.parse(request.params);
 
+
         const workflow = await workflowService.getWorkflowById(
           id,
           user.userId,
@@ -275,6 +282,7 @@ export async function workflowRoutes(fastify: FastifyInstance) {
             message: 'Workflow not found',
           });
         }
+
 
         return reply.send(workflow);
       } catch (error) {
@@ -324,7 +332,10 @@ export async function workflowRoutes(fastify: FastifyInstance) {
               id: { type: 'string' },
               name: { type: 'string' },
               description: { type: 'string' },
-              definition: { type: 'object' },
+              definition: { 
+                type: 'object',
+                additionalProperties: true  // Allow any properties in definition
+              },
               status: { type: 'string' },
               version: { type: 'number' },
               createdAt: { type: 'string' },
@@ -361,6 +372,7 @@ export async function workflowRoutes(fastify: FastifyInstance) {
         const { id } = workflowIdParamsSchema.parse(request.params);
         const data = updateWorkflowSchema.parse(request.body);
 
+
         // Validate workflow definition if provided
         if (data.definition) {
           const validation = await validationService.validateWorkflow(
@@ -381,6 +393,8 @@ export async function workflowRoutes(fastify: FastifyInstance) {
           data,
           user.userId
         );
+
+
         return reply.send(workflow);
       } catch (error) {
         if (error instanceof z.ZodError) {
@@ -502,7 +516,10 @@ export async function workflowRoutes(fastify: FastifyInstance) {
               id: { type: 'string' },
               name: { type: 'string' },
               description: { type: 'string' },
-              definition: { type: 'object' },
+              definition: { 
+                type: 'object',
+                additionalProperties: true  // Allow any properties in definition
+              },
               status: { type: 'string' },
               version: { type: 'number' },
               createdAt: { type: 'string' },
@@ -586,7 +603,10 @@ export async function workflowRoutes(fastify: FastifyInstance) {
               id: { type: 'string' },
               workflowId: { type: 'string' },
               versionNumber: { type: 'number' },
-              definition: { type: 'object' },
+              definition: { 
+                type: 'object',
+                additionalProperties: true  // Allow any properties in definition
+              },
               changelog: { type: 'string' },
               createdAt: { type: 'string' },
               createdBy: { type: 'string' },
@@ -671,7 +691,10 @@ export async function workflowRoutes(fastify: FastifyInstance) {
               id: { type: 'string' },
               workflowId: { type: 'string' },
               versionNumber: { type: 'number' },
-              definition: { type: 'object' },
+              definition: { 
+                type: 'object',
+                additionalProperties: true  // Allow any properties in definition
+              },
               changelog: { type: 'string' },
               createdAt: { type: 'string' },
               createdBy: { type: 'string' },

@@ -221,12 +221,12 @@ export class WorkflowValidationService {
       });
     }
 
-    // Validate end nodes
-    if (endNodes.length === 0) {
-      errors.push({
-        type: 'error',
+    // Validate end nodes - allow workflows with only start nodes during editing
+    if (endNodes.length === 0 && nodes.length > 1) {
+      warnings.push({
+        type: 'warning',
         code: 'NO_END_NODE',
-        message: 'Workflow must have at least one end/output node',
+        message: 'Workflow should have at least one end/output node',
       });
     }
   }
@@ -312,21 +312,23 @@ export class WorkflowValidationService {
       });
     }
 
-    // Check for disconnected nodes
-    const connectedNodes = new Set<string>();
-    for (const edge of edges) {
-      connectedNodes.add(edge.source);
-      connectedNodes.add(edge.target);
-    }
+    // Check for disconnected nodes (only warn if there are edges but some nodes aren't connected)
+    if (edges.length > 0) {
+      const connectedNodes = new Set<string>();
+      for (const edge of edges) {
+        connectedNodes.add(edge.source);
+        connectedNodes.add(edge.target);
+      }
 
-    for (const node of nodes) {
-      if (!connectedNodes.has(node.id)) {
-        warnings.push({
-          type: 'warning',
-          code: 'DISCONNECTED_NODE',
-          message: `Node is not connected to the workflow: ${node.id}`,
-          nodeId: node.id,
-        });
+      for (const node of nodes) {
+        if (!connectedNodes.has(node.id)) {
+          warnings.push({
+            type: 'warning',
+            code: 'DISCONNECTED_NODE',
+            message: `Node is not connected to the workflow: ${node.id}`,
+            nodeId: node.id,
+          });
+        }
       }
     }
   }
@@ -505,24 +507,26 @@ export class WorkflowValidationService {
       }
     }
 
-    // Check for dead ends (nodes with no outgoing edges)
-    const outgoingEdges = new Map<string, number>();
-    for (const edge of definition.edges) {
-      outgoingEdges.set(edge.source, (outgoingEdges.get(edge.source) || 0) + 1);
-    }
+    // Check for dead ends (nodes with no outgoing edges) - only if there are multiple nodes
+    if (definition.nodes.length > 1) {
+      const outgoingEdges = new Map<string, number>();
+      for (const edge of definition.edges) {
+        outgoingEdges.set(edge.source, (outgoingEdges.get(edge.source) || 0) + 1);
+      }
 
-    for (const node of definition.nodes) {
-      if (
-        node.type !== 'end' &&
-        node.type !== 'output' &&
-        !outgoingEdges.has(node.id)
-      ) {
-        warnings.push({
-          type: 'warning',
-          code: 'DEAD_END_NODE',
-          message: `Node has no outgoing edges: ${node.id}`,
-          nodeId: node.id,
-        });
+      for (const node of definition.nodes) {
+        if (
+          node.type !== 'end' &&
+          node.type !== 'output' &&
+          !outgoingEdges.has(node.id)
+        ) {
+          warnings.push({
+            type: 'warning',
+            code: 'DEAD_END_NODE',
+            message: `Node has no outgoing edges: ${node.id}`,
+            nodeId: node.id,
+          });
+        }
       }
     }
   }

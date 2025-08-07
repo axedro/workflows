@@ -138,7 +138,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
   const navigate = useNavigate();
   const { t } = useTranslation('workflows');
   const { t: tCommon } = useTranslation('common');
-  const { currentWorkflow, fetchWorkflow, updateWorkflow } = useWorkflowStore();
+  const { currentWorkflow, fetchWorkflow, updateWorkflow, createWorkflow } = useWorkflowStore();
   
   // Estados para campos editables
   const [workflowName, setWorkflowName] = useState('');
@@ -153,7 +153,9 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
   const [showExportModal, setShowExportModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
+  const isUpdatingWorkflow = useRef(false);
 
   // Función para volver al dashboard
   const handleBackToDashboard = () => {
@@ -246,7 +248,6 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
     }
 
     // Si todas las validaciones pasan, crear la conexión
-    console.log('Valid connection created:', params);
     setEdges((eds) => addEdge(params, eds));
   }, [nodes, edges, setEdges]);
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
@@ -273,9 +274,16 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
 
   // Update local state when workflow is loaded
   useEffect(() => {
-    if (currentWorkflow && currentWorkflow.definition) {
-      setNodes((currentWorkflow.definition.nodes || []) as Node<any, string | undefined>[]);
-      setEdges(currentWorkflow.definition.edges || []);
+    if (currentWorkflow && currentWorkflow.definition && !isUpdatingWorkflow.current) {
+      const serverNodes = (currentWorkflow.definition.nodes || []) as Node<any, string | undefined>[];
+      const serverEdges = currentWorkflow.definition.edges || [];
+      
+      if (serverNodes.length > 0) {
+        setNodes(serverNodes);
+        setEdges(serverEdges);
+      }
+    } else if (isUpdatingWorkflow.current) {
+      isUpdatingWorkflow.current = false;
     }
   }, [currentWorkflow, setNodes, setEdges]);
 
@@ -289,28 +297,44 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
 
   // Auto-save functionality
   const saveWorkflow = useCallback(async () => {
-    if (!id || id === 'new') return;
-
     setIsSaving(true);
+    setSaveError(null);
     try {
       const definition = {
         nodes,
         edges,
         metadata: currentWorkflow?.definition?.metadata || {
-                      author: t('default_author'),
+          author: 'System',
           tags: [],
-                      difficulty: t('difficulty.beginner')
+          difficulty: 'beginner'
         }
       };
+      
 
-      await updateWorkflow(id, { definition });
-      setLastSaved(new Date());
+      // For new workflows, create them first
+      if (id === 'new') {
+        const newWorkflow = await createWorkflow({
+          name: workflowName || t('untitled_workflow') || 'Untitled Workflow',
+          description: workflowDescription || '',
+          definition
+        });
+        
+        // Update the URL to reflect the new workflow ID
+        navigate(`/editor/${newWorkflow.id}`, { replace: true });
+        setLastSaved(new Date());
+      } else if (id) {
+        // Update existing workflow
+        isUpdatingWorkflow.current = true; // Prevent overwriting nodes after save
+        await updateWorkflow(id, { definition });
+        setLastSaved(new Date());
+      }
     } catch (error) {
       console.error('Failed to save workflow:', error);
+      setSaveError(error instanceof Error ? error.message : 'Failed to save workflow');
     } finally {
       setIsSaving(false);
     }
-  }, [id, nodes, edges, currentWorkflow, updateWorkflow]);
+  }, [id, nodes, edges, currentWorkflow, updateWorkflow, createWorkflow, navigate, workflowName, workflowDescription, t]);
 
   // Auto-save on changes
   useEffect(() => {
@@ -318,7 +342,8 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
       clearTimeout(autoSaveTimeoutRef.current);
     }
 
-    if (id && id !== 'new' && nodes.length > 0) {
+    // Auto-save when there are nodes (both new and existing workflows)
+    if (nodes.length > 0) {
       autoSaveTimeoutRef.current = setTimeout(saveWorkflow, 2000); // Save after 2 seconds of inactivity
     }
 
@@ -327,7 +352,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [nodes, edges, id, saveWorkflow]);
+  }, [nodes, edges, saveWorkflow]);
 
   const onNodeUpdate = (updatedNode: Node) => {
     setNodes((nds) => nds.map((n) => (n.id === updatedNode.id ? updatedNode : n)));
@@ -476,10 +501,22 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
                   </svg>
                   {tCommon('saving') || 'Guardando...'}
                 </span>
+              ) : saveError ? (
+                <span className="flex items-center text-red-500">
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Error al guardar
+                </span>
               ) : lastSaved ? (
-                <span>{t('last_saved') || 'Último guardado'}: {lastSaved.toLocaleTimeString()}</span>
+                <span className="flex items-center text-green-600">
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {t('last_saved') || 'Guardado'}: {lastSaved.toLocaleTimeString()}
+                </span>
               ) : (
-                                  <span>{t('not_saved') || 'No guardado'}</span>
+                <span>{t('not_saved') || 'No guardado'}</span>
               )}
             </div>
           </div>
