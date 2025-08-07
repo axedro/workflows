@@ -6,11 +6,11 @@ interface GetTranslationsParams {
   namespace?: string;
 }
 
-interface UpsertTranslationBody {
-  key: string;
-  value: string;
-  approved?: boolean;
-}
+// interface UpsertTranslationBody {
+//   key: string;
+//   value: string;
+//   approved?: boolean;
+// }
 
 interface BulkLoadTranslationsBody {
   namespace: string;

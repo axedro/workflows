@@ -317,10 +317,11 @@ export async function organizationRoutes(fastify: FastifyInstance) {
           0
         );
         const successfulExecutions =
-          executionStats.find((s: any) => s.status === 'COMPLETED')?._count.status ||
-          0;
+          executionStats.find((s: any) => s.status === 'COMPLETED')?._count
+            .status || 0;
         const failedExecutions =
-          executionStats.find((s: any) => s.status === 'FAILED')?._count.status || 0;
+          executionStats.find((s: any) => s.status === 'FAILED')?._count
+            .status || 0;
         const averageExecutionTime =
           executionStats.reduce(
             (sum: number, stat: any) => sum + (stat._avg.executionTimeMs || 0),

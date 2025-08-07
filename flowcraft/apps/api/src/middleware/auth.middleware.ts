@@ -64,7 +64,7 @@ export async function requireOrganization(
 
 export async function optionalAuth(
   request: FastifyRequest,
-  reply: FastifyReply
+  _reply: FastifyReply
 ) {
   try {
     const authHeader = request.headers.authorization;

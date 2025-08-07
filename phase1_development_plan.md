@@ -37,7 +37,7 @@
 
 ---
 
-## Sprint Breakdown (20 semanas)
+## Sprint Breakdown (21 semanas)
 
 ### Sprint 1-2: Infraestructura Base (2 semanas)
 **Objetivo:** Establecer la base técnica del proyecto
@@ -369,18 +369,18 @@ CREATE INDEX idx_languages_active ON languages(is_active) WHERE is_active = true
 **Objetivo:** Editor visual básico de workflows
 
 #### React Flow Implementation
-- [ ] Canvas setup con React Flow
-- [ ] Node types básicos (start, end, action)
-- [ ] Edge connections
-- [ ] Drag and drop functionality
-- [ ] Zoom y pan controls
+- [x] Canvas setup con React Flow
+- [x] Node types básicos (start, end, action, condition)
+- [x] Edge connections
+- [x] Drag and drop functionality
+- [x] Zoom y pan controls
 
 #### Node Library
-- [ ] Node palette sidebar
-- [ ] Node configuration panels
-- [ ] Node validation
-- [ ] Node preview functionality
-- [ ] Search y filtros
+- [x] Node palette sidebar
+- [x] Node configuration panels
+- [x] Node validation (parcial)
+- [x] Node preview functionality (parcial)
+- [x] Search y filtros
 
 #### Workflow State Management
 - [ ] Zustand store para workflow editor
@@ -389,10 +389,119 @@ CREATE INDEX idx_languages_active ON languages(is_active) WHERE is_active = true
 - [ ] Workflow validation en tiempo real
 - [ ] Error highlighting
 
+#### Edge System & Animations
+- [x] Conexiones direccionales con validación (output → input only)
+- [x] Prevención de auto-conexiones y conexiones duplicadas
+- [x] Animación SVG con puntos animados en edges
+- [x] Puntos verdes visibles con zoom (radio 4px)
+- [x] Múltiples puntos animados con timing escalonado
+- [x] Indicadores visuales de dirección de flujo de datos
+
 **Entregables:**
-- Editor visual funcional
-- Biblioteca de nodos básica
-- Gestión de estado del editor
+- ✅ Editor visual funcional
+- ✅ Biblioteca de nodos básica
+- ✅ Sistema de conexiones direccionales
+- ✅ Animaciones de flujo de datos
+- Gestión de estado del editor (parcial)
+
+**Estado:** 75% COMPLETADO - Funcional con animaciones
+
+---
+
+### Sprint 9.5: Sistema de Flujo de Datos (1 semana) 🆕 NUEVO
+**Objetivo:** Implementar sistema completo de flujo de datos entre nodos del workflow, incluyendo puertos de entrada/salida, validación de tipos, transformaciones de datos y visualización del flujo de información.
+
+#### Data Flow Architecture
+- [ ] Definir modelo de datos (DataField, DataPort, DataFlow)
+- [ ] Tipos de datos (string, number, boolean, object, array)
+- [ ] Sistema de validación de tipos de datos
+- [ ] Mapeo de campos entre nodos
+
+#### Nodos con Puertos de Datos
+- [ ] Rediseñar nodos con puertos input/output tipados
+- [ ] StartNode: Solo output port con datos iniciales
+- [ ] ActionNode: Input port + output port con transformación
+- [ ] ConditionNode: Input port + 2 output ports (true/false)
+- [ ] EndNode: Solo input port para datos finales
+- [ ] Visualización de campos de datos en tiempo real
+
+#### Nodo de Condición como Rombo
+- [ ] Cambiar forma de ConditionNode de rectángulo a rombo
+- [ ] Una entrada (top) y dos salidas (true/false)
+- [ ] Lógica de flujo de datos condicional
+- [ ] Transmitir datos solo por la rama que cumple condición
+- [ ] Editor de condiciones con campos disponibles
+
+#### Conexiones Direccionales con Datos
+- [ ] Flechas direccionales claras con sentido de flujo
+- [ ] Mostrar campos de datos que fluyen en conexiones
+- [ ] Validación de compatibilidad de tipos entre puertos
+- [ ] Prevenir conexiones incompatibles
+- [ ] Animación de flujo de datos
+
+#### Panel de Configuración de Datos
+- [ ] Panel para configurar mapeo de campos
+- [ ] Drag & drop para mapear campos de entrada a salida
+- [ ] Transformaciones básicas (rename, filter, transform)
+- [ ] Preview de datos resultantes
+- [ ] Testing de transformaciones con datos reales
+
+#### Integración con Conectores
+- [ ] Definir esquemas de datos para cada conector
+- [ ] Importación de datos desde fuentes externas
+- [ ] Exportación de datos a formatos estándar
+- [ ] Validación de configuraciones de conectores
+
+**Entregables:**
+- Sistema completo de flujo de datos
+- Nodos con puertos tipados
+- Nodos de condición como rombos
+- Conexiones direccionales con validación
+- Panel de configuración de datos
+- Integración con conectores
+
+**Estado:** PENDIENTE - Sprint crítico para funcionalidad de workflow automation
+
+---
+
+### Sprint 9.6: Sistema de Tooltips Avanzados (0.5 semanas) 🆕 NUEVO
+**Objetivo:** Implementar un sistema robusto de tooltips no invasivos que mejore la experiencia de usuario sin interferir con la interacción.
+
+#### Tooltip System Architecture
+- [ ] Diseñar sistema de tooltips no invasivos
+- [ ] Implementar tooltips contextuales inteligentes
+- [ ] Crear tooltips para puertos de datos
+- [ ] Implementar tooltips para indicadores de estado
+- [ ] Crear tooltips para validaciones y errores
+
+#### Tooltip Components
+- [ ] Crear componente TooltipManager centralizado
+- [ ] Implementar tooltips con posicionamiento inteligente
+- [ ] Crear tooltips con contenido dinámico
+- [ ] Implementar tooltips con animaciones suaves
+- [ ] Crear tooltips con soporte para contenido rico
+
+#### Tooltip Content
+- [ ] Tooltips informativos para puertos de datos
+- [ ] Tooltips de validación y errores
+- [ ] Tooltips de configuración de nodos
+- [ ] Tooltips de ayuda contextual
+- [ ] Tooltips de estadísticas y métricas
+
+#### Tooltip UX/UI
+- [ ] Implementar tooltips que no interfieran con clicks
+- [ ] Crear tooltips con delay de aparición
+- [ ] Implementar tooltips con soporte para zoom
+- [ ] Crear tooltips responsivos
+- [ ] Implementar tooltips accesibles
+
+**Entregables:**
+- Sistema de tooltips robusto y no invasivo
+- Tooltips contextuales inteligentes
+- Mejor experiencia de usuario
+- Documentación de uso de tooltips
+
+**Estado:** PENDIENTE - Sprint para mejorar UX sin interferir con funcionalidad core
 
 ---
 
@@ -763,7 +872,9 @@ CREATE INDEX idx_languages_active ON languages(is_active) WHERE is_active = true
 
 ### ⏳ Próximos Sprints (60% restante)
 - **Sprint 5.5:** Completar Funcionalidades Pendientes
-- **Sprint 8-9:** Workflow Editor Foundation
+- **Sprint 8-9:** Workflow Editor Foundation (65% completado)
+- **Sprint 9.5:** Sistema de Flujo de Datos 🆕
+- **Sprint 9.6:** Sistema de Tooltips Avanzados 🆕
 - **Sprint 10-11:** Conectores Esenciales (20)
 - **Sprint 12-13:** Motor de Ejecución
 - **Sprint 14-15:** Dashboard y Monitorización
@@ -781,7 +892,7 @@ La aplicación FlowCraft tiene una base sólida con:
 - ✅ Gestión de templates y versionado
 - ✅ Frontend integration con API
 
-**Próximo hito:** Implementación del editor visual de workflows (Sprint 8-9)
+**Próximo hito:** Sistema de flujo de datos (Sprint 9.5)
 
 ---
 

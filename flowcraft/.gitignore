@@ -40,8 +40,13 @@ coverage/
 # Dependency directories
 jspm_packages/
 
-# TypeScript cache
+# TypeScript cache and outputs
 *.tsbuildinfo
+# TypeScript generated files (in src directories)
+apps/*/src/**/*.js
+apps/*/src/**/*.d.ts
+packages/*/src/**/*.js
+packages/*/src/**/*.d.ts
 
 # Optional npm cache directory
 .npm

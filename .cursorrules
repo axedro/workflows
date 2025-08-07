@@ -64,13 +64,23 @@ FlowCraft is a workflow automation platform that combines no-code visual interfa
 - Import/export functionality
 - Comprehensive validation service
 
-### 4. Security First
+### 4. Dynamic Data Flow System
+- Dynamic schema calculation based on workflow connections
+- Real-time input/output schema generation for nodes
+- Data flow transformations applied to schemas
+- Node-specific schema generators (Start, Action, Condition, etc.)
+- Elimination of hardcoded schemas
+- Field mapping and data transformations
+- Conditional data flow with true/false branches
+- Connector-specific data schemas and validation
+
+### 5. Security First
 - Secrets management for credentials
 - OAuth integration for third-party services
 - Audit logging for all operations
 - Encryption in transit and at rest
 
-### 5. Internationalization Architecture
+### 6. Internationalization Architecture
 - Database-driven translations with fallback system
 - Namespace organization (auth, common, dashboard, etc.)
 - Lazy loading of translations by route/component
@@ -145,6 +155,11 @@ src/
 - Template system for reusable workflows
 - Import/export functionality
 - Version control and history
+- Dynamic data flow with real-time schema calculation
+- Node-specific data ports and field mapping
+- Conditional data flow with true/false branches
+- Data transformations and field mapping
+- Connector integration with dynamic schemas
 
 ### 2. Connector Development
 - Extend BaseConnector for new integrations

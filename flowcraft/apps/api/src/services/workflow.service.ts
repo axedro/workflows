@@ -58,7 +58,6 @@ export class WorkflowService {
     data: z.infer<typeof createWorkflowSchema>,
     userId: string
   ): Promise<WorkflowWithVersions> {
-
     // Validate definition structure
     this.validateWorkflowDefinition(data.definition);
 
@@ -91,7 +90,6 @@ export class WorkflowService {
       },
     });
 
-
     return workflow as WorkflowWithVersions;
   }
 
@@ -103,7 +101,6 @@ export class WorkflowService {
     userId: string,
     organizationId?: string
   ): Promise<WorkflowWithVersions | null> {
-    
     const workflow = await prisma.workflow.findFirst({
       where: {
         id: workflowId,
@@ -137,23 +134,28 @@ export class WorkflowService {
 
     // Fallback: If main definition is empty, use latest version's definition
     if (workflow) {
-      const hasMainDefinition = workflow.definition && 
-        typeof workflow.definition === 'object' && 
+      const hasMainDefinition =
+        workflow.definition &&
+        typeof workflow.definition === 'object' &&
         Object.keys(workflow.definition).length > 0;
-        
-      if (!hasMainDefinition && workflow.versions && workflow.versions.length > 0) {
+
+      if (
+        !hasMainDefinition &&
+        workflow.versions &&
+        workflow.versions.length > 0
+      ) {
         // Get the latest version's definition as fallback
         const latestVersion = workflow.versions[0];
         if (latestVersion && latestVersion.definition) {
           workflow.definition = latestVersion.definition;
         }
       }
-      
+
       const cleanWorkflow = {
         ...workflow,
-        definition: workflow.definition || {}
+        definition: workflow.definition || {},
       };
-      
+
       return cleanWorkflow as WorkflowWithVersions;
     }
 
@@ -227,13 +229,11 @@ export class WorkflowService {
     data: z.infer<typeof updateWorkflowSchema>,
     userId: string
   ): Promise<WorkflowWithVersions> {
-
     // Check if workflow exists and user has access
     const existingWorkflow = await this.getWorkflowById(workflowId, userId);
     if (!existingWorkflow) {
       throw new Error('Workflow not found or access denied');
     }
-
 
     // Validate definition if provided
     if (data.definition) {
@@ -252,7 +252,6 @@ export class WorkflowService {
       updateData.definition = data.definition;
       updateData.version = newVersionNumber;
 
-
       await prisma.workflowVersion.create({
         data: {
           workflowId,
@@ -264,7 +263,6 @@ export class WorkflowService {
       });
     }
 
-
     const workflow = await prisma.workflow.update({
       where: { id: workflowId },
       data: updateData,
@@ -274,7 +272,6 @@ export class WorkflowService {
         },
       },
     });
-
 
     return workflow as WorkflowWithVersions;
   }

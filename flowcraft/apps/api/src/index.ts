@@ -116,7 +116,7 @@ await fastify.register(swaggerUi, {
   },
   staticCSP: true,
   transformStaticCSP: header => header,
-  transformSpecification: (swaggerObject, request, reply) => {
+  transformSpecification: (swaggerObject, _request, _reply) => {
     return swaggerObject;
   },
   transformSpecificationClone: true,

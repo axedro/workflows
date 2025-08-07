@@ -431,7 +431,7 @@ export class WorkflowValidationService {
     key: string,
     nodeId: string,
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    _warnings: ValidationWarning[]
   ): void {
     switch (schema.type) {
       case 'string':
@@ -511,7 +511,10 @@ export class WorkflowValidationService {
     if (definition.nodes.length > 1) {
       const outgoingEdges = new Map<string, number>();
       for (const edge of definition.edges) {
-        outgoingEdges.set(edge.source, (outgoingEdges.get(edge.source) || 0) + 1);
+        outgoingEdges.set(
+          edge.source,
+          (outgoingEdges.get(edge.source) || 0) + 1
+        );
       }
 
       for (const node of definition.nodes) {
