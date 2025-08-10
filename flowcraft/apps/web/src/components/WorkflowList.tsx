@@ -23,6 +23,7 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({
     fetchWorkflows,
     deleteWorkflow,
     duplicateWorkflow,
+    toggleWorkflowStatus,
     setFilters,
     setPagination,
   } = useWorkflowStore();
@@ -92,6 +93,15 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({
       } catch (error) {
         console.error('Failed to duplicate workflow:', error);
       }
+    }
+  };
+
+  const handleToggleStatus = async (workflow: Workflow) => {
+    try {
+      const newStatus = workflow.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
+      await toggleWorkflowStatus(workflow.id, newStatus);
+    } catch (error) {
+      console.error('Failed to toggle workflow status:', error);
     }
   };
 
@@ -186,7 +196,7 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {onSelectWorkflow && (
                 <Button
                   variant="outline"
@@ -205,6 +215,21 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({
                   Edit
                 </Button>
               )}
+              
+              {/* Toggle Status Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleToggleStatus(workflow)}
+                className={`${
+                  workflow.status === 'ACTIVE' 
+                    ? 'text-yellow-600 hover:text-yellow-700 border-yellow-300' 
+                    : 'text-green-600 hover:text-green-700 border-green-300'
+                }`}
+              >
+                {workflow.status === 'ACTIVE' ? '⏸ Pause' : '▶ Activate'}
+              </Button>
+
               <Button
                 variant="outline"
                 size="sm"

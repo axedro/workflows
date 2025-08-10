@@ -34,6 +34,8 @@ import { useWorkflowStore } from '../stores/workflowStore';
 import { Header } from './Header';
 import { useTranslation } from '../hooks/i18n';
 import { WorkflowExportModal } from './WorkflowExportModal';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { useNotificationStore } from '../stores/notificationStore';
 
 
 interface WorkflowEditorProps {
@@ -53,12 +55,8 @@ const EditorCanvas: React.FC<{
   setNodes: (nodes: Node[] | ((nodes: Node[]) => Node[])) => void;
   nodeTypes: NodeTypes;
   edgeTypes: EdgeTypes;
-  onSave: () => void;
-  onExport: () => void;
-  isSaving: boolean;
-  lastSaved: Date | null;
 }> = (props) => {
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onNodeClick, onEdgeClick, onPaneClick, setNodes, nodeTypes, edgeTypes, onSave, onExport, isSaving, lastSaved } = props;
+  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onNodeClick, onEdgeClick, onPaneClick, setNodes, nodeTypes, edgeTypes } = props;
   const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
   const { screenToFlowPosition } = useReactFlow();
 
@@ -122,12 +120,7 @@ const EditorCanvas: React.FC<{
       >
         <Background variant={BackgroundVariant.Dots} />
         <MiniMap className="bg-white border border-gray-200 rounded-md shadow-sm" />
-        <EnhancedControls
-          onSave={onSave}
-          onExport={onExport}
-          isSaving={isSaving}
-          lastSaved={lastSaved}
-        />
+        <EnhancedControls />
       </ReactFlow>
     </div>
   );
@@ -139,6 +132,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
   const { t } = useTranslation('workflows');
   const { t: tCommon } = useTranslation('common');
   const { currentWorkflow, fetchWorkflow, updateWorkflow, createWorkflow } = useWorkflowStore();
+  const { addNotification } = useNotificationStore();
   
   // Estados para campos editables
   const [workflowName, setWorkflowName] = useState('');
@@ -156,6 +150,8 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
   const [saveError, setSaveError] = useState<string | null>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
   const isUpdatingWorkflow = useRef(false);
+
+
 
   // Función para volver al dashboard
   const handleBackToDashboard = () => {
@@ -322,6 +318,13 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
         // Update the URL to reflect the new workflow ID
         navigate(`/editor/${newWorkflow.id}`, { replace: true });
         setLastSaved(new Date());
+        
+        // Show success notification for new workflow creation
+        addNotification({
+          type: 'success',
+          title: 'Workflow Saved',
+          message: `New workflow "${workflowName}" has been created and saved.`,
+        });
       } else if (id) {
         // Update existing workflow
         isUpdatingWorkflow.current = true; // Prevent overwriting nodes after save
@@ -334,7 +337,14 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
     } finally {
       setIsSaving(false);
     }
-  }, [id, nodes, edges, currentWorkflow, updateWorkflow, createWorkflow, navigate, workflowName, workflowDescription, t]);
+  }, [id, nodes, edges, currentWorkflow, updateWorkflow, createWorkflow, navigate, workflowName, workflowDescription, t, addNotification]);
+
+  // Enable editor keyboard shortcuts
+  const { showShortcutsHelp } = useKeyboardShortcuts({ 
+    enableEditorShortcuts: true,
+    onSave: saveWorkflow,
+    onExport: () => setShowExportModal(true),
+  });
 
   // Auto-save on changes
   useEffect(() => {
@@ -379,7 +389,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
       <Header />
       
       {/* Workflow Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b">
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b sticky top-16 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             {/* Back Button */}
@@ -404,14 +414,14 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
                         type="text"
                         value={workflowName}
                         onChange={(e) => setWorkflowName(e.target.value)}
-                        className="text-2xl font-bold text-gray-900 dark:text-white bg-transparent border-b border-gray-300 focus:border-blue-500 focus:outline-none"
+                        className="text-xl font-bold text-gray-900 dark:text-white bg-transparent border-b border-gray-300 focus:border-blue-500 focus:outline-none"
                         autoFocus
                       />
                       <button
                         onClick={handleSaveWorkflowInfo}
                         className="text-green-600 hover:text-green-700"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       </button>
@@ -419,14 +429,14 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
                         onClick={handleCancelEdit}
                         className="text-red-600 hover:text-red-700"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       </button>
                     </div>
                   ) : (
                     <div className="flex items-center space-x-2">
-                      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                      <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                         {workflowName || t('untitled_workflow') || 'Workflow sin título'}
                       </h1>
                       <button
@@ -443,7 +453,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
               </div>
 
               {/* Workflow Description */}
-              <div className="mt-2">
+              <div className="mt-1">
                 {isEditingDescription ? (
                   <div className="flex items-start space-x-2">
                     <textarea
@@ -523,8 +533,80 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
         </div>
       </div>
 
+      {/* Editor Toolbar */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-2 sticky top-32 z-30">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <div className="flex items-center space-x-4">
+            {/* Save Status */}
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              {isSaving ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {t('saving') || 'Guardando...'}
+                </span>
+              ) : lastSaved ? (
+                <span>{t('last_saved') || 'Último guardado'}: {lastSaved.toLocaleTimeString()}</span>
+              ) : (
+                <span>{t('not_saved') || 'No guardado'}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            {/* Save Button */}
+            <button
+              onClick={saveWorkflow}
+              disabled={isSaving}
+              className="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Save workflow (Ctrl/Cmd+S) - Auto-saves every 2 seconds"
+            >
+              {isSaving ? (
+                <svg className="animate-spin -ml-1 mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              ) : (
+                <svg className="-ml-1 mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+              )}
+              Save
+            </button>
+
+            {/* Export Button */}
+            {id && id !== 'new' && (
+              <button
+                onClick={() => setShowExportModal(true)}
+                className="inline-flex items-center px-3 py-1.5 border border-blue-300 rounded-md text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                title="Export workflow (Ctrl/Cmd+E) - Download as JSON or YAML"
+              >
+                <svg className="-ml-1 mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                </svg>
+                Export
+              </button>
+            )}
+
+            {/* Help Button */}
+            <button
+              onClick={showShortcutsHelp}
+              className="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              title="Show keyboard shortcuts (H or ?)"
+            >
+              <svg className="-ml-1 mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Help
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Editor Content */}
-      <div className="flex h-[calc(100vh-120px)] bg-gray-100">
+      <div className="flex h-[calc(100vh-180px)] bg-gray-100">
         <NodePalette categories={nodeCategories} onNodeDragStart={onNodeDragStart} />
         <ReactFlowProvider>
           <EditorCanvas
@@ -539,10 +621,6 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
             setNodes={setNodes}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
-            onSave={saveWorkflow}
-            onExport={() => setShowExportModal(true)}
-            isSaving={isSaving}
-            lastSaved={lastSaved}
           />
         </ReactFlowProvider>
         <PropertyPanel 

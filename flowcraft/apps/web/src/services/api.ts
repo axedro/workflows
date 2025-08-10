@@ -2,6 +2,7 @@ import { User, Workflow, WorkflowTemplate } from '@flowcraft/shared-types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
+
 export interface LoginData {
   email: string;
   password: string;
@@ -151,11 +152,25 @@ export interface ValidationResult {
   }>;
 }
 
+export interface NameAvailabilityResult {
+  available: boolean;
+  suggestions: string[];
+}
+
+export interface CheckNameParams {
+  name: string;
+  excludeId?: string;
+}
+
 class ApiService {
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
+    console.log('🎯 NEW CODE LOADED - DELETE FIX ACTIVE!');
+    console.log('🔧 Using FIXED ApiService.request method');
+    console.log('📍 Request:', options.method || 'GET', endpoint);
+    
     const url = `${API_BASE_URL}${endpoint}`;
     const token = localStorage.getItem('accessToken');
 
@@ -169,13 +184,49 @@ class ApiService {
     };
 
     const response = await fetch(url, config);
+    console.log('📡 Response status:', response.status, response.statusText);
 
     if (!response.ok) {
-      const error: ApiError = await response.json();
-      throw new Error(error.message || 'API request failed');
+      try {
+        const errorText = await response.text();
+        if (errorText && errorText.trim() !== '') {
+          const error: ApiError = JSON.parse(errorText);
+          throw new Error(error.message || 'API request failed');
+        } else {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+      } catch (parseError) {
+        // If we can't parse the error response, use the HTTP status
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
     }
 
-    return response.json();
+    // Handle empty responses (e.g., DELETE operations returning 204 No Content)
+    const contentLength = response.headers.get('content-length');
+    const contentType = response.headers.get('content-type');
+    
+    // Check for empty response scenarios
+    if (
+      response.status === 204 || // No Content
+      contentLength === '0' ||   // Explicit zero content length
+      contentLength === null ||  // No content length header
+      !contentType ||            // No content type
+      !contentType.includes('application/json') // Non-JSON content
+    ) {
+      return undefined as T;
+    }
+
+    // Try to parse JSON, but handle empty body gracefully
+    try {
+      const text = await response.text();
+      if (!text || text.trim() === '') {
+        return undefined as T;
+      }
+      return JSON.parse(text);
+    } catch (error) {
+      console.error('Failed to parse response as JSON:', error);
+      return undefined as T;
+    }
   }
 
   // Authentication endpoints
@@ -333,6 +384,20 @@ class ApiService {
     });
   }
 
+  async checkWorkflowNameAvailability(
+    params: CheckNameParams
+  ): Promise<NameAvailabilityResult> {
+    const queryParams = new URLSearchParams();
+    queryParams.append('name', params.name);
+    if (params.excludeId) {
+      queryParams.append('excludeId', params.excludeId);
+    }
+
+    return this.request<NameAvailabilityResult>(
+      `/workflows/check-name?${queryParams.toString()}`
+    );
+  }
+
   // Template endpoints
   async createTemplate(data: CreateTemplateData): Promise<WorkflowTemplate> {
     return this.request<WorkflowTemplate>('/workflow-templates', {
@@ -480,4 +545,5 @@ class ApiService {
   }
 }
 
+// Force module reload with timestamp: 2025-08-09-09:13
 export const apiService = new ApiService();

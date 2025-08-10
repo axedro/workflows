@@ -451,4 +451,82 @@ export class WorkflowService {
       }
     }
   }
+
+  /**
+   * Check if a workflow name is available in the organization
+   */
+  async isNameAvailable(
+    name: string,
+    organizationId?: string,
+    excludeId?: string
+  ): Promise<boolean> {
+    const whereCondition: any = {
+      name: {
+        equals: name,
+        mode: 'insensitive', // Case-insensitive comparison
+      },
+    };
+
+    if (organizationId) {
+      whereCondition.organizationId = organizationId;
+    } else {
+      whereCondition.organizationId = null;
+    }
+
+    if (excludeId) {
+      whereCondition.id = {
+        not: excludeId,
+      };
+    }
+
+    const existingWorkflow = await prisma.workflow.findFirst({
+      where: whereCondition,
+    });
+
+    return !existingWorkflow;
+  }
+
+  /**
+   * Generate name suggestions when a name is not available
+   */
+  async generateNameSuggestions(
+    baseName: string,
+    organizationId?: string,
+    maxSuggestions: number = 3
+  ): Promise<string[]> {
+    const suggestions: string[] = [];
+    
+    // Try numbered variations
+    for (let i = 2; i <= maxSuggestions + 1; i++) {
+      const suggestion = `${baseName} (${i})`;
+      const isAvailable = await this.isNameAvailable(suggestion, organizationId);
+      
+      if (isAvailable) {
+        suggestions.push(suggestion);
+        if (suggestions.length >= maxSuggestions) {
+          break;
+        }
+      }
+    }
+
+    // If we still need more suggestions, try with different patterns
+    if (suggestions.length < maxSuggestions) {
+      const additionalPatterns = [
+        `${baseName} - Copy`,
+        `New ${baseName}`,
+        `${baseName} v2`,
+      ];
+
+      for (const pattern of additionalPatterns) {
+        if (suggestions.length >= maxSuggestions) break;
+        
+        const isAvailable = await this.isNameAvailable(pattern, organizationId);
+        if (isAvailable) {
+          suggestions.push(pattern);
+        }
+      }
+    }
+
+    return suggestions;
+  }
 }

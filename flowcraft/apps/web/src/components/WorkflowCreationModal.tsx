@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWorkflowStore } from '../stores/workflowStore';
 import { Button } from '@flowcraft/ui';
@@ -20,7 +20,7 @@ export const WorkflowCreationModal: React.FC<WorkflowCreationModalProps> = ({
   initialData = {},
 }) => {
   const navigate = useNavigate();
-  const { createWorkflow } = useWorkflowStore();
+  const { createWorkflow, checkWorkflowNameAvailability } = useWorkflowStore();
   const { t } = useTranslation('workflows');
   const { t: tCommon } = useTranslation('common');
   
@@ -29,7 +29,49 @@ export const WorkflowCreationModal: React.FC<WorkflowCreationModalProps> = ({
     description: initialData.description || '',
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingName, setIsCheckingName] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [nameAvailable, setNameAvailable] = useState<boolean | null>(null);
+  const [nameSuggestions, setNameSuggestions] = useState<string[]>([]);
+
+  // Debounced name check
+  const checkNameAvailability = useCallback(async (name: string) => {
+    if (!name.trim() || name.length < 2) {
+      setNameAvailable(null);
+      setNameSuggestions([]);
+      return;
+    }
+
+    setIsCheckingName(true);
+    try {
+      const result = await checkWorkflowNameAvailability({ name: name.trim() });
+      setNameAvailable(result.available);
+      setNameSuggestions(result.suggestions);
+      
+      if (!result.available) {
+        setErrors(prev => ({ ...prev, name: t('errors.name_already_exists') }));
+      } else {
+        setErrors(prev => ({ ...prev, name: '' }));
+      }
+    } catch (error) {
+      console.error('Error checking name availability:', error);
+      setNameAvailable(null);
+      setNameSuggestions([]);
+    } finally {
+      setIsCheckingName(false);
+    }
+  }, [checkWorkflowNameAvailability, t]);
+
+  // Debounce the name check
+  const debouncedCheckName = useMemo(() => {
+    let timeoutId: NodeJS.Timeout;
+    return (name: string) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        checkNameAvailability(name);
+      }, 500); // 500ms delay
+    };
+  }, [checkNameAvailability]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -38,6 +80,8 @@ export const WorkflowCreationModal: React.FC<WorkflowCreationModalProps> = ({
       newErrors.name = t('errors.name_required');
     } else if (formData.name.length > 255) {
       newErrors.name = t('errors.name_too_long');
+    } else if (nameAvailable === false) {
+      newErrors.name = t('errors.name_already_exists');
     }
     
     if (formData.description && formData.description.length > 1000) {
@@ -45,7 +89,7 @@ export const WorkflowCreationModal: React.FC<WorkflowCreationModalProps> = ({
     }
     
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return Object.keys(newErrors).length === 0 && nameAvailable !== false;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -103,6 +147,18 @@ export const WorkflowCreationModal: React.FC<WorkflowCreationModalProps> = ({
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
+
+    // Check name availability when name changes
+    if (field === 'name') {
+      debouncedCheckName(value);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setFormData(prev => ({ ...prev, name: suggestion }));
+    setErrors(prev => ({ ...prev, name: '' }));
+    setNameAvailable(true);
+    setNameSuggestions([]);
   };
 
   // Prevent body scroll when modal is open
@@ -210,14 +266,100 @@ export const WorkflowCreationModal: React.FC<WorkflowCreationModalProps> = ({
                 onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
                 onBlur={(e) => e.target.style.borderColor = errors.name ? '#fca5a5' : '#d1d5db'}
               />
-              {errors.name && (
-                <p style={{
-                  marginTop: '0.25rem',
-                  fontSize: '0.875rem',
-                  color: '#dc2626'
+              {/* Name validation feedback */}
+              <div style={{ marginTop: '0.25rem', minHeight: '1.25rem' }}>
+                {isCheckingName && (
+                  <p style={{
+                    fontSize: '0.875rem',
+                    color: '#6b7280',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}>
+                    <span style={{ 
+                      width: '12px', 
+                      height: '12px', 
+                      border: '2px solid #e5e7eb',
+                      borderTop: '2px solid #3b82f6',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }}></span>
+                    {t('create.checking_name')}
+                  </p>
+                )}
+                
+                {!isCheckingName && nameAvailable === true && formData.name.trim() && (
+                  <p style={{
+                    fontSize: '0.875rem',
+                    color: '#16a34a',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem'
+                  }}>
+                    <span>✓</span> {t('create.name_available')}
+                  </p>
+                )}
+                
+                {errors.name && (
+                  <p style={{
+                    fontSize: '0.875rem',
+                    color: '#dc2626'
+                  }}>
+                    {errors.name}
+                  </p>
+                )}
+              </div>
+
+              {/* Name suggestions */}
+              {nameSuggestions.length > 0 && (
+                <div style={{
+                  marginTop: '0.5rem',
+                  padding: '0.75rem',
+                  backgroundColor: '#f3f4f6',
+                  borderRadius: '0.375rem',
+                  border: '1px solid #e5e7eb'
                 }}>
-                  {errors.name}
-                </p>
+                  <p style={{
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    color: '#374151',
+                    marginBottom: '0.5rem'
+                  }}>
+                    {t('create.name_suggestions')}:
+                  </p>
+                  <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '0.5rem'
+                  }}>
+                    {nameSuggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        style={{
+                          padding: '0.25rem 0.5rem',
+                          fontSize: '0.875rem',
+                          backgroundColor: '#ffffff',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '0.375rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f9fafb';
+                          e.currentTarget.style.borderColor = '#9ca3af';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#ffffff';
+                          e.currentTarget.style.borderColor = '#d1d5db';
+                        }}
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
 

@@ -844,4 +844,84 @@ export async function workflowRoutes(fastify: FastifyInstance) {
       }
     }
   );
+
+  // Check workflow name availability
+  fastify.get(
+    '/check-name',
+    {
+      preValidation: [authenticate],
+      schema: {
+        description: 'Check if workflow name is available',
+        tags: ['workflows'],
+        querystring: {
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: { type: 'string', minLength: 1, maxLength: 255 },
+            excludeId: { type: 'string' }, // Exclude specific workflow ID (for edit mode)
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              available: { type: 'boolean' },
+              suggestions: {
+                type: 'array',
+                items: { type: 'string' },
+              },
+            },
+          },
+          400: {
+            type: 'object',
+            properties: {
+              error: { type: 'string' },
+              message: { type: 'string' },
+              details: { type: 'array' },
+            },
+          },
+        },
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        const user = request.user as any;
+        const { name, excludeId } = z
+          .object({
+            name: z.string().min(1).max(255),
+            excludeId: z.string().optional(),
+          })
+          .parse(request.query);
+
+        const isAvailable = await workflowService.isNameAvailable(
+          name,
+          user.organizationId,
+          excludeId
+        );
+
+        let suggestions: string[] = [];
+        if (!isAvailable) {
+          // Generate suggestions if name is not available
+          suggestions = await workflowService.generateNameSuggestions(
+            name,
+            user.organizationId
+          );
+        }
+
+        return reply.send({
+          available: isAvailable,
+          suggestions,
+        });
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          return reply.status(400).send({
+            error: 'Validation Error',
+            message: 'Invalid input data',
+            details: error.errors,
+          });
+        }
+        throw error;
+      }
+    }
+  );
 }

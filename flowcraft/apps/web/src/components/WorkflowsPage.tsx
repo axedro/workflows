@@ -8,6 +8,8 @@ import { useTranslation } from '../hooks/i18n';
 import { WorkflowCreationModal } from './WorkflowCreationModal';
 import { WorkflowImportModal } from './WorkflowImportModal';
 
+// Using FIXED delete workflow API: 2025-08-09-09:13
+
 const WorkflowsPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation('workflows');

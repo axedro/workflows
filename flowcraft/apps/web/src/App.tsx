@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Loading from './components/Loading';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { useAuthStore } from './stores/authStore';
+import { NotificationCenter } from './components/NotificationCenter';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 // Lazy load components
 const LandingPage = React.lazy(() =>
@@ -22,6 +24,9 @@ const UserProfile = React.lazy(() =>
 
 function App() {
   const { isAuthenticated } = useAuthStore();
+  
+  // Enable global keyboard shortcuts
+  useKeyboardShortcuts({ enableGlobalShortcuts: true });
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -82,6 +87,9 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
+      
+      {/* Global Notification Center */}
+      <NotificationCenter />
     </div>
   );
 }
