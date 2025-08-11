@@ -117,6 +117,7 @@ const EditorCanvas: React.FC<{
         edgeTypes={edgeTypes}
         connectionMode={ConnectionMode.Loose}
         fitView
+        fitViewOptions={{ padding: 0.2, minZoom: 0.1, maxZoom: 1.5 }}
       >
         <Background variant={BackgroundVariant.Dots} />
         <MiniMap className="bg-white border border-gray-200 rounded-md shadow-sm" />

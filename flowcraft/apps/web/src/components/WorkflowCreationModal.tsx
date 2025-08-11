@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useWorkflowStore } from '../stores/workflowStore';
 import { Button } from '@flowcraft/ui';
 import { useTranslation } from '../hooks/i18n';
+import { NodeType, getNodePorts } from '@flowcraft/shared-types';
 
 interface WorkflowCreationModalProps {
   isOpen: boolean;
@@ -109,15 +110,25 @@ export const WorkflowCreationModal: React.FC<WorkflowCreationModalProps> = ({
           nodes: [
             {
               id: 'start',
-              type: 'start',
+              type: NodeType.START,
               position: { x: 100, y: 100 },
-              data: { label: 'Start' }
+              data: { 
+                label: 'Start',
+                inputPorts: getNodePorts(NodeType.START).filter(port => port.type === 'input'),
+                outputPorts: getNodePorts(NodeType.START).filter(port => port.type === 'output'),
+                validation: { isValid: true, errors: [], warnings: [] }
+              }
             },
             {
               id: 'end',
-              type: 'end',
-              position: { x: 300, y: 100 },
-              data: { label: 'End' }
+              type: NodeType.END,
+              position: { x: 900, y: 100 },
+              data: { 
+                label: 'End',
+                inputPorts: getNodePorts(NodeType.END).filter(port => port.type === 'input'),
+                outputPorts: getNodePorts(NodeType.END).filter(port => port.type === 'output'),
+                validation: { isValid: true, errors: [], warnings: [] }
+              }
             }
           ],
           edges: [],
