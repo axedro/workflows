@@ -8,11 +8,8 @@ import {
   FlowValidation,
   FieldMappingValidation,
   TransformationValidation,
-  DataType,
-  NodeType,
-  getNodeSchema
+  DataType
 } from '@flowcraft/shared-types';
-import ConnectorValidationService from '../../../services/connectorValidation.service';
 
 interface DataConfigPanelProps {
   /** Source node data schema */
@@ -35,9 +32,8 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
   readOnly = false,
 }) => {
   const [localDataFlow, setLocalDataFlow] = useState<DataFlow>(dataFlow);
-  const [activeTab, setActiveTab] = useState<'mapping' | 'transformations' | 'validation' | 'preview' | 'connectors'>('mapping');
+  const [activeTab, setActiveTab] = useState<'mapping' | 'transformations' | 'validation' | 'preview'>('mapping');
   const [previewData, setPreviewData] = useState<Record<string, any>>({});
-  const [suggestions, setSuggestions] = useState<Array<{sourceField: string, targetField: string, confidence: number}>>([]);
 
   // Update local state when props change
   useEffect(() => {
@@ -46,29 +42,24 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
 
   // Auto-generate mappings when dataFlow is empty and sourceSchema has fields
   useEffect(() => {
-    if (dataFlow.fieldMappings.length === 0 && Object.keys(sourceSchema).length > 0) {
-      // Only auto-generate if we don't already have mappings for these fields
-      const existingSourceFields = new Set(dataFlow.fieldMappings.map(m => m.sourceField));
-      const newSourceFields = Object.keys(sourceSchema).filter(field => !existingSourceFields.has(field));
+    // Only auto-map if there are NO mappings at all (including custom ones)
+    if (localDataFlow.fieldMappings.length === 0 && Object.keys(sourceSchema).length > 0) {
+      const autoMappings: FieldMapping[] = Object.keys(sourceSchema).map(sourceField => ({
+        sourceField: sourceField,
+        targetField: sourceField, // Auto-map to same name
+        required: false,
+        description: `Auto-mapped from ${sourceField}`
+      }));
       
-      if (newSourceFields.length > 0) {
-        const autoMappings: FieldMapping[] = newSourceFields.map(sourceField => ({
-          sourceField: sourceField,
-          targetField: sourceField, // Auto-map to same name
-          required: false,
-          description: `Auto-mapped from ${sourceField}`
-        }));
-        
-        const updatedDataFlow: DataFlow = {
-          ...dataFlow,
-          fieldMappings: [...dataFlow.fieldMappings, ...autoMappings],
-        };
-        
-        setLocalDataFlow(updatedDataFlow);
-        onDataFlowChange(updatedDataFlow);
-      }
+      const updatedDataFlow: DataFlow = {
+        ...localDataFlow,
+        fieldMappings: autoMappings,
+      };
+      
+      setLocalDataFlow(updatedDataFlow);
+      onDataFlowChange(updatedDataFlow);
     }
-  }, [dataFlow, sourceSchema, onDataFlowChange]);
+  }, [sourceSchema]); // Only trigger on schema changes, not on dataFlow changes
 
   // Debug: Log schemas to console
   useEffect(() => {
@@ -87,11 +78,6 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
     setPreviewData(sampleData);
   }, [sourceSchema]);
 
-  // Generate field mapping suggestions
-  useEffect(() => {
-    const newSuggestions = generateFieldSuggestions(sourceSchema, targetSchema);
-    setSuggestions(newSuggestions);
-  }, [sourceSchema, targetSchema]);
 
 
 
@@ -128,72 +114,9 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
     }));
   };
 
-  const generateFieldSuggestions = (sourceSchema: Record<string, DataField>, targetSchema: Record<string, DataField>) => {
-    const suggestions: Array<{sourceField: string, targetField: string, confidence: number}> = [];
-    
-    Object.entries(sourceSchema).forEach(([sourceFieldId, sourceField]) => {
-      Object.entries(targetSchema).forEach(([targetFieldId, targetField]) => {
-        let confidence = 0;
-        
-        // Exact name match
-        if (sourceField.name.toLowerCase() === targetField.name.toLowerCase()) {
-          confidence += 0.8;
-        }
-        
-        // Similar name match
-        if (sourceField.name.toLowerCase().includes(targetField.name.toLowerCase()) || 
-            targetField.name.toLowerCase().includes(sourceField.name.toLowerCase())) {
-          confidence += 0.4;
-        }
-        
-        // Type compatibility
-        if (sourceField.type === targetField.type) {
-          confidence += 0.3;
-        }
-        
-        // Description similarity
-        if (sourceField.description && targetField.description) {
-          const sourceWords = sourceField.description.toLowerCase().split(' ');
-          const targetWords = targetField.description.toLowerCase().split(' ');
-          const commonWords = sourceWords.filter(word => targetWords.includes(word));
-          if (commonWords.length > 0) {
-            confidence += 0.2 * (commonWords.length / Math.max(sourceWords.length, targetWords.length));
-          }
-        }
-        
-        if (confidence > 0.3) {
-          suggestions.push({
-            sourceField: sourceFieldId,
-            targetField: targetFieldId,
-            confidence: Math.min(confidence, 1)
-          });
-        }
-      });
-    });
-    
-    return suggestions.sort((a, b) => b.confidence - a.confidence);
-  };
-
-  const applySuggestion = (suggestion: {sourceField: string, targetField: string, confidence: number}) => {
-    const newMapping: FieldMapping = {
-      sourceField: suggestion.sourceField,
-      targetField: suggestion.targetField,
-      required: false,
-      description: `Auto-mapped (${Math.round(suggestion.confidence * 100)}% confidence)`,
-    };
-
-    const updatedDataFlow: DataFlow = {
-      ...localDataFlow,
-      fieldMappings: [...localDataFlow.fieldMappings, newMapping],
-    };
-
-    setLocalDataFlow(updatedDataFlow);
-    onDataFlowChange(updatedDataFlow);
-  };
-
-  const handleFieldMappingChange = (mappingId: string, updates: Partial<FieldMapping>) => {
-    const updatedMappings = localDataFlow.fieldMappings.map(mapping => 
-      mapping.sourceField === mappingId ? { ...mapping, ...updates } : mapping
+  const handleFieldMappingChange = (mappingIndex: number, updates: Partial<FieldMapping>) => {
+    const updatedMappings = localDataFlow.fieldMappings.map((mapping, index) => 
+      index === mappingIndex ? { ...mapping, ...updates } : mapping
     );
 
     const updatedDataFlow: DataFlow = {
@@ -205,11 +128,66 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
     onDataFlowChange(updatedDataFlow);
   };
 
-  const addFieldMapping = () => {
-    // Auto-generate mappings for all source fields
-    const newMappings: FieldMapping[] = Object.keys(sourceSchema).map(sourceField => ({
-      sourceField: sourceField,
-      targetField: sourceField, // Auto-map to same name
+  // Helper function to get unmapped fields
+  const getUnmappedFields = () => {
+    const existingSourceFields = new Set(localDataFlow.fieldMappings.map(m => m.sourceField));
+    return Object.keys(sourceSchema).filter(field => !existingSourceFields.has(field));
+  };
+
+  // Map a specific field
+  const mapSpecificField = (sourceField: string) => {
+    const newMapping: FieldMapping = {
+      sourceField,
+      targetField: sourceField, // Auto-suggest same name
+      required: false,
+      description: `Mapped from ${sourceField}`
+    };
+    
+    const updatedDataFlow: DataFlow = {
+      ...localDataFlow,
+      fieldMappings: [...localDataFlow.fieldMappings, newMapping],
+    };
+    
+    setLocalDataFlow(updatedDataFlow);
+    onDataFlowChange(updatedDataFlow);
+  };
+
+  // Add next unmapped field
+  const addNextFieldMapping = () => {
+    const unmappedFields = getUnmappedFields();
+    
+    if (unmappedFields.length > 0) {
+      // Map only the next available field
+      const nextField = unmappedFields[0];
+      mapSpecificField(nextField);
+    }
+  };
+
+  // Add custom blank mapping for manual configuration
+  const addCustomFieldMapping = () => {
+    const newMapping: FieldMapping = {
+      sourceField: '',
+      targetField: '',
+      required: false,
+      description: 'Custom mapping - configure me!'
+    };
+    
+    // Add to the BEGINNING of the list for better visibility
+    const updatedDataFlow: DataFlow = {
+      ...localDataFlow,
+      fieldMappings: [newMapping, ...localDataFlow.fieldMappings],
+    };
+    
+    setLocalDataFlow(updatedDataFlow);
+    onDataFlowChange(updatedDataFlow);
+  };
+
+  // Map all remaining unmapped fields
+  const mapAllRemainingFields = () => {
+    const unmappedFields = getUnmappedFields();
+    const newMappings: FieldMapping[] = unmappedFields.map(sourceField => ({
+      sourceField,
+      targetField: sourceField,
       required: false,
       description: `Auto-mapped from ${sourceField}`
     }));
@@ -218,14 +196,27 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
       ...localDataFlow,
       fieldMappings: [...localDataFlow.fieldMappings, ...newMappings],
     };
-
+    
     setLocalDataFlow(updatedDataFlow);
     onDataFlowChange(updatedDataFlow);
   };
 
-  const removeFieldMapping = (sourceField: string) => {
+  // Legacy function - kept for backward compatibility but improved
+  const addFieldMapping = () => {
+    // If there are unmapped fields, map the next one
+    // Otherwise, add a custom blank mapping
+    const unmappedFields = getUnmappedFields();
+    
+    if (unmappedFields.length > 0) {
+      addNextFieldMapping();
+    } else {
+      addCustomFieldMapping();
+    }
+  };
+
+  const removeFieldMapping = (index: number) => {
     const updatedMappings = localDataFlow.fieldMappings.filter(
-      mapping => mapping.sourceField !== sourceField
+      (_, mappingIndex) => mappingIndex !== index
     );
 
     const updatedDataFlow: DataFlow = {
@@ -398,63 +389,108 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
     };
   };
 
-  const renderFieldMappingTab = () => (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
+  const renderFieldMappingTab = () => {
+    const unmappedFields = getUnmappedFields();
+    const totalSourceFields = Object.keys(sourceSchema).length;
+    const mappedFields = totalSourceFields - unmappedFields.length;
+    
+    return (
+      <div className="space-y-4">
+        {/* Summary Stats */}
+        {totalSourceFields > 0 && (
+          <div className="bg-gray-50 rounded-lg p-4 border">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="text-sm">
+                  <span className="font-medium text-gray-900">Mapping Progress:</span>
+                  <span className="ml-2 text-gray-700">
+                    {mappedFields} of {totalSourceFields} fields mapped
+                  </span>
+                </div>
+                <div className="flex-1 bg-gray-200 rounded-full h-2 max-w-xs">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${totalSourceFields > 0 ? (mappedFields / totalSourceFields) * 100 : 0}%` }}
+                  ></div>
+                </div>
+                <span className="text-sm font-medium text-gray-900">
+                  {totalSourceFields > 0 ? Math.round((mappedFields / totalSourceFields) * 100) : 0}%
+                </span>
+              </div>
+              {mappedFields === totalSourceFields && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  ✓ All fields mapped
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium text-gray-900">Field Mappings</h3>
         <div className="flex space-x-2">
-          <button
-            onClick={addFieldMapping}
-            disabled={readOnly}
-            className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300"
-          >
-            Add Mapping
-          </button>
+          {/* Show different buttons based on available unmapped fields */}
+          {getUnmappedFields().length > 0 ? (
+            <>
+              <button
+                onClick={addNextFieldMapping}
+                disabled={readOnly}
+                className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300"
+              >
+                Map Next Field ({getUnmappedFields().length} remaining)
+              </button>
+              {getUnmappedFields().length > 1 && (
+                <button
+                  onClick={mapAllRemainingFields}
+                  disabled={readOnly}
+                  className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-300"
+                >
+                  Auto-map All ({getUnmappedFields().length})
+                </button>
+              )}
+            </>
+          ) : (
+            <button
+              onClick={addCustomFieldMapping}
+              disabled={readOnly}
+              className="px-3 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600 disabled:bg-gray-300"
+            >
+              Add Custom Mapping
+            </button>
+          )}
           <button
             onClick={() => setActiveTab('preview')}
             disabled={readOnly}
-            className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-300"
+            className="px-3 py-1 text-sm bg-purple-500 text-white rounded hover:bg-purple-600 disabled:bg-gray-300"
           >
             Preview Data
           </button>
         </div>
       </div>
 
-      {/* Auto-suggestions */}
-      {suggestions.length > 0 && (
-        <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
-          <h4 className="text-sm font-medium text-blue-800 mb-3">💡 Field Mapping Suggestions</h4>
-          <div className="space-y-2">
-            {suggestions.slice(0, 5).map((suggestion, index) => {
-              const sourceField = sourceSchema[suggestion.sourceField];
-              const targetField = targetSchema[suggestion.targetField];
-              const isAlreadyMapped = localDataFlow.fieldMappings.some(
-                mapping => mapping.sourceField === suggestion.sourceField || mapping.targetField === suggestion.targetField
-              );
-              
+
+      {/* Unmapped Fields Panel */}
+      {getUnmappedFields().length > 0 && (
+        <div className="border border-orange-200 rounded-lg p-4 bg-orange-50">
+          <h4 className="text-sm font-medium text-orange-800 mb-3">
+            🔗 Unmapped Fields ({getUnmappedFields().length})
+          </h4>
+          <p className="text-xs text-orange-700 mb-3">
+            These source fields are available but not yet mapped to target fields.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {getUnmappedFields().map(fieldId => {
+              const field = sourceSchema[fieldId];
               return (
-                <div key={index} className="flex items-center justify-between p-2 bg-white rounded border">
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-gray-700">
-                      {sourceField?.name} → {targetField?.name}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Confidence: {Math.round(suggestion.confidence * 100)}% | 
-                      Types: {sourceField?.type} → {targetField?.type}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => applySuggestion(suggestion)}
-                    disabled={readOnly || isAlreadyMapped}
-                    className={`px-2 py-1 text-xs rounded ${
-                      isAlreadyMapped 
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : 'bg-blue-500 text-white hover:bg-blue-600'
-                    }`}
-                  >
-                    {isAlreadyMapped ? 'Already Mapped' : 'Apply'}
-                  </button>
-                </div>
+                <button
+                  key={fieldId}
+                  onClick={() => mapSpecificField(fieldId)}
+                  disabled={readOnly}
+                  className="px-3 py-1 text-sm bg-white border border-orange-300 rounded hover:bg-orange-100 disabled:bg-gray-200 disabled:cursor-not-allowed"
+                  title={field?.description || `Map ${field?.name || fieldId}`}
+                >
+                  + Map "{field?.name || fieldId}" ({field?.type})
+                </button>
               );
             })}
           </div>
@@ -465,18 +501,53 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
         {localDataFlow.fieldMappings.map((mapping, index) => {
           const validation = validateFieldMapping(mapping);
           const sourceField = sourceSchema[mapping.sourceField];
+          
+          // Highlight custom mappings that need configuration
+          const isCustomMapping = !mapping.sourceField && !mapping.targetField;
+          const borderClass = isCustomMapping ? 
+            "border-2 border-dashed border-orange-300 bg-orange-50" : 
+            "border border-gray-200";
 
           return (
-            <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+            <div key={index} className={`${borderClass} rounded-lg p-4 space-y-3 ${isCustomMapping ? 'relative' : ''}`}>
               <div className="flex justify-between items-start">
-                <h4 className="font-medium text-gray-700">Mapping {index + 1}</h4>
-                <button
-                  onClick={() => removeFieldMapping(mapping.sourceField)}
-                  disabled={readOnly}
-                  className="text-red-500 hover:text-red-700 text-sm"
-                >
-                  Remove
-                </button>
+                <div className="flex-1">
+                  <h4 className="font-medium text-gray-700">
+                    {isCustomMapping && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 mr-2">
+                        🔧 Configure me
+                      </span>
+                    )}
+                    Mapping {index + 1}
+                    {mapping.sourceField && mapping.targetField && (
+                      <span className="ml-2 text-sm text-gray-500 font-normal">
+                        ({mapping.sourceField} → {mapping.targetField})
+                      </span>
+                    )}
+                  </h4>
+                  {mapping.description && (
+                    <p className={`text-xs mt-1 ${isCustomMapping ? 'text-orange-600 font-medium' : 'text-gray-500'}`}>
+                      {mapping.description}
+                    </p>
+                  )}
+                </div>
+                <div className="flex space-x-2">
+                  {/* Show validation status */}
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                    validation.isValid 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {validation.isValid ? '✓ Valid' : '✗ Invalid'}
+                  </span>
+                  <button
+                    onClick={() => removeFieldMapping(index)}
+                    disabled={readOnly}
+                    className="text-red-500 hover:text-red-700 text-sm"
+                  >
+                    Remove
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -486,7 +557,7 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
                   </label>
                   <select
                     value={mapping.sourceField}
-                    onChange={(e) => handleFieldMappingChange(mapping.sourceField, { sourceField: e.target.value })}
+                    onChange={(e) => handleFieldMappingChange(index, { sourceField: e.target.value })}
                     disabled={readOnly}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
@@ -511,7 +582,7 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
                   <input
                     type="text"
                     value={mapping.targetField}
-                    onChange={(e) => handleFieldMappingChange(mapping.sourceField, { targetField: e.target.value })}
+                    onChange={(e) => handleFieldMappingChange(index, { targetField: e.target.value })}
                     disabled={readOnly}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter target field name"
@@ -529,7 +600,7 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
                 <input
                   type="text"
                   value={mapping.description || ''}
-                  onChange={(e) => handleFieldMappingChange(mapping.sourceField, { description: e.target.value })}
+                  onChange={(e) => handleFieldMappingChange(index, { description: e.target.value })}
                   disabled={readOnly}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Optional description of this mapping"
@@ -541,7 +612,7 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
                   type="checkbox"
                   id={`required-${index}`}
                   checked={mapping.required || false}
-                  onChange={(e) => handleFieldMappingChange(mapping.sourceField, { required: e.target.checked })}
+                  onChange={(e) => handleFieldMappingChange(index, { required: e.target.checked })}
                   disabled={readOnly}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
@@ -577,7 +648,8 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
         })}
       </div>
     </div>
-  );
+    );
+  };
 
   const renderTransformationsTab = () => (
     <div className="space-y-4">
@@ -1461,143 +1533,6 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
     return outputData;
   };
 
-  const renderConnectorsTab = () => {
-    const connectorTypes = [
-      { type: NodeType.HTTP_REQUEST, name: 'HTTP Request', icon: '🌐' },
-      { type: NodeType.EMAIL, name: 'Email', icon: '📧' },
-      { type: NodeType.SLACK, name: 'Slack', icon: '💬' },
-      { type: NodeType.TIMER, name: 'Timer', icon: '⏰' },
-      { type: NodeType.WEBHOOK, name: 'Webhook', icon: '🔗' },
-      { type: NodeType.DATA_TRANSFORM, name: 'Data Transform', icon: '🔄' },
-    ];
-
-    return (
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium text-gray-900">Connector Schemas</h3>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => {
-                const config = {
-                  connectorType: 'HTTP_REQUEST',
-                  fields: {},
-                  schema: getNodeSchema(NodeType.HTTP_REQUEST).input
-                };
-                const exported = ConnectorValidationService.exportConnectorConfig(config);
-                navigator.clipboard.writeText(exported);
-                alert('Configuration exported to clipboard!');
-              }}
-              className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Export Schema
-            </button>
-            <button
-              onClick={() => {
-                const input = prompt('Paste configuration JSON:');
-                if (input) {
-                  try {
-                    ConnectorValidationService.importConnectorConfig(input);
-                    alert('Configuration imported successfully!');
-                  } catch (error) {
-                    alert(`Import failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                  }
-                }
-              }}
-              className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
-            >
-              Import Schema
-            </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {connectorTypes.map((connector) => {
-            const schema = getNodeSchema(connector.type);
-            const inputFields = Object.values(schema.input);
-            const outputFields = Object.values(schema.output);
-
-            return (
-              <div key={connector.type} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center mb-3">
-                  <span className="text-2xl mr-2">{connector.icon}</span>
-                  <h4 className="font-medium text-gray-700">{connector.name}</h4>
-                </div>
-
-                <div className="space-y-3">
-                  {/* Input Fields */}
-                  <div>
-                    <h5 className="text-sm font-medium text-gray-600 mb-2">📥 Input Fields ({inputFields.length})</h5>
-                    <div className="space-y-1">
-                      {inputFields.map((field) => (
-                        <div key={field.id} className="flex items-center justify-between text-xs">
-                          <span className="text-gray-700">{field.name}</span>
-                          <div className="flex items-center space-x-1">
-                            <span className={`px-1 py-0.5 rounded text-xs ${
-                              field.required 
-                                ? 'bg-red-100 text-red-800' 
-                                : 'bg-gray-100 text-gray-600'
-                            }`}>
-                              {field.required ? 'Required' : 'Optional'}
-                            </span>
-                            <span className="px-1 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">
-                              {field.type}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Output Fields */}
-                  <div>
-                    <h5 className="text-sm font-medium text-gray-600 mb-2">📤 Output Fields ({outputFields.length})</h5>
-                    <div className="space-y-1">
-                      {outputFields.map((field) => (
-                        <div key={field.id} className="flex items-center justify-between text-xs">
-                          <span className="text-gray-700">{field.name}</span>
-                          <span className="px-1 py-0.5 bg-green-100 text-green-800 rounded text-xs">
-                            {field.type}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Validation Test */}
-                  <div className="pt-2 border-t border-gray-100">
-                    <button
-                      onClick={() => {
-                        // Create sample data for validation test
-                        const sampleData: Record<string, any> = {};
-                        inputFields.forEach(field => {
-                          sampleData[field.id] = field.example || generateSampleValue(field);
-                        });
-
-                        const validationResult = ConnectorValidationService.validateConnector({
-                          connectorType: connector.type,
-                          fields: sampleData,
-                          schema: schema.input
-                        });
-
-                        if (validationResult.isValid) {
-                          alert(`✅ ${connector.name} validation passed!`);
-                        } else {
-                          alert(`❌ ${connector.name} validation failed:\n${validationResult.errors.join('\n')}`);
-                        }
-                      }}
-                      className="w-full px-2 py-1 text-xs bg-purple-500 text-white rounded hover:bg-purple-600"
-                    >
-                      Test Validation
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
 
   const renderValidationTab = () => {
     const allMappingsValid = localDataFlow.fieldMappings.every(mapping => 
@@ -1737,7 +1672,6 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
             { id: 'transformations', label: 'Transformations', icon: '⚙️' },
             { id: 'validation', label: 'Validation', icon: '✅' },
             { id: 'preview', label: 'Preview', icon: '👁️' },
-            { id: 'connectors', label: 'Connectors', icon: '🔌' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -1761,7 +1695,6 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
         {activeTab === 'transformations' && renderTransformationsTab()}
         {activeTab === 'validation' && renderValidationTab()}
         {activeTab === 'preview' && renderPreviewTab()}
-        {activeTab === 'connectors' && renderConnectorsTab()}
       </div>
     </div>
   );

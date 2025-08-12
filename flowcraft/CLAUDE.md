@@ -183,3 +183,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Rate limiting on all API endpoints
 - Input validation and sanitization
 - SQL injection prevention via Prisma
+
+### DataConfigPanel Improvements (Recent)
+- **Field Mapping Enhancements**: Removed duplicating "Add Mapping" bug, improved UX with contextual buttons
+- **Custom Mappings**: Custom mappings now appear at top of list with visual highlighting for better UX
+- **Index-based Identification**: Switched from sourceField-based to index-based mapping identification for better custom mapping support
+- **UI Simplification**: Removed "Field Mapping Suggestions" and "Connectors" tabs to focus on core functionality
+- **Code Documentation**: Extracted ConnectorSchemaViewer to `/docs/ConnectorSchemaViewer.tsx` for future wizard implementations
+
+### Connector Schema Documentation
+- ConnectorSchemaViewer component saved in `/docs/ConnectorSchemaViewer.tsx`
+- Contains full schema reference for all connector types (HTTP, Email, Slack, etc.)
+- Includes validation testing and import/export functionality
+- Ready for integration into future connector wizards or documentation pages
