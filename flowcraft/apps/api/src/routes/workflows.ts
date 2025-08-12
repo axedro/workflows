@@ -752,6 +752,7 @@ export async function workflowRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/:id/validate',
     {
+      preValidation: [authenticate],
       schema: {
         description: 'Validate workflow definition',
         tags: ['workflows'],
