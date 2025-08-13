@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { EditorNode, NodeType, EditorEdge, DataFlow, DataType, DataField, getNodeInputSchema, getNodeOutputSchema } from '@flowcraft/shared-types';
-import { Tooltip } from '@flowcraft/ui';
 
 import ConnectorValidationService from '../../../services/connectorValidation.service';
 import ConditionEditor from './ConditionEditor';
@@ -93,8 +92,27 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
     if (!nodeType) return;
 
     try {
+      // Mapear el tipo de nodo al tipo de conector esperado por el servicio de validación
+      const connectorTypeMap: Record<NodeType, string> = {
+        [NodeType.HTTP_REQUEST]: 'HTTP_REQUEST',
+        [NodeType.EMAIL]: 'EMAIL',
+        [NodeType.SLACK]: 'SLACK',
+        [NodeType.TIMER]: 'TIMER',
+        [NodeType.WEBHOOK]: 'WEBHOOK',
+        [NodeType.DATA_TRANSFORM]: 'DATA_TRANSFORM',
+        [NodeType.START]: '',
+        [NodeType.END]: '',
+        [NodeType.ACTION]: '',
+        [NodeType.CONDITION]: '',
+        [NodeType.LOOP]: '',
+        [NodeType.TEST]: '',
+      };
+
+      const connectorType = connectorTypeMap[nodeType];
+      if (!connectorType) return; // No hay validación para este tipo de nodo
+
       const validationConfig = {
-        connectorType: nodeType,
+        connectorType,
         fields: { [fieldName]: value },
         schema: {} // Por ahora usamos un schema vacío, podríamos obtenerlo del nodo
       };
@@ -119,6 +137,8 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
         ...prev,
         [fieldName]: fieldWarnings
       }));
+
+      // La validación visual se aplicará cuando se guarde el nodo
 
     } catch (error) {
       console.error('Validation error:', error);
@@ -225,6 +245,19 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
     // Limpiar validaciones al cambiar de nodo
     setValidationErrors({});
     setValidationWarnings({});
+    
+    // Re-validar todos los campos del nodo seleccionado
+    if (selectedNode) {
+      // Usar setTimeout para asegurar que el nodo local se haya actualizado
+      setTimeout(() => {
+        const nodeData = selectedNode.data as any;
+        Object.entries(nodeData).forEach(([field, value]) => {
+          if (value !== undefined && value !== null && value !== '') {
+            validateField(field, value, selectedNode.type);
+          }
+        });
+      }, 0);
+    }
   }, [selectedNode, selectedEdge]);
 
   // If an edge is selected, show the data configuration panel
@@ -334,7 +367,36 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
       // Simulate save operation
       await new Promise(resolve => setTimeout(resolve, 300));
       
-      onNodeUpdate(localNode);
+      // Aplicar validación visual al nodo antes de guardarlo
+      const hasValidationErrors = Object.values(validationErrors).some(errors => errors.length > 0);
+      const allErrors = Object.values(validationErrors).flat();
+      const allWarnings = Object.values(validationWarnings).flat();
+      
+      console.log('handleSave validation debug:', {
+        nodeId: localNode.id,
+        validationErrors,
+        validationWarnings,
+        hasValidationErrors,
+        allErrors,
+        allWarnings
+      });
+      
+      const nodeWithValidation = {
+        ...localNode,
+        data: {
+          ...localNode.data,
+          validation: {
+            isValid: !hasValidationErrors,
+            errors: allErrors,
+            warnings: allWarnings
+          }
+        }
+      };
+      
+      console.log('nodeWithValidation:', nodeWithValidation.data.validation);
+      
+      onNodeUpdate(nodeWithValidation);
+      setLocalNode(nodeWithValidation);
       setHasUnsavedChanges(false);
       setSaveStatus('saved');
       
@@ -436,14 +498,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
         return (
           <div className="space-y-3">
             <div>
-              <Tooltip
-                content="How this workflow will be triggered"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Trigger Type
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Trigger Type
+              </label>
               <select
                 value={startData.triggerType || 'manual'}
                 onChange={e => handleInputChange('triggerType', e.target.value)}
@@ -458,14 +515,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
 
             {startData.triggerType === 'scheduled' && (
               <div>
-                <Tooltip
-                  content="Cron expression for scheduling workflow execution (e.g., 0 0 * * * for daily at midnight)"
-                  position="right"
-                >
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Schedule (Cron)
-                  </label>
-                </Tooltip>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Schedule (Cron)
+                </label>
                 <input
                   type="text"
                   value={startData.schedule || ''}
@@ -479,14 +531,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
 
             {startData.triggerType === 'webhook' && (
               <div>
-                <Tooltip
-                  content="URL endpoint that will trigger this workflow when called"
-                  position="right"
-                >
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Webhook URL
-                  </label>
-                </Tooltip>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Webhook URL
+                </label>
                 <input
                   type="text"
                   value={startData.webhookUrl || ''}
@@ -507,14 +554,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
         return (
           <div className="space-y-3">
             <div>
-              <Tooltip
-                content="Type of action this node will perform"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Action Type
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Action Type
+              </label>
               <select
                 value={actionData.actionType || 'custom'}
                 onChange={e => handleInputChange('actionType', e.target.value)}
@@ -530,14 +572,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             </div>
 
             <div>
-              <Tooltip
-                content="Maximum number of retry attempts if this action fails"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Max Retries
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Max Retries
+              </label>
               <input
                 type="number"
                 value={actionData.maxRetries || 3}
@@ -574,14 +611,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
         return (
           <div className="space-y-3">
             <div>
-              <Tooltip
-                content="Type of result this end node will produce"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Result Type
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Result Type
+              </label>
               <select
                 value={endData.resultType || 'success'}
                 onChange={e => handleInputChange('resultType', e.target.value)}
@@ -602,14 +634,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
         return (
           <div className="space-y-3">
             <div>
-              <Tooltip
-                content="HTTP method for the request"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Method
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Method
+              </label>
               {renderFieldWithValidation(
                 'method',
                 httpData.method || 'GET',
@@ -627,14 +654,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             </div>
 
             <div>
-              <Tooltip
-                content="URL endpoint for the HTTP request"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  URL
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                URL
+              </label>
               {renderFieldWithValidation(
                 'url',
                 httpData.url || '',
@@ -645,14 +667,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             </div>
 
             <div>
-              <Tooltip
-                content="HTTP headers for the request (JSON format)"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Headers
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Headers
+              </label>
               <textarea
                 value={httpData.headers ? JSON.stringify(httpData.headers, null, 2) : '{\n  "Content-Type": "application/json"\n}'}
                 onChange={e => {
@@ -672,14 +689,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             </div>
 
             <div>
-              <Tooltip
-                content="Request body for POST/PUT/PATCH requests (JSON format)"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Body
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Body
+              </label>
               <textarea
                 value={httpData.body ? JSON.stringify(httpData.body, null, 2) : ''}
                 onChange={e => {
@@ -699,14 +711,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             </div>
 
             <div>
-              <Tooltip
-                content="Maximum number of retry attempts if the request fails"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Max Retries
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Max Retries
+              </label>
               {renderFieldWithValidation(
                 'maxRetries',
                 httpData.maxRetries || 3,
@@ -718,14 +725,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             </div>
 
             <div>
-              <Tooltip
-                content="Timeout for the request in milliseconds"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Timeout (ms)
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Timeout (ms)
+              </label>
               {renderFieldWithValidation(
                 'timeout',
                 httpData.timeout || 30000,
@@ -743,14 +745,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
         return (
           <div className="space-y-3">
             <div>
-              <Tooltip
-                content="Email addresses to send the message to"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  To
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                To
+              </label>
               <textarea
                 value={emailData.to ? JSON.stringify(emailData.to, null, 2) : ''}
                 onChange={e => {
@@ -770,14 +767,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             </div>
 
             <div>
-              <Tooltip
-                content="Email addresses to CC"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  CC
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                CC
+              </label>
               <textarea
                 value={emailData.cc ? JSON.stringify(emailData.cc, null, 2) : ''}
                 onChange={e => {
@@ -796,14 +788,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             </div>
 
             <div>
-              <Tooltip
-                content="Subject line of the email"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Subject
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Subject
+              </label>
               <input
                 type="text"
                 value={emailData.subject || ''}
@@ -815,14 +802,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             </div>
 
             <div>
-              <Tooltip
-                content="Email body content"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Body
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email Body
+              </label>
               <textarea
                 value={emailData.emailBody || ''}
                 onChange={e => handleInputChange('emailBody', e.target.value)}
@@ -834,14 +816,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             </div>
 
             <div>
-              <Tooltip
-                content="Maximum number of retry attempts if sending fails"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Max Retries
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Max Retries
+              </label>
               <input
                 type="number"
                 value={emailData.maxRetries || 3}
@@ -860,14 +837,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
         return (
           <div className="space-y-3">
             <div>
-              <Tooltip
-                content="Slack channel to send the message to"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Channel
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Channel
+              </label>
               <input
                 type="text"
                 value={slackData.channel || ''}
@@ -879,14 +851,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             </div>
 
             <div>
-              <Tooltip
-                content="Slack message content"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Message
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Message
+              </label>
               <textarea
                 value={slackData.message || ''}
                 onChange={e => handleInputChange('message', e.target.value)}
@@ -898,14 +865,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             </div>
 
             <div>
-              <Tooltip
-                content="Slack message attachments (JSON format)"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Attachments
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Attachments
+              </label>
               <textarea
                 value={slackData.attachments ? JSON.stringify(slackData.attachments, null, 2) : ''}
                 onChange={e => {
@@ -924,14 +886,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             </div>
 
             <div>
-              <Tooltip
-                content="Maximum number of retry attempts if sending fails"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Max Retries
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Max Retries
+              </label>
               <input
                 type="number"
                 value={slackData.maxRetries || 3}
@@ -950,12 +907,34 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
     }
   };
 
+  // Calcular número total de errores de validación
+  const totalErrors = Object.values(validationErrors).reduce((sum, errors) => sum + errors.length, 0);
+  const totalWarnings = Object.values(validationWarnings).reduce((sum, warnings) => sum + warnings.length, 0);
+  const totalIssues = totalErrors + totalWarnings;
+
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-800">Properties</h2>
+          <div className="flex items-center space-x-3">
+            <h2 className="text-lg font-semibold text-gray-800">Properties</h2>
+            {totalIssues > 0 && (
+              <div className="relative">
+                <div className="bg-yellow-100 border border-yellow-300 rounded-lg px-3 py-1 flex items-center space-x-2">
+                  <span className="text-yellow-600">⚠️</span>
+                  <span className="text-sm font-medium text-yellow-800">
+                    {totalIssues} Issue{totalIssues > 1 ? 's' : ''}
+                  </span>
+                  <button className="text-yellow-600 hover:text-yellow-800">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
           {!readOnly && (
             <div className="flex items-center space-x-2">
               {hasUnsavedChanges && (
@@ -963,28 +942,26 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                   Unsaved changes
                 </span>
               )}
-              <Tooltip content="Save changes to this node" position="left">
-                <button
-                  onClick={handleSave}
-                  disabled={saveStatus === 'saving'}
-                  className={`px-3 py-1 text-sm rounded transition-colors ${
-                    saveStatus === 'saving'
-                      ? 'bg-gray-400 text-white cursor-not-allowed'
-                      : saveStatus === 'saved'
-                      ? 'bg-green-500 text-white'
-                      : saveStatus === 'error'
-                      ? 'bg-red-500 text-white'
-                      : hasUnsavedChanges
-                      ? 'bg-blue-500 text-white hover:bg-blue-600'
-                      : 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                  }`}
-                >
-                  {saveStatus === 'saving' && 'Saving...'}
-                  {saveStatus === 'saved' && 'Saved!'}
-                  {saveStatus === 'error' && 'Error'}
-                  {saveStatus === 'idle' && (hasUnsavedChanges ? 'Save' : 'Saved')}
-                </button>
-              </Tooltip>
+              <button
+                onClick={handleSave}
+                disabled={saveStatus === 'saving'}
+                className={`px-3 py-1 text-sm rounded transition-colors ${
+                  saveStatus === 'saving'
+                    ? 'bg-gray-400 text-white cursor-not-allowed'
+                    : saveStatus === 'saved'
+                    ? 'bg-green-500 text-white'
+                    : saveStatus === 'error'
+                    ? 'bg-red-500 text-white'
+                    : hasUnsavedChanges
+                    ? 'bg-blue-500 text-white hover:bg-blue-600'
+                    : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                }`}
+              >
+                {saveStatus === 'saving' && 'Saving...'}
+                {saveStatus === 'saved' && 'Saved!'}
+                {saveStatus === 'error' && 'Error'}
+                {saveStatus === 'idle' && (hasUnsavedChanges ? 'Save' : 'Saved')}
+              </button>
             </div>
           )}
         </div>
@@ -1005,14 +982,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             </h3>
 
             <div>
-              <Tooltip
-                content="Display name for this node in the workflow"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Label
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Label
+              </label>
               <input
                 type="text"
                 value={localNode.data.label || ''}
@@ -1023,14 +995,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             </div>
 
             <div>
-              <Tooltip
-                content="Optional description of what this node does"
-                position="right"
-              >
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-              </Tooltip>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Description
+              </label>
               <textarea
                 value={localNode.data.description || ''}
                 onChange={e => handleInputChange('description', e.target.value)}

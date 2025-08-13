@@ -61,6 +61,7 @@ export class WorkflowService {
     // Validate definition structure
     this.validateWorkflowDefinition(data.definition);
 
+
     const workflow = await prisma.workflow.create({
       data: {
         name: data.name,
@@ -453,10 +454,11 @@ export class WorkflowService {
   }
 
   /**
-   * Check if a workflow name is available in the organization
+   * Check if a workflow name is available for the user
    */
   async isNameAvailable(
     name: string,
+    userId: string,
     organizationId?: string,
     excludeId?: string
   ): Promise<boolean> {
@@ -465,6 +467,7 @@ export class WorkflowService {
         equals: name,
         mode: 'insensitive', // Case-insensitive comparison
       },
+      userId: userId, // Check within the user's workflows
     };
 
     if (organizationId) {
@@ -491,6 +494,7 @@ export class WorkflowService {
    */
   async generateNameSuggestions(
     baseName: string,
+    userId: string,
     organizationId?: string,
     maxSuggestions: number = 3
   ): Promise<string[]> {
@@ -499,7 +503,7 @@ export class WorkflowService {
     // Try numbered variations
     for (let i = 2; i <= maxSuggestions + 1; i++) {
       const suggestion = `${baseName} (${i})`;
-      const isAvailable = await this.isNameAvailable(suggestion, organizationId);
+      const isAvailable = await this.isNameAvailable(suggestion, userId, organizationId);
       
       if (isAvailable) {
         suggestions.push(suggestion);
@@ -520,7 +524,7 @@ export class WorkflowService {
       for (const pattern of additionalPatterns) {
         if (suggestions.length >= maxSuggestions) break;
         
-        const isAvailable = await this.isNameAvailable(pattern, organizationId);
+        const isAvailable = await this.isNameAvailable(pattern, userId, organizationId);
         if (isAvailable) {
           suggestions.push(pattern);
         }

@@ -41,6 +41,16 @@ interface ActionNodeData extends BaseNodeData {
 const ActionNode: React.FC<NodeProps<ActionNodeData>> = ({ data, selected, type }) => {
   const isValid = data.validation?.isValid ?? true;
   
+  // Debug validation data
+  console.log('ActionNode render:', {
+    nodeId: data.label || 'unnamed',
+    isValid,
+    selected,
+    visualState: !isValid ? 
+      (selected ? 'INVALID + SELECTED (red border + blue ring)' : 'INVALID (red border + red ring)') :
+      (selected ? 'VALID + SELECTED (blue border + blue ring)' : 'VALID (blue border)')
+  });
+  
   // Usar los puertos que se pasan en data, o obtenerlos del tipo de nodo como fallback
   const nodeType = type as NodeType;
   const inputPorts = data.inputPorts || getNodePorts(nodeType)?.filter(port => port.type === 'input') || [];
@@ -176,9 +186,11 @@ const ActionNode: React.FC<NodeProps<ActionNodeData>> = ({ data, selected, type 
   return (
     <div
       className={`
-        relative bg-gradient-to-br ${getActionColor()}
-        rounded-lg shadow-lg border-2 p-4 w-36 h-36
-        ${selected ? 'border-blue-500' : (isValid ? 'border-blue-300' : 'border-red-500')}
+        relative rounded-lg shadow-lg border-2 p-4 w-36 h-36
+        ${!isValid ? 
+          (selected ? 'border-red-500 border-4 bg-red-100 ring-4 ring-blue-300' : 'border-red-500 border-4 bg-red-100 ring-2 ring-red-300') :
+          (selected ? 'border-blue-500 bg-gradient-to-br ' + getActionColor() + ' ring-2 ring-blue-300' : 
+           'border-blue-300 bg-gradient-to-br ' + getActionColor())}
       `}
     >
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">

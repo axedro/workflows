@@ -114,8 +114,13 @@ export async function workflowRoutes(fastify: FastifyInstance) {
           });
         }
 
+        // Ensure organizationId is set from user, not from data
+        const workflowData = {
+          ...data,
+          organizationId: user.organizationId
+        };
         const workflow = await workflowService.createWorkflow(
-          data,
+          workflowData,
           user.userId
         );
         return reply.status(201).send(workflow);
@@ -896,6 +901,7 @@ export async function workflowRoutes(fastify: FastifyInstance) {
 
         const isAvailable = await workflowService.isNameAvailable(
           name,
+          user.userId,
           user.organizationId,
           excludeId
         );
@@ -905,6 +911,7 @@ export async function workflowRoutes(fastify: FastifyInstance) {
           // Generate suggestions if name is not available
           suggestions = await workflowService.generateNameSuggestions(
             name,
+            user.userId,
             user.organizationId
           );
         }

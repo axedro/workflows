@@ -78,7 +78,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ Template management system (100% complete)
 - ✅ Import/export functionality (100% complete)
 - ✅ Comprehensive i18n system (85% complete)
-- ⏳ Workflow visual editor (in progress - Sprint 8-9)
+- ✅ Workflow visual editor (95% complete - Sprint 8-9)
+- ✅ Unified validation system (100% complete - Advanced node and edge validation)
 - ⏳ Connector system (planned - Sprint 10-11)
 - ⏳ Execution engine (planned - Sprint 12-13)
 
@@ -196,3 +197,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Contains full schema reference for all connector types (HTTP, Email, Slack, etc.)
 - Includes validation testing and import/export functionality
 - Ready for integration into future connector wizards or documentation pages
+
+### Unified Validation System (Latest Implementation)
+- **UnifiedValidationService**: Centralized validation service consolidating all workflow validations
+- **Comprehensive Node Validation**: Field-level validations for HTTP_REQUEST, EMAIL, SLACK, CONDITION, DATA_TRANSFORM, START, END nodes
+- **Advanced Edge Validation**: Complete validation of connections including structure, data flow, conditions, field mappings, and workflow paths
+- **Real-time Validation**: Local validation with 1-second debounce for immediate feedback, plus legacy API validation for saved workflows
+- **Visual Feedback Integration**: Orange/red borders on invalid nodes, comprehensive Issues dropdown menu with detailed error categorization
+- **Cycle Detection**: Advanced DFS algorithm to detect infinite loops and workflow cycles
+- **Component Analysis**: Detection of disconnected workflow components and unreachable nodes
+- **Field Mapping Validation**: Validates edge data configurations, field mappings, transformations, and data type compatibility
+- **Condition Validation**: Validates conditional logic on CONDITION node edges with syntax checking and best practice suggestions
+- **Categories**: All validations categorized as 'workflow', 'field', or 'structural' for better organization
+- **UI Enhancement**: Issues dropdown with scrollable content, fixed header/footer, and detailed issue information including node/edge IDs, fields, and error codes

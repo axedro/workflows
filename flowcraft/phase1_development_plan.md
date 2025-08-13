@@ -102,4 +102,54 @@
 
 ---
 
+### Sprint 9.7: Sistema de Validación Unificado (1 semana) ✅ COMPLETADO
+**Objetivo:** Implementar sistema comprensivo de validación para workflows completos
+
+#### Arquitectura de Validación Unificada ✅
+- [x] UnifiedValidationService centralizado
+- [x] Consolidación de validaciones de nodos y edges
+- [x] Categorización de validaciones (workflow, field, structural)
+- [x] Sistema de códigos de error únicos
+- [x] Integración con ConnectorValidationService existente
+
+#### Validaciones de Nodos Comprehensivas ✅
+- [x] HTTP_REQUEST: URL, método, headers, configuración
+- [x] EMAIL: direcciones, formato, asunto, contenido
+- [x] SLACK: canales, mensajes, configuración
+- [x] CONDITION: expresiones, sintaxis, lógica
+- [x] DATA_TRANSFORM: operaciones, configuración
+- [x] START/END: validaciones específicas del flujo
+
+#### Validaciones de Edges Avanzadas ✅
+- [x] Validación estructural: nodos existentes, self-loops, IDs
+- [x] Validación de flujo de datos: compatibilidad de tipos, transformaciones
+- [x] Validación de condiciones: sintaxis, operadores, lógica
+- [x] Validación de mapeo de campos: estructura, formato, transformaciones
+- [x] Detección de ciclos con algoritmo DFS optimizado
+- [x] Análisis de componentes desconectados
+
+#### Interfaz de Usuario Mejorada ✅
+- [x] Issues dropdown con scroll y altura máxima controlada
+- [x] Separación visual de errores de nodos vs edges
+- [x] Información detallada: ID, campo, categoría, código de error
+- [x] Badge "CONNECTION" para validaciones de edges
+- [x] Validación en tiempo real con debounce de 1 segundo
+
+#### Integración Visual ✅
+- [x] Bordes rojos/naranjas en nodos inválidos
+- [x] Feedback visual inmediato en ActionNode
+- [x] Persistencia de validación entre selecciones de nodos
+- [x] Consolidación con sistema de validación API legacy
+
+**Entregables:**
+- Sistema de validación completamente unificado
+- Validaciones comprehensivas para todos los tipos de nodos
+- Validaciones avanzadas de edges con detección de ciclos
+- UI mejorada con categorización detallada de issues
+- Integración completa con editor visual
+
+**Estado:** ✅ 100% COMPLETADO - Sistema de validación unificado con validaciones de nodos y edges completas
+
+---
+
 ### Sprint 10-11: Conectores Esenciales (2 semanas) 

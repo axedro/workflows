@@ -37,6 +37,7 @@ import { WorkflowExportModal } from './WorkflowExportModal';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useNotificationStore } from '../stores/notificationStore';
 import { apiService, ValidationResult } from '../services/api';
+import UnifiedValidationService, { UnifiedValidationResult } from '../services/unifiedValidation.service';
 
 
 interface WorkflowEditorProps {
@@ -151,6 +152,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
+  const [unifiedValidation, setUnifiedValidation] = useState<UnifiedValidationResult | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [showValidationPanel, setShowValidationPanel] = useState(false);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
@@ -189,7 +191,53 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
     setIsEditingDescription(false);
   };
 
-  // Función para validar el workflow
+  // Función para validar el workflow usando el sistema unificado
+  const validateWorkflowUnified = useCallback(() => {
+    if (nodes.length === 0) {
+      setUnifiedValidation(null);
+      return;
+    }
+
+    try {
+      setIsValidating(true);
+      
+      // Crear hash del estado actual para evitar validaciones duplicadas
+      const currentHash = JSON.stringify({ 
+        nodesCount: nodes.length, 
+        edgesCount: edges.length, 
+        nodeIds: nodes.map(n => n.id).sort(),
+        nodeData: nodes.map(n => ({ id: n.id, data: n.data }))
+      });
+      
+      if (currentHash === lastValidationHashRef.current) {
+        setIsValidating(false);
+        return; // Skip validation if nothing changed
+      }
+      
+      const result = UnifiedValidationService.validateWorkflow(nodes as EditorNode[], edges as EditorEdge[]);
+      lastValidationHashRef.current = currentHash;
+      setUnifiedValidation(result);
+
+      // Update nodes with validation results
+      setNodes((nds) => 
+        nds.map((node) => {
+          const nodeValidation = result.nodeValidations.get(node.id);
+          if (nodeValidation) {
+            return UnifiedValidationService.updateNodeValidation(node as EditorNode, nodeValidation) as Node;
+          }
+          return node;
+        })
+      );
+
+    } catch (error) {
+      console.error('Unified validation error:', error);
+      setUnifiedValidation(null);
+    } finally {
+      setIsValidating(false);
+    }
+  }, [nodes, edges, setNodes]);
+
+  // Función para validar el workflow usando el servicio API (legacy)
   const validateWorkflow = useCallback(async () => {
     if (!id || id === 'new' || nodes.length === 0) {
       setValidationResult(null);
@@ -401,15 +449,20 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
     };
   }, [nodes, edges, saveWorkflow]);
 
-  // Auto-validate on changes
+  // Auto-validate on changes using unified validation
   useEffect(() => {
     if (validationTimeoutRef.current) {
       clearTimeout(validationTimeoutRef.current);
     }
 
-    // Validate workflow after changes
+    // Always validate when there are nodes (unified validation works locally)
+    if (nodes.length > 0) {
+      validationTimeoutRef.current = setTimeout(validateWorkflowUnified, 1000); // Faster since it's local
+    }
+
+    // Also keep legacy validation for workflows that are saved
     if (nodes.length > 0 && id && id !== 'new') {
-      validationTimeoutRef.current = setTimeout(validateWorkflow, 2000); // Validate after 2 seconds of inactivity
+      setTimeout(validateWorkflow, 2000);
     }
 
     return () => {
@@ -417,43 +470,20 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
         clearTimeout(validationTimeoutRef.current);
       }
     };
-  }, [nodes.length, edges.length, id]); // Solo usar length para evitar re-renders innecesarios
+  }, [nodes.length, edges.length, id, validateWorkflowUnified, validateWorkflow]);
 
-  // Trigger validation when edges change (connections are made/removed)
+  // Trigger validation when node data changes (for field validation)
   useEffect(() => {
-    // Small delay to ensure validation happens after edge changes
+    // Small delay to ensure validation happens after node data changes
     const timeout = setTimeout(() => {
-      if (id && id !== 'new' && nodes.length > 0) {
-        validateWorkflow();
+      if (nodes.length > 0) {
+        validateWorkflowUnified();
       }
     }, 500);
 
     return () => clearTimeout(timeout);
-  }, [edges.length]); // Solo edges.length como dependencia
+  }, [nodes.map(n => JSON.stringify(n.data)).join('|')]);  // Monitor node data changes
 
-  // Función para obtener el estilo de un nodo basado en validaciones
-  const getNodeValidationStyle = useCallback((nodeId: string) => {
-    if (!validationResult) return {};
-
-    const hasErrors = validationResult.errors.some(error => error.nodeId === nodeId);
-    const hasWarnings = validationResult.warnings.some(warning => warning.nodeId === nodeId);
-
-    if (hasErrors) {
-      return {
-        border: '4px solid #ef4444', // red-500, más grueso
-        boxShadow: '0 0 15px rgba(239, 68, 68, 0.4)',
-      };
-    }
-
-    if (hasWarnings) {
-      return {
-        border: '4px solid #f59e0b', // amber-500, más grueso
-        boxShadow: '0 0 15px rgba(245, 158, 11, 0.4)',
-      };
-    }
-
-    return {};
-  }, [validationResult]);
 
   // Función para actualizar estilos de nodos basados en validaciones
   const updateNodeStyles = useCallback(() => {
@@ -487,8 +517,8 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
         const newValidationErrors = validationResult.errors.filter(error => error.nodeId === node.id);
         const newValidationWarnings = validationResult.warnings.filter(warning => warning.nodeId === node.id);
           
-        const currentErrors = node.data?.validationErrors || [];
-        const currentWarnings = node.data?.validationWarnings || [];
+        const currentErrors = (node.data as any)?.validationErrors || [];
+        const currentWarnings = (node.data as any)?.validationWarnings || [];
         
         const errorsChanged = JSON.stringify(currentErrors) !== JSON.stringify(newValidationErrors);
         const warningsChanged = JSON.stringify(currentWarnings) !== JSON.stringify(newValidationWarnings);
@@ -749,6 +779,130 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
               </button>
             )}
 
+            {/* Issues/Validation Button */}
+            {unifiedValidation && (unifiedValidation.errors.length > 0 || unifiedValidation.warnings.length > 0) && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowValidationPanel(!showValidationPanel)}
+                  className={`inline-flex items-center px-3 py-1.5 border rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    unifiedValidation.errors.length > 0 
+                      ? 'border-red-300 text-red-700 bg-red-50 hover:bg-red-100' 
+                      : 'border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100'
+                  }`}
+                  title={`${unifiedValidation.errors.length + unifiedValidation.warnings.length} validation issues found`}
+                >
+                  {unifiedValidation.errors.length > 0 ? (
+                    <span className="text-red-500 text-lg mr-1">🔴</span>
+                  ) : (
+                    <span className="text-amber-500 text-lg mr-1">⚠️</span>
+                  )}
+                  {unifiedValidation.errors.length + unifiedValidation.warnings.length} Issue{unifiedValidation.errors.length + unifiedValidation.warnings.length !== 1 ? 's' : ''}
+                  <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={showValidationPanel ? "M19 9l-7 7-7-7" : "M9 5l7 7-7 7"} />
+                  </svg>
+                </button>
+
+                {/* Validation Dropdown Menu */}
+                {showValidationPanel && (
+                  <>
+                    {/* Overlay to close menu when clicking outside */}
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setShowValidationPanel(false)}
+                    />
+                    <div className="absolute right-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 flex flex-col">
+                      <div className="p-4 flex-shrink-0">
+                        <h3 className="text-lg font-medium text-gray-900 mb-3">Validation Issues</h3>
+                      </div>
+                      
+                      {/* Scrollable content area */}
+                      <div className="flex-1 overflow-y-auto px-4">
+                        {/* Errors Section */}
+                        {unifiedValidation.errors.length > 0 && (
+                          <div className="mb-4">
+                            <h4 className="text-sm font-medium text-red-700 mb-2 flex items-center">
+                              <span className="text-red-500 mr-1">🔴</span>
+                              Errors ({unifiedValidation.errors.length})
+                            </h4>
+                            <div className="space-y-2">
+                              {unifiedValidation.errors.map((error, index) => (
+                                <div key={index} className="bg-red-50 border border-red-200 rounded p-2">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                      <p className="text-sm text-red-800">{error.message}</p>
+                                      <div className="flex items-center text-xs text-red-600 mt-1 space-x-2">
+                                        {error.nodeId && <span>Node: {error.nodeId}</span>}
+                                        {error.edgeId && <span>Edge: {error.edgeId}</span>}
+                                        {error.field && <span>Field: {error.field}</span>}
+                                        <span className="px-1.5 py-0.5 bg-red-100 rounded text-xs">{error.category}</span>
+                                        {error.edgeId && <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">CONNECTION</span>}
+                                      </div>
+                                    </div>
+                                    <span className="text-xs text-red-500 font-mono">{error.code}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Warnings Section */}
+                        {unifiedValidation.warnings.length > 0 && (
+                          <div className="mb-4">
+                            <h4 className="text-sm font-medium text-amber-700 mb-2 flex items-center">
+                              <span className="text-amber-500 mr-1">⚠️</span>
+                              Warnings ({unifiedValidation.warnings.length})
+                            </h4>
+                            <div className="space-y-2">
+                              {unifiedValidation.warnings.map((warning, index) => (
+                                <div key={index} className="bg-amber-50 border border-amber-200 rounded p-2">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                      <p className="text-sm text-amber-800">{warning.message}</p>
+                                      <div className="flex items-center text-xs text-amber-600 mt-1 space-x-2">
+                                        {warning.nodeId && <span>Node: {warning.nodeId}</span>}
+                                        {warning.edgeId && <span>Edge: {warning.edgeId}</span>}
+                                        {warning.field && <span>Field: {warning.field}</span>}
+                                        <span className="px-1.5 py-0.5 bg-amber-100 rounded text-xs">{warning.category}</span>
+                                        {warning.edgeId && <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">CONNECTION</span>}
+                                      </div>
+                                    </div>
+                                    <span className="text-xs text-amber-500 font-mono">{warning.code}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Fixed footer with validation status and summary */}
+                      <div className="flex-shrink-0 p-4 border-t bg-gray-50">
+                        {/* Validation Status */}
+                        {isValidating && (
+                          <div className="flex items-center text-xs text-gray-500 mb-2">
+                            <svg className="animate-spin -ml-1 mr-2 h-3 w-3" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Validating...
+                          </div>
+                        )}
+
+                        {/* Validation Summary */}
+                        <div className="text-xs text-gray-600 flex items-center justify-between">
+                            <span>Total Issues: {unifiedValidation.issues.length}</span>
+                            <span className={unifiedValidation.isValid ? 'text-green-600' : 'text-red-600'}>
+                              {unifiedValidation.isValid ? '✓ Valid' : '✗ Invalid'}
+                            </span>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
             {/* Help Button */}
             <button
               onClick={showShortcutsHelp}
@@ -793,108 +947,6 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
           />
         </div>
 
-        {/* Floating Validation Badge */}
-        {validationResult && (validationResult.errors.length > 0 || validationResult.warnings.length > 0) && (
-          <div className="absolute top-4 right-4 z-50">
-            {/* Validation Badge */}
-            <div 
-              className={`relative bg-white rounded-lg shadow-lg border-2 cursor-pointer transition-all duration-300 ${
-                showValidationPanel ? 'w-80' : 'w-auto'
-              }`}
-              onClick={() => setShowValidationPanel(!showValidationPanel)}
-            >
-              {/* Badge Header */}
-              <div className={`flex items-center p-3 ${
-                validationResult.errors.length > 0 
-                  ? 'border-red-500 bg-red-50' 
-                  : 'border-amber-500 bg-amber-50'
-              } rounded-t-lg`}>
-                <div className="flex items-center space-x-2">
-                  {validationResult.errors.length > 0 ? (
-                    <span className="text-red-500 text-lg">🔴</span>
-                  ) : (
-                    <span className="text-amber-500 text-lg">⚠️</span>
-                  )}
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">
-                      {validationResult.errors.length + validationResult.warnings.length} Issue{validationResult.errors.length + validationResult.warnings.length !== 1 ? 's' : ''}
-                    </div>
-                    {isValidating && (
-                      <div className="flex items-center text-xs text-gray-500">
-                        <svg className="animate-spin -ml-1 mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Validating...
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="ml-auto">
-                  <svg 
-                    className={`w-4 h-4 transition-transform ${showValidationPanel ? 'rotate-180' : ''}`}
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Expandable Content */}
-              {showValidationPanel && (
-                <div className="bg-white rounded-b-lg border-t">
-                  <div className="p-4 max-h-80 overflow-y-auto">
-                    <div className="space-y-3">
-                      {validationResult.errors.map((error, index) => (
-                        <div key={`error-${index}`} className="flex items-start space-x-2 p-2 bg-red-50 rounded border-l-4 border-red-500">
-                          <span className="text-red-500 text-sm font-semibold">❌</span>
-                          <div className="flex-1 text-xs">
-                            <div className="font-medium text-red-900">{error.code}</div>
-                            <div className="text-red-700 mt-1">{error.message}</div>
-                            {error.nodeId && (
-                              <div className="text-red-600 mt-1 font-mono text-xs bg-red-100 px-1 py-0.5 rounded">
-                                Node: {error.nodeId}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                      
-                      {validationResult.warnings.map((warning, index) => (
-                        <div key={`warning-${index}`} className="flex items-start space-x-2 p-2 bg-amber-50 rounded border-l-4 border-amber-500">
-                          <span className="text-amber-500 text-sm font-semibold">⚠️</span>
-                          <div className="flex-1 text-xs">
-                            <div className="font-medium text-amber-900">{warning.code}</div>
-                            <div className="text-amber-700 mt-1">{warning.message}</div>
-                            {warning.nodeId && (
-                              <div className="text-amber-600 mt-1 font-mono text-xs bg-amber-100 px-1 py-0.5 rounded">
-                                Node: {warning.nodeId}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div className="p-2 bg-gray-50 rounded-b-lg border-t text-center">
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowValidationPanel(false);
-                      }}
-                      className="text-xs text-gray-500 hover:text-gray-700"
-                    >
-                      Click to close
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Export Modal */}

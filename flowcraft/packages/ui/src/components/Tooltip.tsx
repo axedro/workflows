@@ -14,7 +14,7 @@ const Tooltip: React.FC<TooltipProps> = ({
   content,
   children,
   position = 'top',
-  delay = 300,
+  delay = 200,
   className,
   disabled = false,
 }) => {
@@ -50,30 +50,30 @@ const Tooltip: React.FC<TooltipProps> = ({
   const getPositionClasses = () => {
     switch (position) {
       case 'top':
-        return 'bottom-full left-1/2 -translate-x-1/2 mb-2';
+        return '-top-14 left-1/2 transform -translate-x-1/2';
       case 'bottom':
-        return 'top-full left-1/2 -translate-x-1/2 mt-2';
+        return 'top-full left-1/2 transform -translate-x-1/2 translate-y-2';
       case 'left':
-        return 'right-full top-1/2 -translate-y-1/2 mr-2';
+        return 'right-full top-1/2 transform -translate-y-1/2 -translate-x-2';
       case 'right':
-        return 'left-full top-1/2 -translate-y-1/2 ml-2';
+        return 'left-full top-1/2 transform -translate-y-1/2 translate-x-2';
       default:
-        return 'bottom-full left-1/2 -translate-x-1/2 mb-2';
+        return '-top-16 left-1/2 transform -translate-x-1/2';
     }
   };
 
   const getArrowClasses = () => {
     switch (position) {
       case 'top':
-        return 'top-full left-1/2 -translate-x-1/2 border-t-gray-800';
+        return 'top-full left-1/2 transform -translate-x-1/2 border-t-gray-900';
       case 'bottom':
-        return 'bottom-full left-1/2 -translate-x-1/2 border-b-gray-800';
+        return 'bottom-full left-1/2 transform -translate-x-1/2 border-b-gray-900';
       case 'left':
-        return 'left-full top-1/2 -translate-y-1/2 border-l-gray-800';
+        return 'left-full top-1/2 transform -translate-y-1/2 border-l-gray-900';
       case 'right':
-        return 'right-full top-1/2 -translate-y-1/2 border-r-gray-800';
+        return 'right-full top-1/2 transform -translate-y-1/2 border-r-gray-900';
       default:
-        return 'top-full left-1/2 -translate-x-1/2 border-t-gray-800';
+        return 'top-full left-1/2 transform -translate-x-1/2 border-t-gray-900';
     }
   };
 
@@ -91,7 +91,7 @@ const Tooltip: React.FC<TooltipProps> = ({
       {isVisible && (
         <div
           className={cn(
-            'absolute z-50 px-3 py-2 text-sm text-white bg-gray-900 rounded-md shadow-lg',
+            'absolute z-[9999] px-3 py-2 text-sm font-semibold text-white bg-gray-900 rounded-lg shadow-xl border border-gray-700 pointer-events-none whitespace-nowrap',
             getPositionClasses()
           )}
         >
