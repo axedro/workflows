@@ -1,1021 +1,352 @@
-# Plan de Desarrollo - Fase 1 MVP
+# Plan de Desarrollo - Fase 1 MVP (ACTUALIZADO - Agosto 2025)
 ## FlowCraft Workflow Automation Platform
 
-### Resumen Ejecutivo
-**Objetivo:** Desarrollar el MVP de FlowCraft en 5 meses (20 semanas) con funcionalidades core que permitan a usuarios crear, ejecutar y monitorizar workflows básicos, incluyendo soporte multiidioma completo.
+---
 
-**Entregables Principales:**
-- Editor visual de workflows con 20 conectores esenciales
-- Motor de ejecución básico
-- Dashboard de monitorización
-- Sistema de autenticación
-- API REST funcional
-- **Soporte multiidioma completo (ES, EN, NL)**
+# 🚨 ANÁLISIS DE ESTADO ACTUAL Y REORGANIZACIÓN CRÍTICA
+
+## Resumen Ejecutivo del Estado Real (Agosto 2025)
+
+**Progreso Real:** 55% del MVP completado con **arquitectura excelente** pero **gaps críticos en ejecución**
+
+### ✅ **Completado Exitosamente (55% del MVP)**
+- **Infraestructura & Arquitectura (100%)**: Monorepo sofisticado, PostgreSQL+Redis, CI/CD pipeline funcional
+- **Sistema de Autenticación (90%)**: JWT completo, user management, organizaciones (falta OAuth)
+- **Internacionalización (85%)**: 3 idiomas (ES/EN/NL), 93+ claves traducción, detección automática  
+- **Core API & CRUD (100%)**: 20+ endpoints, validación robusta, versionado, templates
+- **Editor Visual Avanzado (95%)**: React Flow, nodos tipados, flujo de datos, validación unificada
+- **Sistema de Validación (100%)**: 960 líneas de validación comprensiva con navegación clickeable
+
+### ⚠️ **GAPS CRÍTICOS IDENTIFICADOS (45% faltante)**
+- **❌ Motor de Ejecución (0%)**: NO SE PUEDEN EJECUTAR WORKFLOWS - Crítico para MVP
+- **❌ Conectores (0%)**: 0/20 implementados - Solo framework base existe
+- **❌ Testing (<5%)**: Sin cobertura significativa - Riesgo crítico de calidad  
+- **❌ Monitorización (0%)**: Sin métricas ni dashboard operativo
+- **❌ Production Ready (20%)**: Sin deployment configs, optimización limitada
+
+### 🎯 **PROBLEMA FUNDAMENTAL**
+El proyecto tiene una **arquitectura excelente** y **UI sofisticada**, pero **NO PUEDE EJECUTAR WORKFLOWS**. 
+Los usuarios pueden diseñar workflows pero no obtienen el valor core: **AUTOMATIZACIÓN**.
 
 ---
 
-## Estructura del Equipo (12 personas)
+## NUEVA ESTRATEGIA DE SPRINTS - ENFOQUE MVP MÍNIMO
 
-### Backend Team (5 personas)
-- **1 Tech Lead/Architect** - Arquitectura general y decisiones técnicas
-- **2 Senior Backend Engineers** - Core services y API development
-- **1 DevOps Engineer** - Infraestructura y deployment
-- **1 Integration Engineer** - Desarrollo de conectores
+### 🚨 **SPRINT DE EMERGENCIA: Execution Foundation (2 semanas) - CRÍTICO**
+**Objetivo:** Implementar capacidad básica de ejecución de workflows
 
-### Frontend Team (3 personas)
-- **1 Senior Frontend Engineer** - Workflow editor y UI/UX
-- **1 Frontend Engineer** - Dashboard y componentes
-- **1 UI/UX Designer** - Diseño de interfaces y experiencia de usuario
+#### Prioridad CRÍTICA - Execution Engine
+- [ ] **Motor de Ejecución Básico**
+  - [ ] ExecutionService para workflows simples con state management
+  - [ ] Queue system con Bull/BullMQ para job processing
+  - [ ] Execution tracking en tabla `executions`
+  - [ ] Worker processes para execution logic
+  - [ ] Error handling y retry mechanisms
 
-### QA & Support (2 personas)
-- **1 QA Engineer** - Testing y calidad
-- **1 Data Engineer** - Analytics y métricas
+- [ ] **API de Ejecución**  
+  - [ ] POST `/api/workflows/:id/execute` endpoint
+  - [ ] GET `/api/executions/:id/status` para tracking
+  - [ ] GET `/api/executions/:id/logs` para debugging
+  - [ ] WebSocket connections para real-time updates
+  - [ ] Cancel execution functionality
 
-### Product & Business (2 personas)
-- **1 Product Manager** - Roadmap y prioridades
-- **1 Business Analyst** - Documentación y soporte
+#### Conector HTTP Esencial
+- [ ] **HTTP Request Connector Funcional**
+  - [ ] Implementar BaseConnector para HTTP requests
+  - [ ] Support para GET, POST, PUT, DELETE methods
+  - [ ] Headers configuration y authentication básica
+  - [ ] Request/response body processing
+  - [ ] Timeout handling y error management
+  - [ ] Integration con execution engine
 
----
+#### UI de Ejecución Mínima
+- [ ] **Workflow Execution Interface**
+  - [ ] "Execute" button en workflow editor
+  - [ ] Real-time execution status display
+  - [ ] Execution logs viewer con scroll
+  - [ ] Execution history en workflow detail
+  - [ ] Basic error display y retry options
 
-## Sprint Breakdown (21 semanas + 2 sprints UX adicionales)
+#### Testing Básico
+- [ ] Unit tests para ExecutionService
+- [ ] Integration tests para execution API
+- [ ] E2E test: create workflow → execute → verify results
 
-### Sprint 1-2: Infraestructura Base (2 semanas)
-**Objetivo:** Establecer la base técnica del proyecto
-
-#### Backend Infrastructure
-- [x] Setup de monorepo con pnpm workspaces
-- [x] Configuración de TypeScript strict mode
-- [x] Setup de PostgreSQL con Prisma ORM
-- [x] Configuración de Redis para cache/queues
-- [x] Docker Compose para desarrollo local
-- [x] CI/CD pipeline básico con GitHub Actions
-- [x] ESLint + Prettier + Husky configuration
-
-#### Frontend Infrastructure
-- [x] Setup de React 18 + TypeScript
-- [x] Configuración de Vite para build
-- [x] Tailwind CSS + shadcn/ui setup
-- [x] React Flow installation y configuración
-- [x] Zustand store setup
-- [x] React Query configuration
-
-#### Database Schema
-- [x] Esquema de usuarios y organizaciones
-- [x] Esquema de workflows y ejecuciones
-- [x] Esquema de conectores y configuraciones
-- [x] Migraciones iniciales con Prisma
-
-**Entregables:**
-- ✅ Repositorio base funcional
-- ✅ Entorno de desarrollo local
-- ✅ Esquema de base de datos
-- ✅ Pipeline CI/CD básico
-
-**Estado:** 100% COMPLETADO - FUNCIONAL
+**Outcome Esperado:** **Los usuarios pueden crear un workflow con HTTP Request y ejecutarlo end-to-end**
 
 ---
 
-### Sprint 3-4: Autenticación y Usuarios (2 semanas)
-**Objetivo:** Sistema de autenticación y gestión de usuarios
+### Sprint 11: Conectores Esenciales MVP (2 semanas)
+**Objetivo:** 4 conectores adicionales mínimos funcionales
 
-#### Authentication System
-- [x] JWT implementation con refresh tokens
-- [ ] OAuth 2.0 para Google, GitHub, Microsoft
-- [x] Password hashing con bcrypt
-- [x] Rate limiting para endpoints de auth
-- [x] Middleware de autenticación
+#### Conectores Prioritarios (4 únicamente)
+- [ ] **Email/SMTP Connector**
+  - [ ] SMTP configuration y authentication
+  - [ ] Email template system básico
+  - [ ] HTML y text email support
+  - [ ] Attachments handling básico
 
-#### User Management
-- [x] CRUD de usuarios
-- [x] Gestión de organizaciones
-- [x] Roles y permisos básicos
-- [x] Profile management
-- [x] Password reset functionality
+- [ ] **Webhook Connector**
+  - [ ] Webhook receiver endpoints
+  - [ ] Webhook sender functionality  
+  - [ ] Signature validation básica
+  - [ ] Payload transformation
 
-#### Frontend Auth
-- [x] Login/Register forms
-- [x] Protected routes
-- [x] Auth context y hooks
-- [x] User profile page
-- [ ] Organization switching
+- [ ] **Timer/Schedule Connector**
+  - [ ] Cron-based scheduling
+  - [ ] One-time timer execution
+  - [ ] Basic recurrence patterns
+  - [ ] Integration con queue system
 
-**Entregables:**
-- ✅ Sistema de autenticación completo
-- ✅ Gestión de usuarios y organizaciones
-- ✅ UI de autenticación funcional
+- [ ] **Data Transform Connector**
+  - [ ] JSON transformation operations
+  - [ ] Field mapping y renaming
+  - [ ] Data type conversions
+  - [ ] Basic data validation
 
-**Estado:** 90% COMPLETADO - FUNCIONAL
-
----
-
-### Sprint 5: Internacionalización (i18n) y Multiidioma (1.5 semanas)
-**Objetivo:** Implementar soporte multiidioma con detección automática y gestión dinámica de contenido
-
-#### Database Schema para i18n
-- [x] Tabla `languages` (id, code, name, is_active, is_default)
-- [x] Tabla `translation_keys` (id, key, category, description)
-- [x] Tabla `translations` (id, language_id, key_id, value, created_at, updated_at)
-- [x] Índices optimizados para consultas de traducción
-- [x] Migraciones y seeds con idiomas base (es, en, nl)
-
-#### Backend i18n System
-- [x] Service de traducción con cache Redis
-- [x] API endpoints para gestión de traducciones
-- [x] Middleware de detección de idioma (Accept-Language header)
-- [x] Sistema de fallback (es → en → clave)
-- [x] API para obtener traducciones por namespace
-- [x] Endpoint para cambio dinámico de idioma
-
-#### Frontend i18n Implementation
-- [x] React i18next setup y configuración
-- [x] Hook personalizado useTranslation
-- [x] Detector de idioma del browser/localización
-- [x] Selector de idioma en Header
-- [x] Namespace organization (auth, common, dashboard, landing)
-- [x] Lazy loading de traducciones por ruta
-
-#### Content Translation
-- [x] Traducción completa de Landing Page (es, en, nl)
-- [x] Traducción de formularios de autenticación
-- [x] Traducción de mensajes de error y validación
-- [x] Traducción de Dashboard y navegación
-- [ ] Traducción de emails y notificaciones
-
-#### Language Detection & UX
-- [x] Detección automática por navigator.language
-- [ ] Detección por geolocalización (opcional)
-- [x] Persistencia de preferencia en localStorage
-- [ ] Sincronización con perfil de usuario
-- [x] Cambio de idioma sin reload de página
-
-**Entregables:**
-- ✅ Sistema de traducciones dinámico completo
-- ✅ Landing page y auth en 3 idiomas (ES, EN, NL)
-- ✅ Selector de idioma funcional
-- ✅ Base de datos optimizada para i18n
-- ✅ 93 claves de traducción implementadas
-
-**Estado:** 85% COMPLETADO - FUNCIONAL
+#### Framework Consolidation
+- [ ] Standardized connector interface
+- [ ] Connector registry system
+- [ ] Error handling patterns
+- [ ] Testing framework para connectors
 
 ---
 
-### Sprint 5.5: Completar Funcionalidades Pendientes (1.5 semanas)
-**Objetivo:** Completar todas las funcionalidades pendientes de los sprints 1-5 para tener una base sólida antes de continuar
+### Sprint 12: Testing & Quality Assurance (2 semanas)  
+**Objetivo:** Calidad enterprise y testing comprehensivo
 
-#### OAuth 2.0 Implementation (Sprint 3-4 pendiente)
-- [ ] OAuth 2.0 para Google
-  - [ ] Configuración de Google OAuth
-  - [ ] Endpoints de autenticación
-  - [ ] Manejo de tokens y refresh
-  - [ ] Integración con sistema de usuarios existente
-- [ ] OAuth 2.0 para GitHub
-  - [ ] Configuración de GitHub OAuth
-  - [ ] Endpoints de autenticación
-  - [ ] Manejo de scopes y permisos
-  - [ ] Sincronización de datos de usuario
-- [ ] OAuth 2.0 para Microsoft
-  - [ ] Configuración de Microsoft OAuth
-  - [ ] Endpoints de autenticación
-  - [ ] Manejo de tokens empresariales
-  - [ ] Integración con Azure AD
-- [ ] Frontend OAuth Integration
-  - [ ] Botones de login social
-  - [ ] Manejo de callbacks
-  - [ ] UI para conectar cuentas
-  - [ ] Gestión de cuentas vinculadas
+#### Testing Infrastructure
+- [ ] **Unit Testing (>60% coverage)**
+  - [ ] ExecutionService comprehensive tests
+  - [ ] Connector framework tests
+  - [ ] API endpoint tests
+  - [ ] Frontend component tests
 
-#### Templates de Email Traducidos (Sprint 5 pendiente)
-- [ ] Sistema de templates de email
-  - [ ] Template engine con Handlebars/Pug
-  - [ ] Variables dinámicas y personalización
-  - [ ] Preview de emails en desarrollo
-- [ ] Templates en 3 idiomas
-  - [ ] Welcome email (ES, EN, NL)
-  - [ ] Password reset email (ES, EN, NL)
-  - [ ] Email verification (ES, EN, NL)
-  - [ ] Organization invitation (ES, EN, NL)
-- [ ] Sistema de notificaciones
-  - [ ] Notificaciones in-app traducidas
-  - [ ] Push notifications (futuro)
-  - [ ] Email notifications con i18n
-- [ ] Configuración de email
-  - [ ] SMTP configuration
-  - [ ] Email queue system
-  - [ ] Retry logic para emails fallidos
+- [ ] **Integration Testing**
+  - [ ] End-to-end execution flows
+  - [ ] Connector integration tests  
+  - [ ] Database transaction tests
+  - [ ] Queue system integration
 
-#### Sincronización con Perfil de Usuario (Sprint 5 pendiente)
-- [ ] Campo language_preference en User model
-  - [ ] Migración de base de datos
-  - [ ] API para actualizar preferencia
-  - [ ] Validación de idiomas soportados
-- [ ] Carga automática en login
-  - [ ] Detección de preferencia guardada
-  - [ ] Aplicación automática al login
-  - [ ] Fallback a detección del navegador
-- [ ] Gestión de preferencias
-  - [ ] UI para cambiar idioma en perfil
-  - [ ] Sincronización con localStorage
-  - [ ] Persistencia en base de datos
-- [ ] Organization switching (Sprint 3-4 pendiente)
-  - [ ] UI para cambiar de organización
-  - [ ] Context switching
-  - [ ] Permisos por organización
+- [ ] **Performance & Load Testing**
+  - [ ] 100 concurrent workflow executions
+  - [ ] Database performance under load
+  - [ ] Memory leak detection
+  - [ ] API response time optimization
 
-#### Panel de Administración i18n
-- [ ] Interface para gestión de translation keys
-  - [ ] CRUD de claves de traducción
-  - [ ] Organización por namespace y categorías
-  - [ ] Búsqueda y filtrado avanzado
-  - [ ] Validación de claves duplicadas
-- [ ] Editor de traducciones por idioma
-  - [ ] Editor rico para traducciones
-  - [ ] Vista side-by-side de idiomas
-  - [ ] Validación de interpolaciones
-  - [ ] Preview de traducciones
-- [ ] Importación/exportación de traducciones
-  - [ ] Export masivo en JSON/CSV
-  - [ ] Import con validación
-  - [ ] Backup y restore de traducciones
-  - [ ] Migración entre entornos
-- [ ] Sistema de aprobación para traducciones
-  - [ ] Workflow de aprobación
-  - [ ] Roles de traductor y revisor
-  - [ ] Historial de cambios
-  - [ ] Notificaciones de cambios pendientes
-- [ ] Estadísticas de completitud por idioma
-  - [ ] Dashboard con métricas
-  - [ ] Progreso por namespace
-  - [ ] Identificación de gaps
-  - [ ] Reportes de calidad
-
-#### Tests Automatizados
-- [ ] Unit tests para servicios
-  - [ ] Auth service tests
-  - [ ] i18n service tests
-  - [ ] Email service tests
-- [ ] Integration tests para APIs
-  - [ ] OAuth endpoints
-  - [ ] i18n endpoints
-  - [ ] User management endpoints
-- [ ] E2E tests para flujos críticos
-  - [ ] Login con OAuth
-  - [ ] Cambio de idioma
-  - [ ] Gestión de perfil
-
-#### Frontend Components
-- [ ] OAuthButtons.tsx
-- [ ] EmailTemplates.tsx
-- [ ] UserProfileSettings.tsx
-- [ ] TranslationKeysManager.tsx
-- [ ] TranslationEditor.tsx
-- [ ] ImportExportManager.tsx
-- [ ] ApprovalWorkflow.tsx
-- [ ] I18nAnalytics.tsx
-
-**Entregables:**
-- OAuth 2.0 completo (Google, GitHub, Microsoft)
-- Templates de email traducidos
-- Sincronización completa con perfil de usuario
-- Panel de administración i18n completo
-- Tests automatizados para todas las funcionalidades
-- Organization switching funcional
-
-**Estado:** PENDIENTE - Sprint para completar funcionalidades pendientes
+#### Security Hardening
+- [ ] Input validation en todos los endpoints
+- [ ] SQL injection prevention audit
+- [ ] Authentication & authorization review
+- [ ] Rate limiting implementation
+- [ ] Security headers configuration
 
 ---
 
-**Base de Datos - Esquemas:**
-```sql
--- Idiomas soportados
-CREATE TABLE languages (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  code VARCHAR(5) NOT NULL UNIQUE, -- 'es', 'en', 'nl'
-  name VARCHAR(50) NOT NULL, -- 'Español', 'English', 'Nederlands'
-  native_name VARCHAR(50) NOT NULL, -- 'Español', 'English', 'Nederlands'
-  flag_emoji VARCHAR(10), -- '🇪🇸', '🇺🇸', '🇳🇱'
-  is_active BOOLEAN DEFAULT true,
-  is_default BOOLEAN DEFAULT false,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Claves de traducción organizadas
-CREATE TABLE translation_keys (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  key VARCHAR(255) NOT NULL UNIQUE, -- 'auth.login.title'
-  namespace VARCHAR(100) NOT NULL, -- 'auth', 'common', 'dashboard'
-  category VARCHAR(100), -- 'buttons', 'messages', 'labels'
-  description TEXT, -- Contexto para traductores
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Traducciones por idioma y clave
-CREATE TABLE translations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  language_id UUID NOT NULL REFERENCES languages(id) ON DELETE CASCADE,
-  key_id UUID NOT NULL REFERENCES translation_keys(id) ON DELETE CASCADE,
-  value TEXT NOT NULL,
-  is_approved BOOLEAN DEFAULT false,
-  approved_by UUID REFERENCES users(id),
-  approved_at TIMESTAMP,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW(),
-  UNIQUE(language_id, key_id)
-);
-
--- Índices para optimización
-CREATE INDEX idx_translations_language_key ON translations(language_id, key_id);
-CREATE INDEX idx_translation_keys_namespace ON translation_keys(namespace);
-CREATE INDEX idx_languages_active ON languages(is_active) WHERE is_active = true;
-```
-
----
-
-### Sprint 6-7: Core API y Workflow CRUD (2 semanas)
-**Objetivo:** API base para gestión de workflows
-
-#### Workflow Service
-- [x] CRUD endpoints para workflows
-- [x] Validación de workflow definitions
-- [x] Versioning de workflows
-- [x] Workflow templates
-- [x] Import/export functionality
-
-#### API Design
-- [x] RESTful API design
-- [x] Error handling estandarizado (con i18n)
-- [x] API documentation con OpenAPI
-- [x] Request/response validation
-- [x] Pagination implementation
-
-#### Frontend API Integration
-- [x] API client con React Query
-- [x] Error handling en frontend (con traducciones)
-- [x] Loading states
-- [x] Optimistic updates
-
-**Entregables:**
-- ✅ API REST completa para workflows
-- ✅ Frontend integration con API
-- ✅ Documentación de API
-
-**Estado:** 100% COMPLETADO - FUNCIONAL
-
----
-
-### Sprint 8-9: Workflow Editor Foundation (2 semanas)
-**Objetivo:** Editor visual básico de workflows
-
-#### React Flow Implementation
-- [x] Canvas setup con React Flow
-- [x] Node types básicos (start, end, action, condition)
-- [x] Edge connections
-- [x] Drag and drop functionality
-- [x] Zoom y pan controls
-
-#### Node Library
-- [x] Node palette sidebar
-- [x] Node configuration panels
-- [x] Node validation (parcial)
-- [x] Node preview functionality (parcial)
-- [x] Search y filtros
-
-#### Workflow State Management
-- [x] Zustand store para workflow editor
-- [x] Auto-save funcional
-- [x] Workflow validation en tiempo real
-- [ ] Undo/redo functionality
-- [ ] Error highlighting avanzado
-
-#### Node Persistence & Data Flow
-- [x] **CRITICO RESUELTO**: Persistencia de nodos al guardar/cargar workflows
-  - Problema: Nodos desaparecían por validación estricta de Fastify schemas
-  - Solución: Agregado `additionalProperties: true` en schemas de definición
-  - Afectó: endpoints POST `/`, GET `/:id`, PUT `/:id`, POST `/:id/duplicate`, POST `/:id/versions`, GET `/:id/versions/:version`
-  - Estado: ✅ COMPLETADO y documentado en `CLAUDE.md`
-- [x] Workflow definitions saving correctly con nodos y conexiones
-- [x] Recarga completa de workflows con todos los elementos preservados
-- [x] Validación mejorada sin pérdida de datos
-
-#### Edge System & Animations
-- [x] Conexiones direccionales con validación (output → input only)
-- [x] Prevención de auto-conexiones y conexiones duplicadas
-- [x] Animación SVG con puntos animados en edges
-- [x] Puntos verdes visibles con zoom (radio 4px)
-- [x] Múltiples puntos animados con timing escalonado
-- [x] Indicadores visuales de dirección de flujo de datos
-
-**Entregables:**
-- ✅ Editor visual funcional
-- ✅ Biblioteca de nodos básica
-- ✅ Sistema de conexiones direccionales
-- ✅ Animaciones de flujo de datos
-- ✅ Persistencia completa de workflows (CRÍTICO RESUELTO)
-- ✅ Gestión de estado del editor funcional
-
-**Estado:** 90% COMPLETADO - Funcional con persistencia completa
-
----
-
-### Sprint 9.5: Sistema de Flujo de Datos (1 semana) ✅ COMPLETADO
-**Objetivo:** Implementar sistema completo de flujo de datos entre nodos del workflow, incluyendo puertos de entrada/salida, validación de tipos, transformaciones de datos y visualización del flujo de información.
-
-#### Data Flow Architecture
-- [x] Definir modelo de datos (DataField, DataPort, DataFlow)
-- [x] Tipos de datos (STRING, NUMBER, BOOLEAN, OBJECT, ARRAY, DATE, EMAIL, URL, FILE, JSON)
-- [x] Sistema de validación de tipos de datos completo
-- [x] Mapeo de campos entre nodos con transformaciones
-
-#### Nodos con Puertos de Datos
-- [x] Rediseñar nodos con puertos input/output tipados
-- [x] StartNode: Solo output port con datos iniciales configurables
-- [x] ActionNode: Input port + output port con transformación
-- [x] ConditionNode: Input port + 2 output ports (true/false) - FORMA DE ROMBO
-- [x] EndNode: Solo input port para datos finales
-- [x] Visualización de campos de datos en tiempo real
-
-#### Nodo de Condición como Rombo
-- [x] Cambiar forma de ConditionNode de rectángulo a rombo (CSS clip-path)
-- [x] Una entrada (top) y dos salidas (true/false) - etiquetas T/F
-- [x] Lógica de flujo de datos condicional implementada
-- [x] Transmitir datos solo por la rama que cumple condición
-- [x] Editor de condiciones con campos disponibles y operadores
-
-#### Conexiones Direccionales con Datos
-- [x] Flechas direccionales claras con sentido de flujo
-- [x] Mostrar campos de datos que fluyen en conexiones
-- [x] Validación de compatibilidad de tipos entre puertos
-- [x] Prevenir conexiones incompatibles y auto-conexiones
-- [x] Animación de flujo de datos con puntos verdes animados
-
-#### Panel de Configuración de Datos
-- [x] Panel para configurar mapeo de campos (DataConfigPanel)
-- [x] Interface de mapeo de campos origen → destino
-- [x] Transformaciones básicas (RENAME, TRANSFORM, FORMAT)
-- [x] Preview de datos resultantes con validación
-- [x] Testing de transformaciones con datos de ejemplo
-
-#### Integración con Conectores
-- [x] Definir esquemas de datos para conectores (HTTP, Email, Slack, Timer, etc.)
-- [x] Importación/exportación de esquemas de datos
-- [x] Validación específica de configuraciones de conectores
-- [x] Sistema de esquemas dinámicos basado en conexiones reales
-
-#### Sistema Avanzado Implementado
-- [x] **Esquemas Dinámicos**: Cálculo automático basado en conexiones reales
-- [x] **Generadores por Tipo**: Lógica específica por tipo de nodo
-- [x] **Validación Robusta**: Sistema completo de validación con errores detallados
-- [x] **DataPortHandle Component**: Componente robusto para handles posicionados
-
-**Entregables:**
-- ✅ Sistema completo de flujo de datos
-- ✅ Nodos con puertos tipados completamente funcionales
-- ✅ Nodo de condición como rombo con lógica condicional
-- ✅ Conexiones direccionales con validación y animación
-- ✅ Panel de configuración de datos con mapeo y transformaciones
-- ✅ Integración completa con conectores
-- ✅ Sistema de esquemas dinámicos
-
-**Estado:** 100% COMPLETADO - Sistema de flujo de datos completamente funcional
-
----
-
-### Sprint 9.6: Sistema de Tooltips Avanzados (0.5 semanas) 🆕 NUEVO
-**Objetivo:** Implementar un sistema robusto de tooltips no invasivos que mejore la experiencia de usuario sin interferir con la interacción.
-
-#### Tooltip System Architecture
-- [ ] Diseñar sistema de tooltips no invasivos
-- [ ] Implementar tooltips contextuales inteligentes
-- [ ] Crear tooltips para puertos de datos
-- [ ] Implementar tooltips para indicadores de estado
-- [ ] Crear tooltips para validaciones y errores
-
-#### Tooltip Components
-- [ ] Crear componente TooltipManager centralizado
-- [ ] Implementar tooltips con posicionamiento inteligente
-- [ ] Crear tooltips con contenido dinámico
-- [ ] Implementar tooltips con animaciones suaves
-- [ ] Crear tooltips con soporte para contenido rico
-
-#### Tooltip Content
-- [ ] Tooltips informativos para puertos de datos
-- [ ] Tooltips de validación y errores
-- [ ] Tooltips de configuración de nodos
-- [ ] Tooltips de ayuda contextual
-- [ ] Tooltips de estadísticas y métricas
-
-#### Tooltip UX/UI
-- [ ] Implementar tooltips que no interfieran con clicks
-- [ ] Crear tooltips con delay de aparición
-- [ ] Implementar tooltips con soporte para zoom
-- [ ] Crear tooltips responsivos
-- [ ] Implementar tooltips accesibles
-
-**Entregables:**
-- Sistema de tooltips robusto y no invasivo
-- Tooltips contextuales inteligentes
-- Mejor experiencia de usuario
-- Documentación de uso de tooltips
-
-**Estado:** PENDIENTE - Sprint para mejorar UX sin interferir con funcionalidad core
-
----
-
-### Sprint 9.7: Frontend Workflow Management & UX (1 semana) 🆕 NUEVO
-**Objetivo:** Mejorar la experiencia de usuario (UX) del frontend con funcionalidades de gestión de workflows, validaciones mejoradas, paginación y ajustes de layout que optimicen la usabilidad y productividad.
-
-#### Validación de Nombres de Workflow
-- [ ] Implementar validación de nombres duplicados contra workflows existentes
-- [ ] Crear función `checkWorkflowNameExists()` en workflowStore
-- [ ] Añadir validación en tiempo real en modal de creación
-- [ ] Mostrar sugerencias de nombres alternativos
-- [ ] Validación también en modal de duplicación
-
-#### Mejoras en Lista de Workflows
-- [x] **Paginación YA IMPLEMENTADA** - Confirmado en WorkflowList.tsx
-- [x] **Botones delete/edit YA IMPLEMENTADOS** - Confirmado funcionales
-- [ ] Añadir toggle button para activar/desactivar workflows
-- [ ] Mejorar disposición visual de botones (más compacta)
-- [ ] Añadir tooltips informativos en botones de acción
-- [ ] Implementar filtros y ordenación avanzada
-
-#### Ajustes de Layout del Editor
-- [ ] **Ajustar canvas al tamaño de pantalla** - Problema identificado con altura tras título
-- [ ] Implementar cálculo dinámico de altura del canvas usando `calc()` CSS
-- [ ] Optimizar responsive design del editor
-- [ ] **Reposicionar botón Export** a barra superior del editor
-- [ ] Crear barra de herramientas superior sticky
-
-#### Header Sticky Global
-- [ ] **Implementar Header sticky** - Mantener header pegado al top
-- [ ] Añadir `position: sticky` con z-index apropiado
-- [ ] Ajustar layout general para acomodar header sticky
-- [ ] Probar compatibilidad en diferentes navegadores
-
-#### Mejoras de UX Adicionales
-- [ ] Sistema de toast notifications para feedback
-- [ ] Implementar atajos de teclado para acciones comunes
-- [ ] Mejorar loading spinners y feedback visual
-- [ ] Añadir animaciones suaves para transiciones
-
-**Entregables:**
-- Validación de nombres únicos para workflows
-- Lista de workflows optimizada con botones de acción mejorados
-- Layout del editor ajustado con canvas a pantalla completa
-- Header sticky global implementado
-- Botón export reposicionado en barra superior
-- Sistema de notificaciones y atajos de teclado
-
-**Estado:** PENDIENTE - Sprint crítico para mejorar UX y productividad
-
----
-
-### Sprint 10-11: Conectores Esenciales (2 semanas)
-**Objetivo:** Implementar los 20 conectores esenciales
-
-#### Core Connectors (5)
-- [ ] HTTP Request connector
-- [ ] Webhook connector
-- [ ] Timer/Schedule connector
-- [ ] Condition/If connector
-- [ ] Data Transform connector
-
-#### Communication Connectors (4)
-- [ ] Email (SMTP) connector
-- [ ] Slack connector
-- [ ] Discord connector
-- [ ] Telegram connector
-
-#### Storage Connectors (3)
-- [ ] Google Sheets connector
-- [ ] Airtable connector
-- [ ] CSV/File connector
-
-#### Cloud Storage (2)
-- [ ] Google Drive connector
-- [ ] Dropbox connector
-
-#### Analytics (2)
-- [ ] Google Analytics connector
-- [ ] Mixpanel connector
-
-#### Development (2)
-- [ ] GitHub connector
-- [ ] GitLab connector
-
-#### Utilities (2)
-- [ ] Date/Time connector
-- [ ] Hash/Crypto connector
-
-#### Connector Framework
-- [ ] BaseConnector abstract class
-- [ ] Connector registry
-- [ ] Connector validation
-- [ ] Connector testing framework
-
-**Entregables:**
-- 20 conectores funcionales
-- Framework de conectores
-- Testing de conectores
-
----
-
-### Sprint 12-13: Motor de Ejecución (2 semanas)
-**Objetivo:** Sistema básico de ejecución de workflows
-
-#### Execution Engine
-- [ ] Workflow execution service
-- [ ] Node execution logic
-- [ ] Data flow between nodes
-- [ ] Error handling y retry logic
-- [ ] Execution state management
-
-#### Queue System
-- [ ] Bull/BullMQ setup
-- [ ] Job queue management
-- [ ] Worker processes
-- [ ] Job scheduling
-- [ ] Queue monitoring
-
-#### Execution API
-- [ ] Execute workflow endpoint
-- [ ] Execution status tracking
-- [ ] Execution history
-- [ ] Cancel execution
-- [ ] Execution logs
-
-#### Frontend Integration
-- [ ] Execute workflow button
-- [ ] Execution status display
-- [ ] Real-time updates
-- [ ] Execution history view
-- [ ] Log viewer
-
-**Entregables:**
-- Motor de ejecución funcional
-- Sistema de colas
-- UI de ejecución
-
----
-
-### Sprint 14-15: Dashboard y Monitorización (2 semanas)
-**Objetivo:** Dashboard básico y sistema de monitorización
-
-#### Dashboard
-- [ ] Overview page con métricas
-- [ ] Workflow list view
-- [ ] Recent executions
-- [ ] Quick actions
-- [ ] Search y filtros
-
-#### Monitoring
-- [ ] Execution metrics collection
-- [ ] Performance monitoring
-- [ ] Error tracking
-- [ ] Basic alerts
-- [ ] Log aggregation
-
-#### Analytics
-- [ ] Workflow usage analytics
-- [ ] Execution success rates
-- [ ] Performance metrics
-- [ ] User activity tracking
-- [ ] Basic reporting
-
-#### Frontend Dashboard
-- [ ] Dashboard layout
-- [ ] Metrics widgets
-- [ ] Charts y gráficos
-- [ ] Responsive design
-- [ ] Dark/light mode
-
-**Entregables:**
-- Dashboard funcional
-- Sistema de métricas
-- Analytics básicos
-
----
-
-### Sprint 16-17: Testing, Polish y Deploy (2 semanas)
-**Objetivo:** Testing completo, optimizaciones y deployment
-
-#### Testing
-- [ ] Unit tests para todos los servicios
-- [ ] Integration tests para APIs
-- [ ] E2E tests para flujos críticos
-- [ ] Load testing básico
-- [ ] Security testing
+### Sprint 13: Production Readiness & Deployment (2 semanas)
+**Objetivo:** Sistema production-ready deployable
+
+#### Production Configuration
+- [ ] **Docker & Kubernetes**
+  - [ ] Production Docker images
+  - [ ] Kubernetes manifests básicos
+  - [ ] Health check endpoints
+  - [ ] Rolling deployment strategy
+
+- [ ] **Monitoring & Observability**
+  - [ ] Application metrics collection
+  - [ ] Error tracking y alerting
+  - [ ] Performance monitoring dashboard
+  - [ ] Log aggregation setup
 
 #### Performance Optimization
 - [ ] Database query optimization
+- [ ] Redis caching strategy
 - [ ] Frontend bundle optimization
-- [ ] Caching strategies
-- [ ] API response optimization
-- [ ] Image optimization
-
-#### Security Hardening
-- [ ] Input validation
-- [ ] SQL injection prevention
-- [ ] XSS protection
-- [ ] Rate limiting
-- [ ] Security headers
-
-#### Deployment
-- [ ] Kubernetes manifests
-- [ ] Production environment setup
-- [ ] Monitoring stack deployment
-- [ ] SSL certificates
-- [ ] Backup strategies
+- [ ] API response caching
 
 #### Documentation
-- [ ] API documentation
-- [ ] User guides
-- [ ] Developer documentation
+- [ ] API documentation completa
 - [ ] Deployment guides
+- [ ] User manual básico
 - [ ] Troubleshooting guides
 
-**Entregables:**
-- Sistema completamente testeado
-- Optimizado para producción
-- Deployado en staging/production
-- Documentación completa
+---
+
+### Sprint 14: Dashboard Operativo (1 semana)
+**Objetivo:** Dashboard mínimo para workflow monitoring
+
+#### Execution Dashboard
+- [ ] **Real-time Monitoring**
+  - [ ] Execution status overview
+  - [ ] Success/failure metrics
+  - [ ] Performance charts básicos
+  - [ ] Error logs dashboard
+
+- [ ] **Workflow Management**
+  - [ ] Workflow execution history
+  - [ ] Bulk operations (start/stop)
+  - [ ] Usage analytics básicos
+  - [ ] Export execution data
 
 ---
 
-## Entregables Finales de Fase 1
+## SPRINTS COMPLETADOS (55% MVP)
 
-### Funcionalidades Core
-⏳ **Editor Visual de Workflows** (Sprint 8-9)
-- Drag & drop interface
-- 20 conectores esenciales
-- Validación en tiempo real
-- Undo/redo functionality
-
-⏳ **Motor de Ejecución** (Sprint 12-13)
-- Ejecución de workflows
-- Queue system con Bull/BullMQ
-- Error handling y retry logic
-- Execution logging
-
-⏳ **Dashboard y Monitorización** (Sprint 14-15)
-- Métricas básicas
-- Execution history
-- Performance monitoring
-- Basic analytics
-
-✅ **Sistema de Autenticación** (Sprint 3-4)
-- JWT + OAuth 2.0
-- User management
-- Organization support
-- Role-based access
-- **Estado:** 90% completado
-
-✅ **Sistema de Internacionalización (i18n)** (Sprint 5)
-- Soporte multiidioma (ES, EN, NL)
-- Detección automática de idioma
-- 93 claves de traducción implementadas
-- Cache Redis para rendimiento
-- Selector de idioma funcional
-- **Estado:** 85% completado (panel admin pendiente en Sprint 5.5)
-
-✅ **Infraestructura Base** (Sprint 1-2)
-- Monorepo con pnpm workspaces
-- PostgreSQL + Redis + Prisma
+### ✅ Sprint 1-2: Infraestructura Base (100% completado)
+- Monorepo funcional con pnpm workspaces
+- Backend: Node.js + Fastify + Prisma + PostgreSQL + Redis
+- Frontend: React 18 + TypeScript + Vite + Tailwind
 - Docker Compose para desarrollo
-- React 18 + TypeScript + Vite
 - CI/CD pipeline con GitHub Actions
-- **Estado:** 100% completado
 
-### Conectores Planificados (20) - Sprint 10-11
-1. **Core:** HTTP Request, Webhook, Timer, Condition, Data Transform
-2. **Communication:** Email, Slack, Discord, Telegram
-3. **Storage:** Google Sheets, Airtable, CSV/File
-4. **Cloud:** Google Drive, Dropbox
-5. **Analytics:** Google Analytics, Mixpanel
-6. **Development:** GitHub, GitLab
-7. **Utilities:** Date/Time, Hash/Crypto
+### ✅ Sprint 3-4: Autenticación y Usuarios (90% completado)
+- Sistema JWT con refresh tokens
+- CRUD completo de usuarios y organizaciones
+- Formularios de login/registro funcionales
+- Middleware de autenticación y rate limiting
+- **Pendiente**: OAuth 2.0 integrations
 
-**Estado:** Pendiente - Framework base implementado en Sprint 1-2
+### ✅ Sprint 5: Internacionalización (85% completado)
+- Soporte multiidioma (ES, EN, NL)
+- 93+ claves de traducción implementadas
+- Detección automática y selector de idioma
+- Cache Redis para traducciones optimizadas
+- **Pendiente**: Admin panel para traducciones
 
-### Infraestructura Técnica
-✅ **Backend Stack** (Sprint 1-2)
-- Node.js + TypeScript + Fastify
-- PostgreSQL + Redis
-- Prisma ORM
-- Docker Compose para desarrollo
-- **Estado:** 95% completado
+### ✅ Sprint 6-7: Core API y Workflow CRUD (100% completado)
+- API REST completa con 20+ endpoints
+- Sistema de validación robusto de workflows
+- Versionado automático y gestión de templates
+- Import/Export de workflows
+- Documentación OpenAPI completa
 
-✅ **Frontend Stack** (Sprint 1-2)
-- React 18 + TypeScript
-- React Flow (editor)
-- Tailwind CSS + shadcn/ui
-- Zustand + React Query
-- **Estado:** 95% completado
+### ✅ Sprint 8-9: Workflow Editor Foundation (95% completado)
+- Editor visual completamente funcional con React Flow
+- Persistencia crítica de nodos RESUELTA
+- Sistema de conexiones y animaciones
+- **Pendiente**: Undo/redo functionality
 
-⏳ **DevOps** (Sprint 16-17)
-- CI/CD pipeline
-- Kubernetes deployment
-- Monitoring stack
-- Security hardening
-- **Estado:** Pendiente
+### ✅ Sprint 9.5: Sistema de Flujo de Datos (100% completado)
+- Sistema completo de flujo de datos entre nodos
+- Puertos tipados con validación de compatibilidad
+- Nodo de condición como rombo con lógica T/F
+- Panel de configuración con mapeo y transformaciones
+- Esquemas dinámicos basados en conexiones
 
----
-
-## Métricas de Éxito - Fase 1
-
-### Métricas Técnicas
-- **Performance:** <2s workflow execution time
-- **Reliability:** 99% uptime
-- **Security:** Zero critical vulnerabilities
-- **Code Quality:** >80% test coverage
-
-### Métricas de Producto
-- **Usabilidad:** <5 minutos para crear primer workflow
-- **Funcionalidad:** 20 conectores funcionando
-- **Estabilidad:** <1% error rate en ejecuciones
-- **Adopción:** 100+ workflows creados en testing
-
-### Métricas de Desarrollo
-- **Velocidad:** 10.5 semanas completadas (Sprints 1-9.5)
-- **Calidad:** <5 bugs críticos (mejora continua)
-- **Documentación:** APIs completas + sistema de flujo de datos documentado
-- **Testing:** Funcionalidades core y flujo de datos testeados
-- **Progreso:** 50% de la Fase 1 completada (10.5/21 semanas con nuevos sprints)
+### ✅ Sprint 9.7: Sistema de Validación Unificado (100% completado)
+- UnifiedValidationService con 960+ líneas de validación
+- Validaciones comprehensivas de nodos y edges
+- Navegación clickeable desde Issues dropdown
+- Categorización detallada (workflow/field/structural)
+- Real-time validation con debounce optimizado
 
 ---
 
-## Riesgos y Mitigaciones
+## ELIMINADOS/POSPUESTOS PARA POST-MVP
 
-### Riesgos Técnicos
-**Riesgo:** Complejidad del editor visual
-**Mitigación:** Usar React Flow probado, prototipado temprano
-
-**Riesgo:** Performance de ejecución
-**Mitigación:** Queue system, worker processes, monitoring
-
-**Riesgo:** Integración de conectores
-**Mitigación:** Framework estandarizado, testing exhaustivo
-
-### Riesgos de Timeline
-**Riesgo:** Scope creep en conectores
-**Mitigación:** Priorización estricta, MVP mindset
-
-**Riesgo:** Dependencias externas
-**Mitigación:** Plan B para APIs críticas, fallbacks
-
-**Riesgo:** Testing insuficiente
-**Mitigación:** Testing desde sprint 1, QA dedicado
-
-### Riesgos de Calidad
-**Riesgo:** UX inconsistente
-**Mitigación:** Design system, UI/UX dedicado
-
-**Riesgo:** Seguridad insuficiente
-**Mitigación:** Security review, penetration testing
-
-**Riesgo:** Escalabilidad limitada
-**Mitigación:** Arquitectura escalable desde inicio
+### ❌ Eliminados de Fase 1 (Movidos a Fase 2)
+- **Sprint 9.6**: Sistema de tooltips avanzados
+- **15 conectores adicionales** (de 20 a 5)
+- **Advanced monitoring y analytics**
+- **OAuth integrations** (Google, GitHub, Microsoft)
+- **Admin panel i18n completo**
+- **Advanced UX improvements**
 
 ---
 
-## Próximos Pasos Post-Fase 1
+## NUEVA TIMELINE MVP OPTIMIZADA
 
-### Fase 2 Preparación
-- Análisis de feedback de usuarios
-- Priorización de features para Fase 2
-- Planificación de conectores adicionales
-- Arquitectura para escalabilidad
+| Sprint | Duración | Objetivo | Status |
+|--------|----------|----------|--------|
+| **1-9.7** | 10.5 sem | Base Architecture + UI | ✅ **COMPLETADO** |
+| **Execution Foundation** | 2 sem | Motor ejecución básico | 🚨 **CRÍTICO** |
+| **Conectores MVP** | 2 sem | 5 conectores esenciales | ⏳ **PENDIENTE** |
+| **Testing & Security** | 2 sem | Calidad enterprise | ⏳ **PENDIENTE** |
+| **Production Ready** | 2 sem | Deploy y monitoring | ⏳ **PENDIENTE** |
+| **Dashboard Operativo** | 1 sem | UI monitoring | ⏳ **PENDIENTE** |
 
-### Mejoras Continuas
-- Performance optimization
-- UX improvements basados en feedback
-- Security enhancements
-- Documentation updates
-
-### Preparación para Escala
-- Infrastructure scaling plan
-- Team expansion strategy
-- Enterprise features roadmap
-- Partnership opportunities
+**Total MVP**: **19.5 semanas** (vs 21 semanas originales)
+**Tiempo restante**: **9 semanas** para MVP completamente funcional
 
 ---
 
-## Estado Actual Post-Commit ca3fbd9 (7 Agosto 2025)
+## CRITERIOS DE ÉXITO MVP REDEFINIDOS
 
-### 🔧 Últimos Cambios Implementados (Commit ca3fbd9)
-**"fix: resolve CI/CD pipeline issues and improve build configuration"**
+### ✅ **MVP Success Metrics**
+1. **User Journey Completo**: Create workflow → Configure nodes → Execute → View results
+2. **5 Conectores Funcionales**: HTTP, Email, Webhook, Timer, DataTransform  
+3. **Execution Success Rate**: >90% para workflows simples
+4. **Test Coverage**: >60% en servicios core
+5. **Production Deployment**: Sistema deployable con monitoring básico
 
-#### Mejoras Críticas de Infraestructura
-- [x] **Pipeline CI/CD Estabilizado**: GitHub Actions ahora pasa correctamente
-  - Configurado como no-bloqueante para linting (continue-on-error)
-  - Type-checking y builds funcionando al 100%
-  - Linting documentado como deuda técnica en `LINTING_ISSUES.md`
+### 🎯 **Business Value MVP**
+- **Core Automation Value**: Users pueden automatizar tareas reales
+- **End-to-end Platform**: Complete workflow lifecycle functional
+- **Market Validation Ready**: Beta users pueden evaluar valor real
+- **Revenue Foundation**: Platform justifica charging for automation
 
-- [x] **Fixes TypeScript Críticos**:
-  - Agregado project references en `packages/connectors/tsconfig.json`
-  - Eliminado `vite-env.d.ts` duplicado
-  - Corregidos parámetros no utilizados en middleware y routes
-  - Mejorado `.gitignore` para excluir archivos TypeScript generados
-
-- [x] **Documentación de Deuda Técnica**:
-  - Creado `LINTING_ISSUES.md` con 101 issues catalogados
-  - 16 errores críticos (unused vars, try-catch inútiles)
-  - 85 warnings (principalmente uso de `any` types)
-  - Plan de resolución priorizado por impacto
-
-- [x] **Actualización de Configuración**:
-  - Mejorado `.cursorrules` con mejores prácticas
-  - Configurado tolerancia temporal a warnings de ESLint
-  - Pipeline optimizado para desarrollo continuo
-
-**Impacto**: Base técnica estabilizada, CI/CD funcional, desarrollo sin bloqueos
+### 📊 **Technical Metrics**
+- **Performance**: <2s workflow execution time promedio
+- **Reliability**: >95% execution success rate
+- **Scalability**: 100+ concurrent workflow executions
+- **Security**: Zero critical vulnerabilities en security audit
 
 ---
 
-## Progreso Actual - Sprints 1-9.5 Completados
+## RIESGOS Y MITIGACIONES ACTUALIZADOS
 
-### ✅ Completado (50% de la Fase 1)
-- **Sprint 1-2:** Infraestructura Base (100% completado)
-  - Monorepo funcional con pnpm workspaces
-  - Backend con Node.js + Fastify + Prisma
-  - Frontend con React 18 + TypeScript + Vite
-  - Base de datos PostgreSQL + Redis
-  - Docker Compose para desarrollo local
-  - CI/CD pipeline con GitHub Actions
+### 🔴 **Riesgo CRÍTICO - Execution Gap**
+- **Problema**: Sin motor de ejecución, no hay valor de negocio
+- **Impacto**: MVP no entregable, pérdida de timeline completa
+- **Mitigación**: Sprint de emergencia con 100% foco en execution
+- **Timeline**: 2 semanas máximo para execution básico funcional
 
-- **Sprint 3-4:** Autenticación y Usuarios (90% completado)
-  - Sistema JWT con refresh tokens
-  - CRUD completo de usuarios y organizaciones
-  - Formularios de login/registro funcionales
-  - Middleware de autenticación
-  - Password reset functionality
+### 🟡 **Riesgo ALTO - Testing Deuda**  
+- **Problema**: <5% test coverage = riesgo calidad crítico
+- **Impacto**: Bugs en production, pérdida credibilidad
+- **Mitigación**: Sprint dedicado testing con >60% target coverage
 
-- **Sprint 5:** Internacionalización (85% completado)
-  - Soporte multiidioma (ES, EN, NL)
-  - 93 claves de traducción implementadas
-  - Detección automática de idioma
-  - Selector de idioma funcional
-  - Cache Redis para traducciones
-
-- **Sprint 6-7:** Core API y Workflow CRUD (100% completado)
-  - API REST completa con 20+ endpoints
-  - Sistema de validación robusto de workflows
-  - Versionado automático de workflows
-  - Gestión de templates públicos/privados
-  - Import/Export de workflows y templates
-  - Documentación OpenAPI completa
-  - Frontend integration con Zustand stores
-  - Componentes WorkflowList y TemplateGallery
-
-- **Sprint 8-9:** Workflow Editor Foundation (90% completado)
-  - Editor visual completamente funcional
-  - Persistencia crítica de nodos RESUELTA
-  - Sistema de conexiones y animaciones completo
-  - Gestión de estado funcional con Zustand
-
-- **Sprint 9.5:** Sistema de Flujo de Datos (100% completado) ✅
-  - Sistema completo de flujo de datos entre nodos
-  - Puertos tipados con DataPortHandle component
-  - Nodo de condición como rombo con lógica T/F
-  - Validación robusta de conexiones y tipos
-  - Panel de configuración de datos con mapeo y transformaciones
-  - Esquemas dinámicos basados en conexiones reales
-
-### ⏳ Próximos Sprints (50% restante)
-- **Sprint 5.5:** Completar Funcionalidades Pendientes (OAuth, email templates, admin i18n)
-- **Sprint 9.6:** Sistema de Tooltips Avanzados 🆕 (UX mejorado, no invasivo)
-- **Sprint 9.7:** Frontend Workflow Management & UX 🆕 (CRÍTICO - validaciones, layout, sticky header)
-- **Sprint 10-11:** Conectores Esenciales (20) - Framework base listo
-- **Sprint 12-13:** Motor de Ejecución
-- **Sprint 14-15:** Dashboard y Monitorización
-- **Sprint 16-17:** Testing, Polish y Deploy
-
-### 🎯 Estado Actual Post-Fixes
-La aplicación FlowCraft tiene una base **sólida y estable** con:
-- ✅ Infraestructura técnica completa y CI/CD funcional
-- ✅ Sistema de autenticación funcional (90%)
-- ✅ Soporte multiidioma operativo (85%)
-- ✅ Landing page y dashboard básicos
-- ✅ API backend robusta y documentada
-- ✅ Core API y Workflow CRUD completo
-- ✅ Sistema de validación de workflows
-- ✅ Gestión de templates y versionado
-- ✅ Frontend integration con API
-- ✅ **Editor visual de workflows funcional con persistencia completa**
-- ✅ **Sistema de flujo de datos completamente implementado**
-- ✅ **Pipeline CI/CD estabilizado y documentado**
-- ✅ **Deuda técnica identificada y priorizada**
-
-**Próximo hito CRÍTICO:** Frontend UX Improvements (Sprint 9.7) - Validación de nombres únicos, canvas ajustado, header sticky y mejores botones de acción
+### 🟢 **Riesgo CONTROLADO - Feature Scope**
+- **Solución**: Reducido de 20 a 5 conectores para MVP
+- **Beneficio**: Focus en calidad vs quantity
+- **Timeline**: Mantiene 19.5 semanas totales
 
 ---
 
-## Conclusión
+## RESOURCE ALLOCATION OPTIMIZADA
 
-La Fase 1 MVP de FlowCraft establece una base sólida para una plataforma de workflow automation competitiva. Con 20 conectores esenciales, un editor visual funcional, y un motor de ejecución robusto, el producto estará listo para usuarios beta y validación de mercado.
+### Backend Team (80% Execution Focus)
+- **2 Senior Engineers**: Execution engine development
+- **1 Integration Engineer**: HTTP + Email connectors
+- **1 DevOps Engineer**: Queue infrastructure + deployment
+- **1 Tech Lead**: Architecture oversight + connector framework
 
-El plan de 20 semanas es ambicioso pero realizable con el equipo propuesto y las tecnologías seleccionadas. La arquitectura microservicios y el enfoque en calidad desde el inicio posicionan al proyecto para escalabilidad futura.
+### Frontend Team (60% Execution Integration)  
+- **1 Senior Engineer**: Execution UI + dashboard
+- **1 Frontend Engineer**: Execution status + monitoring
+- **1 UI/UX Designer**: Execution feedback + status design
 
-**Próximo hito:** Demo funcional al final de la Fase 1 con capacidad de crear y ejecutar workflows reales. 
+### QA Team (100% Critical Path)
+- **1 QA Engineer**: E2E testing strategy + execution flows
+- **1 Data Engineer**: Execution metrics + performance monitoring
+
+---
+
+## CONCLUSIÓN ESTRATÉGICA
+
+FlowCraft tiene una **base técnica excepcional** (55% completado) pero enfrenta un **gap crítico de ejecución** que impide entregar valor de negocio.
+
+### Decisión Estratégica
+**Priorización TOTAL** en execution capabilities sobre features adicionales. MVP exitoso requiere:
+
+1. **Execution engine funcional** - 2 semanas
+2. **5 conectores básicos** - 2 semanas  
+3. **Testing comprehensivo** - 2 semanas
+4. **Production readiness** - 2 semanas
+5. **Monitoring dashboard** - 1 semana
+
+### Timeline Final
+**9 semanas restantes** para completar MVP funcional que entrega valor real de automatización.
+
+**Success Criteria**: Users pueden crear workflows con 5 conectores, ejecutarlos exitosamente, y monitorear resultados - **VALUE DELIVERED**.
