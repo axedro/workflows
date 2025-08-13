@@ -182,6 +182,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             onChange={e => onChange(e.target.value)}
             disabled={readOnly}
             className={getInputClassName()}
+            data-field={fieldName}
           >
             {options?.map(option => (
               <option key={option.value} value={option.value}>
@@ -197,6 +198,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             rows={rows || 3}
             disabled={readOnly}
             className={getInputClassName()}
+            data-field={fieldName}
           />
         ) : (
           <input
@@ -206,6 +208,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             placeholder={placeholder}
             disabled={readOnly}
             className={getInputClassName()}
+            data-field={fieldName}
           />
         )}
         
@@ -543,6 +546,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                   placeholder="https://..."
                   disabled={readOnly}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                  data-field="webhookUrl"
                 />
               </div>
             )}
@@ -812,6 +816,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 rows={6}
                 disabled={readOnly}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                data-field="emailBody"
               />
             </div>
 
@@ -861,6 +866,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 rows={4}
                 disabled={readOnly}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                data-field="message"
               />
             </div>
 

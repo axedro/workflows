@@ -141,14 +141,24 @@
 - [x] Persistencia de validación entre selecciones de nodos
 - [x] Consolidación con sistema de validación API legacy
 
+#### Navegación de Issues ✅ 🆕
+- [x] Click navigation desde Issues dropdown hacia nodos/edges problemáticos
+- [x] Auto-apertura del PropertyPanel con el elemento seleccionado
+- [x] Centrado automático de vista en el elemento problemático
+- [x] Highlighting temporal de campos específicos con ring rojo
+- [x] Scroll automático hacia el campo problemático
+- [x] Manejo correcto de contexto ReactFlow con refs
+- [x] Soporte para navegación tanto de nodos como de edges
+
 **Entregables:**
 - Sistema de validación completamente unificado
 - Validaciones comprehensivas para todos los tipos de nodos
 - Validaciones avanzadas de edges con detección de ciclos
 - UI mejorada con categorización detallada de issues
 - Integración completa con editor visual
+- Sistema de navegación clickeable desde Issues hacia elementos problemáticos
 
-**Estado:** ✅ 100% COMPLETADO - Sistema de validación unificado con validaciones de nodos y edges completas
+**Estado:** ✅ 100% COMPLETADO - Sistema de validación unificado con validaciones de nodos y edges completas + navegación clickeable desde Issues dropdown
 
 ---
 

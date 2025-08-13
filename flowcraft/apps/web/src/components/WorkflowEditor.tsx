@@ -57,10 +57,17 @@ const EditorCanvas: React.FC<{
   setNodes: (nodes: Node[] | ((nodes: Node[]) => Node[])) => void;
   nodeTypes: NodeTypes;
   edgeTypes: EdgeTypes;
+  reactFlowRef: React.MutableRefObject<any>;
 }> = (props) => {
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onNodeClick, onEdgeClick, onPaneClick, setNodes, nodeTypes, edgeTypes } = props;
+  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onNodeClick, onEdgeClick, onPaneClick, setNodes, nodeTypes, edgeTypes, reactFlowRef } = props;
   const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
+  const reactFlowInstance = useReactFlow();
   const { screenToFlowPosition } = useReactFlow();
+  
+  // Asignar la instancia de ReactFlow a la referencia del componente padre
+  React.useEffect(() => {
+    reactFlowRef.current = reactFlowInstance;
+  }, [reactFlowInstance, reactFlowRef]);
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -484,6 +491,92 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
     return () => clearTimeout(timeout);
   }, [nodes.map(n => JSON.stringify(n.data)).join('|')]);  // Monitor node data changes
 
+  // Referencia para la instancia de ReactFlow que se obtendrá desde el componente interno
+  const reactFlowRef = useRef<any>(null);
+
+  // Función para navegar a un error específico
+  const navigateToIssue = useCallback((issue: any) => {
+    // Cerrar el dropdown primero
+    setShowValidationPanel(false);
+    
+    if (issue.nodeId) {
+      // Encontrar el nodo
+      const node = nodes.find(n => n.id === issue.nodeId);
+      if (node) {
+        // Seleccionar el nodo
+        onNodesChange([
+          ...nodes.map(n => ({ ...n, selected: n.id === issue.nodeId }))
+        ]);
+        
+        // Centrar la vista en el nodo si tenemos la instancia
+        if (reactFlowRef.current && node.position) {
+          try {
+            const viewport = reactFlowRef.current.getViewport();
+            reactFlowRef.current.setCenter(
+              node.position.x + (node.width || 200) / 2,
+              node.position.y + (node.height || 100) / 2,
+              { zoom: Math.max(viewport.zoom, 1.0) }
+            );
+          } catch (error) {
+            console.log('Could not center view on node:', error);
+          }
+        }
+        
+        // Abrir PropertyPanel si no está abierto
+        setSelectedNode(node);
+        
+        // Si hay un campo específico, podemos agregarlo al estado para resaltarlo
+        if (issue.field) {
+          // Agregar un pequeño delay para que el PropertyPanel se renderice primero
+          setTimeout(() => {
+            // Buscar el campo en el PropertyPanel y hacer scroll hacia él
+            const fieldElement = document.querySelector(`[data-field="${issue.field}"]`);
+            if (fieldElement) {
+              fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              // Agregar clase de resaltado temporalmente
+              fieldElement.classList.add('ring-2', 'ring-red-500', 'ring-opacity-75');
+              setTimeout(() => {
+                fieldElement.classList.remove('ring-2', 'ring-red-500', 'ring-opacity-75');
+              }, 3000);
+            }
+          }, 100);
+        }
+      }
+    } else if (issue.edgeId) {
+      // Para errores de edges, podemos resaltar la conexión
+      const edge = edges.find(e => e.id === issue.edgeId);
+      if (edge) {
+        // Seleccionar el edge
+        onEdgesChange([
+          ...edges.map(e => ({ ...e, selected: e.id === issue.edgeId }))
+        ]);
+        
+        // Abrir PropertyPanel para el edge
+        setSelectedEdge(edge);
+        
+        // Encontrar los nodos conectados para centrar la vista
+        const sourceNode = nodes.find(n => n.id === edge.source);
+        const targetNode = nodes.find(n => n.id === edge.target);
+        
+        if (sourceNode && targetNode && reactFlowRef.current) {
+          try {
+            // Centrar entre los dos nodos
+            const centerX = (sourceNode.position.x + targetNode.position.x) / 2;
+            const centerY = (sourceNode.position.y + targetNode.position.y) / 2;
+            const viewport = reactFlowRef.current.getViewport();
+            
+            reactFlowRef.current.setCenter(
+              centerX,
+              centerY,
+              { zoom: Math.max(viewport.zoom, 1.0) }
+            );
+          } catch (error) {
+            console.log('Could not center view on edge:', error);
+          }
+        }
+      }
+    }
+  }, [nodes, edges, onNodesChange, onEdgesChange, setSelectedNode, setSelectedEdge]);
 
   // Función para actualizar estilos de nodos basados en validaciones
   const updateNodeStyles = useCallback(() => {
@@ -826,7 +919,16 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
                             </h4>
                             <div className="space-y-2">
                               {unifiedValidation.errors.map((error, index) => (
-                                <div key={index} className="bg-red-50 border border-red-200 rounded p-2">
+                                <div 
+                                  key={index} 
+                                  className={`bg-red-50 border border-red-200 rounded p-2 transition-colors duration-150 ${
+                                    (error.nodeId || error.edgeId) 
+                                      ? 'cursor-pointer hover:bg-red-100 hover:border-red-300' 
+                                      : ''
+                                  }`}
+                                  onClick={() => (error.nodeId || error.edgeId) && navigateToIssue(error)}
+                                  title={(error.nodeId || error.edgeId) ? 'Click to navigate to this issue' : undefined}
+                                >
                                   <div className="flex items-start justify-between">
                                     <div className="flex-1">
                                       <p className="text-sm text-red-800">{error.message}</p>
@@ -838,7 +940,14 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
                                         {error.edgeId && <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">CONNECTION</span>}
                                       </div>
                                     </div>
-                                    <span className="text-xs text-red-500 font-mono">{error.code}</span>
+                                    <div className="flex items-center space-x-1">
+                                      <span className="text-xs text-red-500 font-mono">{error.code}</span>
+                                      {(error.nodeId || error.edgeId) && (
+                                        <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                        </svg>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               ))}
@@ -855,7 +964,16 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
                             </h4>
                             <div className="space-y-2">
                               {unifiedValidation.warnings.map((warning, index) => (
-                                <div key={index} className="bg-amber-50 border border-amber-200 rounded p-2">
+                                <div 
+                                  key={index} 
+                                  className={`bg-amber-50 border border-amber-200 rounded p-2 transition-colors duration-150 ${
+                                    (warning.nodeId || warning.edgeId) 
+                                      ? 'cursor-pointer hover:bg-amber-100 hover:border-amber-300' 
+                                      : ''
+                                  }`}
+                                  onClick={() => (warning.nodeId || warning.edgeId) && navigateToIssue(warning)}
+                                  title={(warning.nodeId || warning.edgeId) ? 'Click to navigate to this issue' : undefined}
+                                >
                                   <div className="flex items-start justify-between">
                                     <div className="flex-1">
                                       <p className="text-sm text-amber-800">{warning.message}</p>
@@ -867,7 +985,14 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
                                         {warning.edgeId && <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">CONNECTION</span>}
                                       </div>
                                     </div>
-                                    <span className="text-xs text-amber-500 font-mono">{warning.code}</span>
+                                    <div className="flex items-center space-x-1">
+                                      <span className="text-xs text-amber-500 font-mono">{warning.code}</span>
+                                      {(warning.nodeId || warning.edgeId) && (
+                                        <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                        </svg>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               ))}
@@ -935,6 +1060,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
               setNodes={setNodes}
               nodeTypes={nodeTypes}
               edgeTypes={edgeTypes}
+              reactFlowRef={reactFlowRef}
             />
           </ReactFlowProvider>
           <PropertyPanel 

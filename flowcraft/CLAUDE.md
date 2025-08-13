@@ -210,3 +210,4 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Condition Validation**: Validates conditional logic on CONDITION node edges with syntax checking and best practice suggestions
 - **Categories**: All validations categorized as 'workflow', 'field', or 'structural' for better organization
 - **UI Enhancement**: Issues dropdown with scrollable content, fixed header/footer, and detailed issue information including node/edge IDs, fields, and error codes
+- **Click Navigation**: Users can click on validation errors/warnings in Issues dropdown to navigate directly to the problematic node/edge with automatic PropertyPanel opening and field highlighting
