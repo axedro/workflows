@@ -241,7 +241,24 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
 
   // Update local state when selected node or edge changes
   useEffect(() => {
-    setLocalNode(selectedNode);
+    // Initialize HTTP_REQUEST nodes with default method if not set
+    if (selectedNode && selectedNode.type === 'http_request' && !selectedNode.data.method) {
+      const initializedNode = {
+        ...selectedNode,
+        data: {
+          ...selectedNode.data,
+          method: 'GET'
+        }
+      };
+      setLocalNode(initializedNode);
+      // Also update the parent immediately to sync the data
+      if (onNodeUpdate) {
+        onNodeUpdate(initializedNode);
+      }
+    } else {
+      setLocalNode(selectedNode);
+    }
+    
     setLocalEdge(selectedEdge);
     setHasUnsavedChanges(false);
     setSaveStatus('idle');

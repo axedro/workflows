@@ -217,31 +217,39 @@ export class UnifiedValidationService {
       try {
         const validationConfig = {
           connectorType: 'HTTP_REQUEST',
-          fields: { url: data.url },
+          fields: { url: data.url, method: data.method },
           schema: {}
         };
         const result = ConnectorValidationService.validateConnector(validationConfig);
         
         result.errors.forEach((error, index) => {
+          // Determine field based on error message
+          const field = error.toLowerCase().includes('method') ? 'method' : 'url';
+          const code = field === 'method' ? 'MISSING_HTTP_METHOD' : 'INVALID_URL';
+          
           issues.push({
-            id: `http-url-error-${node.id}-${index}`,
+            id: `http-${field}-error-${node.id}-${index}`,
             type: 'error',
-            code: 'INVALID_URL',
+            code: code,
             message: error,
             nodeId: node.id,
-            field: 'url',
+            field: field,
             category: 'field'
           });
         });
 
         result.warnings.forEach((warning, index) => {
+          // Determine field based on warning message
+          const field = warning.toLowerCase().includes('method') ? 'method' : 'url';
+          const code = field === 'method' ? 'METHOD_WARNING' : 'URL_WARNING';
+          
           issues.push({
-            id: `http-url-warning-${node.id}-${index}`,
+            id: `http-${field}-warning-${node.id}-${index}`,
             type: 'warning',
-            code: 'URL_WARNING',
+            code: code,
             message: warning,
             nodeId: node.id,
-            field: 'url',
+            field: field,
             category: 'field'
           });
         });
@@ -250,19 +258,7 @@ export class UnifiedValidationService {
       }
     }
 
-    // Method validation
-    const validMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
-    if (data.method && !validMethods.includes(data.method.toUpperCase())) {
-      issues.push({
-        id: `http-method-invalid-${node.id}`,
-        type: 'error',
-        code: 'INVALID_HTTP_METHOD',
-        message: `Invalid HTTP method: ${data.method}. Must be one of: ${validMethods.join(', ')}`,
-        nodeId: node.id,
-        field: 'method',
-        category: 'field'
-      });
-    }
+    // Note: Method validation is now handled by ConnectorValidationService above
 
     return issues;
   }
