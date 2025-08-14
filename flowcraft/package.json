@@ -16,6 +16,7 @@
     "lint:fix": "pnpm run --recursive lint -- --fix",
     "type-check": "pnpm run --recursive type-check",
     "clean": "pnpm run --recursive clean",
+    "clean:compiled": "./scripts/clean-compiled.sh",
     "docker:build": "docker-compose -f infrastructure/docker/docker-compose.yml build",
     "docker:up": "docker-compose -f infrastructure/docker/docker-compose.yml up -d",
     "docker:down": "docker-compose -f infrastructure/docker/docker-compose.yml down",

@@ -15,6 +15,7 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "baseUrl": ".",
+    "noEmitOnError": true,
     "paths": {
       "@flowcraft/shared-types": ["packages/shared-types/src"],
       "@flowcraft/database": ["packages/database/src"],
@@ -28,7 +29,11 @@
   "exclude": [
     "node_modules",
     "dist",
-    "build"
+    "build",
+    "**/*.js",
+    "**/*.d.ts",
+    "**/*.js.map",
+    "**/*.d.ts.map"
   ],
   "references": [
     { "path": "packages/shared-types" },
