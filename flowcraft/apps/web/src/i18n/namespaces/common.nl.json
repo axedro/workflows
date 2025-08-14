@@ -147,5 +147,10 @@
   "difficulty.advanced": "Expert",
   "no_nodes_found": "Geen nodes gevonden",
   "fit_to_view_shortcut": "Passend maken (Ctrl/Cmd + 0)",
-  "export_workflow": "Workflow exporteren als JSON"
+  "export_workflow": "Workflow exporteren als JSON",
+  "sign_in": "Inloggen",
+  "get_started": "Aan de slag",
+  "welcome_user": "Welkom, {{name}}",
+  "dashboard": "Dashboard",
+  "logout": "Uitloggen"
 } 

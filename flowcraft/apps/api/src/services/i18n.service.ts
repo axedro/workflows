@@ -1,4 +1,4 @@
-import { prisma } from '../../../../packages/database/dist/index.js';
+import { prisma } from '@flowcraft/database';
 import Redis from 'redis';
 
 // Redis client for caching

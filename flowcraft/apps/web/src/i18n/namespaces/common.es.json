@@ -150,5 +150,10 @@
   "difficulty.advanced": "Avanzado",
   "no_nodes_found": "No se encontraron nodos",
   "fit_to_view_shortcut": "Ajustar a vista (Ctrl/Cmd + 0)",
-  "export_workflow": "Exportar Workflow como JSON"
+  "export_workflow": "Exportar Workflow como JSON",
+  "sign_in": "Iniciar Sesión",
+  "get_started": "Comenzar",
+  "welcome_user": "Bienvenido, {{name}}",
+  "dashboard": "Dashboard",
+  "logout": "Cerrar Sesión"
 } 
