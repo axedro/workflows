@@ -1,5 +1,16 @@
 import { User, Workflow, WorkflowTemplate } from '@flowcraft/shared-types';
 
+// Type declarations for Vite
+declare global {
+  interface ImportMetaEnv {
+    readonly VITE_API_URL: string
+    readonly DEV: boolean
+  }
+  interface ImportMeta {
+    readonly env: ImportMetaEnv
+  }
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 
@@ -547,7 +558,7 @@ class ApiService {
   // Execution endpoints
   async executeWorkflow(
     workflowId: string,
-    userId: string,
+    _userId: string, // Prefixed with underscore to indicate it's intentionally unused
     input?: Record<string, any>
   ): Promise<{ executionId: string; status: string; message: string }> {
     return this.request<{ executionId: string; status: string; message: string }>(

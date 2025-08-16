@@ -28,7 +28,7 @@ const listExecutionsQuerySchema = z.object({
 export default async function executionRoutes(fastify: FastifyInstance, options: FastifyPluginOptions) {
   // Execute workflow (proxy to execution service)
   fastify.post('/workflows/:id/execute', {
-    // preHandler: fastify.authenticate, // Temporarily disabled for testing
+    preHandler: fastify.authenticate,
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { id: workflowId } = workflowParamsSchema.parse(request.params);
@@ -82,7 +82,7 @@ export default async function executionRoutes(fastify: FastifyInstance, options:
 
   // Get execution status (proxy to execution service)
   fastify.get('/executions/:id', {
-    // preHandler: fastify.authenticate, // Temporarily disabled for testing
+    preHandler: fastify.authenticate,
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { id: executionId } = executionParamsSchema.parse(request.params);
@@ -125,7 +125,7 @@ export default async function executionRoutes(fastify: FastifyInstance, options:
 
   // Get workflow executions
   fastify.get('/workflows/:id/executions', {
-    // preHandler: fastify.authenticate, // Temporarily disabled for testing
+    preHandler: fastify.authenticate,
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { id: workflowId } = workflowParamsSchema.parse(request.params);
@@ -200,7 +200,7 @@ export default async function executionRoutes(fastify: FastifyInstance, options:
 
   // Cancel execution
   fastify.post('/executions/:id/cancel', {
-    // preHandler: fastify.authenticate, // Temporarily disabled for testing
+    preHandler: fastify.authenticate,
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { id: executionId } = executionParamsSchema.parse(request.params);

@@ -416,6 +416,7 @@ export async function i18nRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/translations',
     {
+      preValidation: [fastify.authenticate],
       schema: {
         description: 'Bulk load translations for a namespace and language',
         tags: ['i18n'],
@@ -450,12 +451,7 @@ export async function i18nRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    async (
-      request: FastifyRequest<{
-        Body: BulkLoadTranslationsBody;
-      }>,
-      reply: FastifyReply
-    ) => {
+    async (request: any, reply: FastifyReply) => {
       try {
         const { namespace, language, translations } = request.body;
 

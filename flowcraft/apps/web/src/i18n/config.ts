@@ -3,6 +3,20 @@ import { initReactI18next } from 'react-i18next';
 import Backend from 'i18next-http-backend';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
+// Type declarations for Vite
+declare global {
+  interface ImportMetaEnv {
+    readonly VITE_API_URL: string
+    readonly DEV: boolean
+  }
+  interface ImportMeta {
+    readonly env: ImportMetaEnv
+    readonly hot?: {
+      accept: (callback?: (modules: any[]) => void) => void
+    }
+  }
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 // Only initialize if not already initialized

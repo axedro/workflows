@@ -202,17 +202,17 @@ const DataConfigPanel: React.FC<DataConfigPanelProps> = ({
   };
 
   // Legacy function - kept for backward compatibility but improved
-  const addFieldMapping = () => {
-    // If there are unmapped fields, map the next one
-    // Otherwise, add a custom blank mapping
-    const unmappedFields = getUnmappedFields();
+  // const addFieldMapping = () => {
+  //   // If there are unmapped fields, map the next one
+  //   // Otherwise, add a custom blank mapping
+  //   const unmappedFields = getUnmappedFields();
     
-    if (unmappedFields.length > 0) {
-      addNextFieldMapping();
-    } else {
-      addCustomFieldMapping();
-    }
-  };
+  //   if (unmappedFields.length > 0) {
+  //     addNextFieldMapping();
+  //   } else {
+  //     addCustomFieldMapping();
+  //   }
+  // };
 
   const removeFieldMapping = (index: number) => {
     const updatedMappings = localDataFlow.fieldMappings.filter(

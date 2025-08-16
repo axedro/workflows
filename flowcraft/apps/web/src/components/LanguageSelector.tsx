@@ -94,7 +94,7 @@ export default function LanguageSelector({
             `}
             title={`${lang.name} (${lang.nativeName})`}
           >
-            {lang.flagEmoji || '🌐'}
+            {lang.flag || '🌐'}
           </button>
         ))}
       </div>
@@ -121,7 +121,7 @@ export default function LanguageSelector({
               ${isChanging ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
             `}
           >
-            <span className="text-lg">{lang.flagEmoji || '🌐'}</span>
+            <span className="text-lg">{lang.flag || '🌐'}</span>
             {showLabel && (
               <span className="text-sm font-medium">{lang.nativeName}</span>
             )}
@@ -146,7 +146,7 @@ export default function LanguageSelector({
         aria-haspopup="true"
         aria-expanded={isOpen}
       >
-        <span className="text-lg">{currentLang?.flagEmoji || '🌐'}</span>
+        <span className="text-lg">{currentLang?.flag || '🌐'}</span>
         {showLabel && (
           <span className="text-sm font-medium text-gray-700">
             {currentLang?.nativeName || 'Language'}
@@ -188,7 +188,7 @@ export default function LanguageSelector({
                   ${isChanging ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 `}
               >
-                <span className="text-lg">{lang.flagEmoji || '🌐'}</span>
+                <span className="text-lg">{lang.flag || '🌐'}</span>
                 <div className="flex-1">
                   <div className="text-sm font-medium">{lang.nativeName}</div>
                   <div className="text-xs text-gray-500">{lang.name}</div>

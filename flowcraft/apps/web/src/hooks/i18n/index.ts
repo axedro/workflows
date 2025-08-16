@@ -1,7 +1,3 @@
 export { useTranslation } from './useTranslation';
-export { useLanguageDetector } from './useLanguageDetector';
-export type { TranslationParams, UseTranslationReturn } from './useTranslation';
-export type {
-  LanguageInfo,
-  UseLanguageDetectorReturn,
-} from './useLanguageDetector';
+export { useLanguageDetector, SUPPORTED_LANGUAGES } from './useLanguageDetector';
+export type { LanguageInfo } from './useLanguageDetector';

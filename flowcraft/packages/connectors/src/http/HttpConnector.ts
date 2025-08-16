@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosResponse, AxiosError, AxiosRequestConfig } from 'axios';
+import axios, { AxiosInstance, AxiosResponse, AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import { BaseConnector } from '../base.js';
 import { ConnectorConfig, ConnectorInstance } from '@flowcraft/shared-types';
 
@@ -134,20 +134,20 @@ export class HttpConnector extends BaseConnector {
   private setupInterceptors(): void {
     // Request interceptor
     this.client.interceptors.request.use(
-      (config) => {
+      (config: InternalAxiosRequestConfig) => {
         return config;
       },
-      (error) => {
+      (error: any) => {
         return Promise.reject(error);
       }
     );
 
     // Response interceptor  
     this.client.interceptors.response.use(
-      (response) => {
+      (response: AxiosResponse) => {
         return response;
       },
-      (error) => {
+      (error: any) => {
         return Promise.reject(error);
       }
     );

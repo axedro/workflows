@@ -1,8 +1,16 @@
-import {
-  useTranslation as useI18nextTranslation,
-  UseTranslationOptions,
-} from 'react-i18next';
+import { useTranslation as useI18nTranslation } from 'react-i18next';
 import { useCallback } from 'react';
+
+// Type declarations for Vite
+declare global {
+  interface ImportMetaEnv {
+    readonly VITE_API_URL: string
+    readonly DEV: boolean
+  }
+  interface ImportMeta {
+    readonly env: ImportMetaEnv
+  }
+}
 
 export interface TranslationParams {
   [key: string]: string | number | boolean | Date;
@@ -22,13 +30,13 @@ export interface UseTranslationReturn {
  */
 export function useTranslation(
   namespace?: string | string[],
-  options?: UseTranslationOptions<any>
+  options?: any // UseTranslationOptions<any> // This type is not imported, so using 'any' for now
 ): UseTranslationReturn {
   const {
     t: originalT,
     i18n,
     ready,
-  } = useI18nextTranslation(namespace, {
+  } = useI18nTranslation(namespace, {
     useSuspense: false,
     ...options,
   });

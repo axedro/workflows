@@ -242,7 +242,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
   // Update local state when selected node or edge changes
   useEffect(() => {
     // Initialize HTTP_REQUEST nodes with default method if not set
-    if (selectedNode && selectedNode.type === 'http_request' && !selectedNode.data.method) {
+    if (selectedNode && selectedNode.type === 'http_request' && !(selectedNode.data as any).method) {
       const initializedNode = {
         ...selectedNode,
         data: {

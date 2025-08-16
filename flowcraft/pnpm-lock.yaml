@@ -132,6 +132,9 @@ importers:
       '@prisma/client':
         specifier: ^5.22.0
         version: 5.22.0(prisma@5.22.0)
+      axios:
+        specifier: ^1.6.0
+        version: 1.11.0
       bullmq:
         specifier: ^4.12.0
         version: 4.18.3
@@ -263,6 +266,9 @@ importers:
       '@flowcraft/shared-types':
         specifier: workspace:*
         version: link:../shared-types
+      axios:
+        specifier: ^1.6.0
+        version: 1.11.0
     devDependencies:
       '@types/node':
         specifier: ^20.0.0

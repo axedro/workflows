@@ -10,7 +10,6 @@ import {
   NameAvailabilityResult,
   CheckNameParams,
 } from '../services/api';
-import { fixedApiService } from '../services/apiFixed';
 import { useNotificationStore } from './notificationStore';
 
 // Force reload - using updated apiService: 2025-08-09-09:13

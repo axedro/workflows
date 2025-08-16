@@ -531,29 +531,31 @@ export class UnifiedValidationService {
       return issues; // Skip if nodes don't exist (handled in structure validation)
     }
 
-    // Check data flow compatibility
     if (edge.dataFlow) {
       // Validate data flow structure
-      if (!edge.dataFlow.sourceField || !edge.dataFlow.targetField) {
+      if (!edge.dataFlow.fieldMappings || edge.dataFlow.fieldMappings.length === 0) {
         issues.push({
           id: `edge-invalid-dataflow-${edge.id}`,
           type: 'error',
           code: 'INVALID_DATA_FLOW',
-          message: 'Data flow must specify both source and target fields',
+          message: 'Data flow must have at least one field mapping',
           edgeId: edge.id,
           field: 'dataFlow',
           category: 'field'
         });
       }
 
-      // Validate data type compatibility
-      if (edge.dataFlow.sourceDataType && edge.dataFlow.targetDataType) {
-        if (edge.dataFlow.sourceDataType !== edge.dataFlow.targetDataType && !edge.dataFlow.transformation) {
+      // Validate data type compatibility through field mappings
+      if (edge.dataFlow.fieldMappings && edge.dataFlow.fieldMappings.length > 0) {
+        const hasTransformations = edge.dataFlow.transformations && edge.dataFlow.transformations.length > 0;
+        
+        // Check if transformations are needed for type compatibility
+        if (!hasTransformations) {
           issues.push({
             id: `edge-datatype-mismatch-${edge.id}`,
             type: 'warning',
             code: 'DATA_TYPE_MISMATCH',
-            message: `Data type mismatch: ${edge.dataFlow.sourceDataType} → ${edge.dataFlow.targetDataType}. Consider adding a transformation.`,
+            message: `Consider adding transformations for better data type compatibility.`,
             edgeId: edge.id,
             field: 'dataFlow',
             category: 'field'

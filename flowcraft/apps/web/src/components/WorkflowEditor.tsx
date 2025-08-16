@@ -552,9 +552,13 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
       const node = nodes.find(n => n.id === issue.nodeId);
       if (node) {
         // Seleccionar el nodo
-        onNodesChange([
-          ...nodes.map(n => ({ ...n, selected: n.id === issue.nodeId }))
-        ]);
+        onNodesChange(
+          nodes.map(n => ({ 
+            id: n.id, 
+            type: 'select' as const, 
+            selected: n.id === issue.nodeId 
+          }))
+        );
         
         // Centrar la vista en el nodo si tenemos la instancia
         if (reactFlowRef.current && node.position) {
@@ -595,9 +599,13 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
       const edge = edges.find(e => e.id === issue.edgeId);
       if (edge) {
         // Seleccionar el edge
-        onEdgesChange([
-          ...edges.map(e => ({ ...e, selected: e.id === issue.edgeId }))
-        ]);
+        onEdgesChange(
+          edges.map(e => ({ 
+            id: e.id, 
+            type: 'select' as const, 
+            selected: e.id === issue.edgeId 
+          }))
+        );
         
         // Abrir PropertyPanel para el edge
         setSelectedEdge(edge);
@@ -910,7 +918,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
             {id && id !== 'new' && (
               <button
                 onClick={handleExecuteWorkflow}
-                disabled={executeWorkflowMutation.isPending || (unifiedValidation && unifiedValidation.errors.length > 0)}
+                disabled={executeWorkflowMutation.isPending || (unifiedValidation && unifiedValidation.errors.length > 0) || false}
                 className="inline-flex items-center px-3 py-1.5 border border-green-300 rounded-md text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Execute workflow (Ctrl/Cmd+E) - Run the workflow now"
               >

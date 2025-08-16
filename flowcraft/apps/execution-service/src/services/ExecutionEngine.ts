@@ -3,6 +3,7 @@ import { EditorNode, EditorEdge } from '@flowcraft/shared-types';
 import { ExecutionContext, ExecutionStatus, ExecutionResult } from '../types/execution.js';
 import { logger } from '../utils/logger.js';
 import { config } from '../config/index.js';
+import axios from 'axios';
 
 export class ExecutionEngine {
   private prisma: PrismaClient;
@@ -242,8 +243,7 @@ export class ExecutionEngine {
           return this.executeEndNode(node, context);
         
         case 'http_request':
-          // Will be implemented when HTTP connector is ready
-          throw new Error('HTTP connector not yet implemented');
+          return this.executeHttpRequestNode(node, context);
         
         default:
           logger.warn({ nodeType: node.type }, 'Unknown node type, skipping');
@@ -294,6 +294,105 @@ export class ExecutionEngine {
       data: context.input,
       duration: Date.now() - startTime
     };
+  }
+
+  /**
+   * Execute HTTP Request node
+   */
+  private async executeHttpRequestNode(node: EditorNode, context: ExecutionContext): Promise<ExecutionResult> {
+    const startTime = Date.now();
+    const nodeData = node.data as any;
+
+    try {
+      // Validate required configuration
+      if (!nodeData.url) {
+        throw new Error('HTTP Request node requires a URL');
+      }
+
+      // Build request configuration
+      const requestConfig: any = {
+        method: nodeData.method || 'GET',
+        url: nodeData.url,
+        timeout: nodeData.timeout || 30000,
+        headers: {
+          'Content-Type': 'application/json',
+          ...nodeData.headers
+        }
+      };
+
+      // Add request body for POST, PUT, PATCH methods
+      if (['POST', 'PUT', 'PATCH'].includes(requestConfig.method.toUpperCase())) {
+        if (nodeData.body) {
+          requestConfig.data = nodeData.body;
+        } else if (context.input && Object.keys(context.input).length > 0) {
+          requestConfig.data = context.input;
+        }
+      }
+
+      // Add query parameters
+      if (nodeData.params) {
+        requestConfig.params = nodeData.params;
+      }
+
+      // Add authentication if configured
+      if (nodeData.authentication) {
+        const auth = nodeData.authentication;
+        switch (auth.type) {
+          case 'bearer':
+            requestConfig.headers.Authorization = `Bearer ${auth.token}`;
+            break;
+          case 'basic':
+            const credentials = Buffer.from(`${auth.username}:${auth.password}`).toString('base64');
+            requestConfig.headers.Authorization = `Basic ${credentials}`;
+            break;
+          case 'apikey':
+            const headerName = auth.apiKeyHeader || 'X-API-Key';
+            requestConfig.headers[headerName] = auth.apiKey;
+            break;
+        }
+      }
+
+      logger.info({ 
+        nodeId: node.id, 
+        method: requestConfig.method, 
+        url: requestConfig.url 
+      }, 'Executing HTTP request');
+
+      const response = await axios(requestConfig);
+
+      const result = {
+        status: response.status,
+        statusText: response.statusText,
+        data: response.data,
+        headers: response.headers,
+        url: response.config.url,
+        success: response.status >= 200 && response.status < 300
+      };
+
+      logger.info({ 
+        nodeId: node.id, 
+        status: response.status, 
+        success: result.success 
+      }, 'HTTP request completed');
+
+      return {
+        success: result.success,
+        data: result,
+        duration: Date.now() - startTime
+      };
+
+    } catch (error) {
+      logger.error({ 
+        nodeId: node.id, 
+        error: error instanceof Error ? error.message : String(error) 
+      }, 'HTTP request failed');
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        duration: Date.now() - startTime
+      };
+    }
   }
 
   /**
