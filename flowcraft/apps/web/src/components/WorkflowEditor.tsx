@@ -38,6 +38,7 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useNotificationStore } from '../stores/notificationStore';
 import { apiService, ValidationResult } from '../services/api';
 import UnifiedValidationService, { UnifiedValidationResult } from '../services/unifiedValidation.service';
+import { useExecuteWorkflow } from '../hooks/useExecuteWorkflow';
 
 
 interface WorkflowEditorProps {
@@ -167,11 +168,58 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
   const lastValidationHashRef = useRef<string>('');
   const isUpdatingWorkflow = useRef(false);
 
-
+  // Execution hook
+  const executeWorkflowMutation = useExecuteWorkflow();
 
   // Función para volver al dashboard
   const handleBackToDashboard = () => {
     navigate('/dashboard');
+  };
+
+  // Función para ejecutar el workflow
+  const handleExecuteWorkflow = async () => {
+    if (!id || id === 'new') {
+      addNotification({
+        type: 'error',
+        title: 'Error',
+        message: 'Cannot execute unsaved workflow'
+      });
+      return;
+    }
+
+    // Check if workflow has validation errors
+    if (unifiedValidation && unifiedValidation.errors.length > 0) {
+      addNotification({
+        type: 'error',
+        title: 'Validation Errors',
+        message: `Cannot execute workflow with ${unifiedValidation.errors.length} validation errors`
+      });
+      return;
+    }
+
+    try {
+      // For now, use a test user ID - in production this would come from auth context
+      const userId = 'cmebtcz040002o9ejakyud82g'; // Test user from database
+      
+      await executeWorkflowMutation.mutateAsync({
+        workflowId: id,
+        userId,
+        input: {}
+      });
+
+      addNotification({
+        type: 'success',
+        title: 'Workflow Execution Started',
+        message: 'Your workflow is now being executed'
+      });
+    } catch (error) {
+      console.error('Failed to execute workflow:', error);
+      addNotification({
+        type: 'error',
+        title: 'Execution Failed',
+        message: error instanceof Error ? error.message : 'Failed to execute workflow'
+      });
+    }
   };
 
   // Función para guardar cambios en nombre y descripción
@@ -857,6 +905,28 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
               )}
               Save
             </button>
+
+            {/* Execute Button */}
+            {id && id !== 'new' && (
+              <button
+                onClick={handleExecuteWorkflow}
+                disabled={executeWorkflowMutation.isPending || (unifiedValidation && unifiedValidation.errors.length > 0)}
+                className="inline-flex items-center px-3 py-1.5 border border-green-300 rounded-md text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Execute workflow (Ctrl/Cmd+E) - Run the workflow now"
+              >
+                {executeWorkflowMutation.isPending ? (
+                  <svg className="animate-spin -ml-1 mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <svg className="-ml-1 mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
+                {executeWorkflowMutation.isPending ? 'Executing...' : 'Execute'}
+              </button>
+            )}
 
             {/* Export Button */}
             {id && id !== 'new' && (

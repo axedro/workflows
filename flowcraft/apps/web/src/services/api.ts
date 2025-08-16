@@ -543,6 +543,33 @@ class ApiService {
       }
     );
   }
+
+  // Execution endpoints
+  async executeWorkflow(
+    workflowId: string,
+    userId: string,
+    input?: Record<string, any>
+  ): Promise<{ executionId: string; status: string; message: string }> {
+    return this.request<{ executionId: string; status: string; message: string }>(
+      `/workflows/${workflowId}/execute`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ input }),
+      }
+    );
+  }
+
+  async getExecutionStatus(executionId: string): Promise<any> {
+    return this.request<any>(`/executions/${executionId}`);
+  }
+
+  async getWorkflowExecutions(workflowId: string): Promise<any[]> {
+    return this.request<any[]>(`/workflows/${workflowId}/executions`);
+  }
+
+  async getExecutionLogs(executionId: string): Promise<any[]> {
+    return this.request<any[]>(`/executions/${executionId}/logs`);
+  }
 }
 
 // Force module reload with timestamp: 2025-08-09-09:13

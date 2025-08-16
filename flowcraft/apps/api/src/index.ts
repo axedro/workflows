@@ -15,6 +15,7 @@ import { i18nRoutes } from './routes/i18n.js';
 import { workflowRoutes } from './routes/workflows.js';
 import { workflowTemplateRoutes } from './routes/workflowTemplates.js';
 import { workflowImportExportRoutes } from './routes/workflowImportExport.js';
+import executionRoutes from './routes/executions.js';
 import { authenticate } from './middleware/auth.middleware.js';
 import { i18nPlugin } from './middleware/i18n.middleware.js';
 
@@ -135,6 +136,7 @@ await fastify.register(workflowTemplateRoutes, {
 await fastify.register(workflowImportExportRoutes, {
   prefix: '/import-export',
 });
+await fastify.register(executionRoutes);
 
 // Global error handler
 fastify.setErrorHandler((error, request, reply) => {
