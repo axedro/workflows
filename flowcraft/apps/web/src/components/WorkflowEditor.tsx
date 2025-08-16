@@ -39,6 +39,7 @@ import { useNotificationStore } from '../stores/notificationStore';
 import { apiService, ValidationResult } from '../services/api';
 import UnifiedValidationService, { UnifiedValidationResult } from '../services/unifiedValidation.service';
 import { useExecuteWorkflow } from '../hooks/useExecuteWorkflow';
+import { ExecutionStatusPanel } from './ExecutionStatusPanel';
 
 
 interface WorkflowEditorProps {
@@ -168,6 +169,10 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
   const lastValidationHashRef = useRef<string>('');
   const isUpdatingWorkflow = useRef(false);
 
+  // Execution status state
+  const [currentExecutionId, setCurrentExecutionId] = useState<string | null>(null);
+  const [showExecutionStatus, setShowExecutionStatus] = useState(false);
+
   // Execution hook
   const executeWorkflowMutation = useExecuteWorkflow();
 
@@ -201,11 +206,15 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
       // For now, use a test user ID - in production this would come from auth context
       const userId = 'cmebtcz040002o9ejakyud82g'; // Test user from database
       
-      await executeWorkflowMutation.mutateAsync({
+      const result = await executeWorkflowMutation.mutateAsync({
         workflowId: id,
         userId,
         input: {}
       });
+
+      // Set the execution ID and show the status panel
+      setCurrentExecutionId(result.executionId);
+      setShowExecutionStatus(true);
 
       addNotification({
         type: 'success',
@@ -1159,6 +1168,17 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
           isOpen={showExportModal}
           onClose={() => setShowExportModal(false)}
           workflowId={id}
+        />
+      )}
+
+      {/* Execution Status Panel */}
+      {showExecutionStatus && currentExecutionId && (
+        <ExecutionStatusPanel
+          executionId={currentExecutionId}
+          onClose={() => {
+            setShowExecutionStatus(false);
+            setCurrentExecutionId(null);
+          }}
         />
       )}
     </div>

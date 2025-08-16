@@ -570,7 +570,22 @@ class ApiService {
     );
   }
 
-  async getExecutionStatus(executionId: string): Promise<any> {
+  async getExecutionStatus(executionId: string): Promise<{
+    id: string;
+    status: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+    startedAt: string;
+    completedAt?: string;
+    progress: number;
+    currentNode?: string;
+    error?: string;
+    logs: Array<{
+      id: string;
+      timestamp: string;
+      level: 'INFO' | 'WARN' | 'ERROR' | 'DEBUG';
+      message: string;
+      nodeId?: string;
+    }>;
+  }> {
     return this.request<any>(`/executions/${executionId}`);
   }
 
