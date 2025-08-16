@@ -1,10 +1,11 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Loading from './components/Loading';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { useAuthStore } from './stores/authStore';
 import { NotificationCenter } from './components/NotificationCenter';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useNotificationStore } from './stores/notificationStore';
 
 // Lazy load components
 const LandingPage = React.lazy(() =>
@@ -23,10 +24,33 @@ const UserProfile = React.lazy(() =>
 );
 
 function App() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, logout } = useAuthStore();
+  const { addNotification } = useNotificationStore();
   
   // Enable global keyboard shortcuts
   useKeyboardShortcuts({ enableGlobalShortcuts: true });
+
+  // Listen for authentication expired events
+  useEffect(() => {
+    const handleAuthExpired = (event: CustomEvent) => {
+      const message = event.detail?.message || 'Your session has expired. Please log in again.';
+      
+      addNotification({
+        type: 'warning',
+        title: 'Session Expired',
+        message: message,
+      });
+      
+      // Logout the user
+      logout();
+    };
+
+    window.addEventListener('auth:expired', handleAuthExpired as EventListener);
+    
+    return () => {
+      window.removeEventListener('auth:expired', handleAuthExpired as EventListener);
+    };
+  }, [addNotification, logout]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">

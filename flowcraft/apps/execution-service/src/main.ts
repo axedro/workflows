@@ -70,33 +70,27 @@ fastify.post('/api/workflows/execute', async (request, reply) => {
       });
     }
 
-    // Generate a unique execution ID that will be used consistently
-    const executionId = `exec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-    // Add workflow execution job to queue
-    const job = await WorkflowQueue.addWorkflowExecution({
-      workflowId,
-      userId,
-      input: input || {},
-      executionId: executionId, // Pre-generated execution ID
-    });
+    // Execute workflow directly to get the real execution ID
+    const executionEngine = new ExecutionEngine();
+    const realExecutionId = await executionEngine.executeWorkflow(workflowId, userId, input);
+    await executionEngine.disconnect();
 
     fastify.log.info(
-      { workflowId, userId, jobId: job.id, executionId },
-      'Workflow execution job queued'
+      { workflowId, userId, realExecutionId },
+      'Workflow execution started directly'
     );
 
     return reply.status(200).send({
-      executionId: executionId, // Return the consistent execution ID
+      executionId: realExecutionId,
       status: 'queued',
-      message: 'Workflow execution queued successfully',
+      message: 'Workflow execution started successfully',
     });
 
   } catch (error) {
-    fastify.log.error({ error }, 'Failed to queue workflow execution');
+    fastify.log.error({ error }, 'Failed to execute workflow');
     
     return reply.status(500).send({
-      error: 'Failed to queue workflow execution',
+      error: 'Failed to execute workflow',
       details: error instanceof Error ? error.message : 'Unknown error',
     });
   }
@@ -114,7 +108,22 @@ fastify.get('/api/executions/:id', async (request, reply) => {
     }
 
     const executionEngine = new ExecutionEngine();
-    const execution = await executionEngine.getExecutionStatus(executionId);
+    
+    // First, try to get the real execution ID from Redis mapping
+    const redis = new (await import('ioredis')).default({
+      host: config.REDIS_HOST,
+      port: config.REDIS_PORT,
+    });
+    
+    let realExecutionId = executionId;
+    const mappedExecutionId = await redis.get(`execution:${executionId}`);
+    
+    if (mappedExecutionId) {
+      realExecutionId = mappedExecutionId;
+      logger.info({ jobId: executionId, realExecutionId }, 'Found execution ID mapping');
+    }
+    
+    const execution = await executionEngine.getExecutionStatus(realExecutionId);
 
     if (!execution) {
       return reply.status(404).send({
@@ -123,6 +132,7 @@ fastify.get('/api/executions/:id', async (request, reply) => {
     }
 
     await executionEngine.disconnect();
+    await redis.disconnect();
 
     return reply.status(200).send(execution);
 

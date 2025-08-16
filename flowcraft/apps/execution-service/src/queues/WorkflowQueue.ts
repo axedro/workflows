@@ -98,14 +98,45 @@ export class WorkflowQueue {
     );
 
     try {
-      // Execute workflow using ExecutionEngine
-      await this.executionEngine.executeWorkflow(workflowId, userId, input);
+      // Execute workflow using ExecutionEngine and get the real execution ID
+      const realExecutionId = await this.executionEngine.executeWorkflow(workflowId, userId, input);
+      
+      logger.info(
+        { 
+          jobId: job.id, 
+          realExecutionId,
+          workflowId 
+        }, 
+        'Execution completed, storing mapping in Redis'
+      );
+      
+      // Store the mapping between job ID and real execution ID in Redis for later lookup
+      try {
+        await this.redis.setex(`execution:${job.id}`, 3600, realExecutionId); // Expire in 1 hour
+        logger.info(
+          { 
+            jobId: job.id, 
+            realExecutionId,
+            redisKey: `execution:${job.id}`
+          }, 
+          'Execution ID mapping stored in Redis successfully'
+        );
+      } catch (redisError) {
+        logger.error(
+          { 
+            error: redisError, 
+            jobId: job.id, 
+            realExecutionId 
+          }, 
+          'Failed to store execution ID mapping in Redis'
+        );
+      }
       
       logger.info(
         { 
           jobId: job.id, 
           workflowId, 
-          executionId 
+          realExecutionId 
         }, 
         'Workflow execution job completed successfully'
       );

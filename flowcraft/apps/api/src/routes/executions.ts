@@ -34,8 +34,15 @@ export default async function executionRoutes(fastify: FastifyInstance, options:
       const { id: workflowId } = workflowParamsSchema.parse(request.params);
       const { input } = executeWorkflowSchema.parse(request.body);
       
-      // For now, use a test user ID when authentication is disabled
-      const userId = 'test-user'; // (request.user as any)?.id || 'test-user';
+      // Get the authenticated user from the request
+      const userId = (request as any).user?.userId;
+
+      if (!userId) {
+        return reply.status(401).send({
+          error: 'Unauthorized',
+          message: 'User not authenticated',
+        });
+      }
 
       // Forward request to execution service
       const executionServiceUrl = process.env.EXECUTION_SERVICE_URL || 'http://localhost:3001';
@@ -132,13 +139,20 @@ export default async function executionRoutes(fastify: FastifyInstance, options:
       const query = listExecutionsQuerySchema.parse(request.query);
       const { page, limit, status } = query;
       
-      // For now, use a test user ID when authentication is disabled
-      const userId = 'test-user'; // (request.user as any)?.id || 'test-user';
+      // Get the authenticated user from the request
+      const userId = (request as any).user?.userId;
+
+      if (!userId) {
+        return reply.status(401).send({
+          error: 'Unauthorized',
+          message: 'User not authenticated',
+        });
+      }
 
       // Build where condition
       const whereCondition: any = {
         workflowId,
-        // userId, // Temporarily disabled for testing
+        userId, // Use the authenticated user ID
       };
 
       if (status) {
@@ -204,8 +218,8 @@ export default async function executionRoutes(fastify: FastifyInstance, options:
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { id: executionId } = executionParamsSchema.parse(request.params);
-      // const userId = (request.user as any)?.id; // Temporarily disabled for testing
-      const userId = 'test-user'; // Test user for now
+      // Get the authenticated user from the request
+      const userId = (request as any).user?.userId;
 
       if (!userId) {
         return reply.status(401).send({ error: 'User not authenticated' });
@@ -215,10 +229,7 @@ export default async function executionRoutes(fastify: FastifyInstance, options:
       const execution = await prisma.execution.findFirst({
         where: {
           id: executionId,
-          // OR: [ // Temporarily disabled for testing
-          //   { userId: userId },
-          //   { workflow: { organization: { users: { some: { id: userId } } } } },
-          // ],
+          userId: userId, // Use the authenticated user ID
         },
       });
 

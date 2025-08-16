@@ -40,6 +40,7 @@ import { apiService, ValidationResult } from '../services/api';
 import UnifiedValidationService, { UnifiedValidationResult } from '../services/unifiedValidation.service';
 import { useExecuteWorkflow } from '../hooks/useExecuteWorkflow';
 import { ExecutionStatusPanel } from './ExecutionStatusPanel';
+import { useAuthStore } from '../stores/authStore';
 
 
 interface WorkflowEditorProps {
@@ -176,6 +177,9 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
   // Execution hook
   const executeWorkflowMutation = useExecuteWorkflow();
 
+  // Get authenticated user
+  const { user } = useAuthStore();
+
   // Función para volver al dashboard
   const handleBackToDashboard = () => {
     navigate('/dashboard');
@@ -192,6 +196,16 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
       return;
     }
 
+    // Check if user is authenticated
+    if (!user) {
+      addNotification({
+        type: 'error',
+        title: 'Authentication Required',
+        message: 'You must be logged in to execute workflows'
+      });
+      return;
+    }
+
     // Check if workflow has validation errors
     if (unifiedValidation && unifiedValidation.errors.length > 0) {
       addNotification({
@@ -203,12 +217,9 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
     }
 
     try {
-      // For now, use a test user ID - in production this would come from auth context
-      const userId = 'cmebtcz040002o9ejakyud82g'; // Test user from database
-      
       const result = await executeWorkflowMutation.mutateAsync({
         workflowId: id,
-        userId,
+        userId: user.id, // Use the real authenticated user ID
         input: {}
       });
 

@@ -10,6 +10,22 @@ export interface ExecutionStatus {
   currentNode?: string;
   error?: string;
   logs: ExecutionLog[];
+  // Nuevos campos para datos detallados
+  summary?: Record<string, any>;
+  dataFlow?: Record<string, any>;
+  nodes?: Array<{
+    id: string;
+    nodeId: string;
+    status: string;
+    startedAt?: string;
+    completedAt?: string;
+    inputData?: Record<string, any>;
+    outputData?: Record<string, any>;
+    errorDetails?: string;
+    performance?: Record<string, any>;
+    metadata?: Record<string, any>;
+  }>;
+  metadata?: Record<string, any>;
 }
 
 export interface ExecutionLog {

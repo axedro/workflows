@@ -434,8 +434,16 @@ export async function workflowRoutes(fastify: FastifyInstance) {
             id: { type: 'string', pattern: '^c[a-z0-9]{24}$' },
           },
         },
+        querystring: {
+          type: 'object',
+          properties: {
+            forceDelete: { type: 'boolean', default: false },
+          },
+        },
         response: {
-          204: { type: 'null' },
+          204: {
+            type: 'null',
+          },
           404: {
             type: 'object',
             properties: {
@@ -457,8 +465,9 @@ export async function workflowRoutes(fastify: FastifyInstance) {
       try {
         const user = request.user as any;
         const { id } = workflowIdParamsSchema.parse(request.params);
+        const { forceDelete = false } = request.query as any;
 
-        await workflowService.deleteWorkflow(id, user.userId);
+        await workflowService.deleteWorkflow(id, user.userId, forceDelete);
         return reply.status(204).send();
       } catch (error) {
         if (error instanceof z.ZodError) {

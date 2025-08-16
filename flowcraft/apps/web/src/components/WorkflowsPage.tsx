@@ -7,6 +7,7 @@ import { Header } from './Header';
 import { useTranslation } from '../hooks/i18n';
 import { WorkflowCreationModal } from './WorkflowCreationModal';
 import { WorkflowImportModal } from './WorkflowImportModal';
+import { useNotificationStore } from '../stores/notificationStore';
 
 // Using FIXED delete workflow API: 2025-08-09-09:13
 
@@ -62,14 +63,44 @@ const WorkflowsPage: React.FC = () => {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = async () => {
-    if (workflowToDelete) {
-      try {
-        await deleteWorkflow(workflowToDelete.id);
-        setShowDeleteModal(false);
-        setWorkflowToDelete(null);
-      } catch (error) {
+  const confirmDelete = async (id: string) => {
+    try {
+      await deleteWorkflow(id);
+      // Close modal and clear state on successful deletion
+      setShowDeleteModal(false);
+      setWorkflowToDelete(null);
+    } catch (error: any) {
+      // Check if it's a conflict error (workflow has executions)
+      if (error.message && error.message.includes('Conflict')) {
+        // Show confirmation dialog for force delete
+        const shouldForceDelete = window.confirm(
+          'This workflow has execution history. Do you want to delete it anyway? This will also delete all execution history.'
+        );
+        
+        if (shouldForceDelete) {
+          try {
+            await deleteWorkflow(id, true); // Force delete
+            // Close modal and clear state on successful force deletion
+            setShowDeleteModal(false);
+            setWorkflowToDelete(null);
+          } catch (forceError: any) {
+            console.error('Force delete failed:', forceError);
+            // Show error notification
+            useNotificationStore.getState().addNotification({
+              type: 'error',
+              title: 'Failed to Delete Workflow',
+              message: forceError.message || 'Failed to delete workflow',
+            });
+          }
+        }
+      } else {
         console.error('Failed to delete workflow:', error);
+        // Show error notification
+        useNotificationStore.getState().addNotification({
+          type: 'error',
+          title: 'Failed to Delete Workflow',
+          message: error.message || 'Failed to delete workflow',
+        });
       }
     }
   };
@@ -326,7 +357,7 @@ const WorkflowsPage: React.FC = () => {
               Cancel
             </Button>
             <Button
-              onClick={confirmDelete}
+              onClick={() => confirmDelete(workflowToDelete?.id || '')}
               className="bg-red-600 hover:bg-red-700"
             >
               Delete

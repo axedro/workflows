@@ -44,7 +44,7 @@ interface WorkflowState {
   fetchWorkflow: (id: string) => Promise<void>;
   createWorkflow: (data: CreateWorkflowData) => Promise<Workflow>;
   updateWorkflow: (id: string, data: UpdateWorkflowData) => Promise<Workflow>;
-  deleteWorkflow: (id: string) => Promise<void>;
+  deleteWorkflow: (id: string, forceDelete?: boolean) => Promise<void>;
   duplicateWorkflow: (id: string, name: string) => Promise<Workflow>;
   validateWorkflow: (id: string, definition: any) => Promise<ValidationResult>;
   checkWorkflowNameAvailability: (params: CheckNameParams) => Promise<NameAvailabilityResult>;
@@ -181,35 +181,18 @@ export const useWorkflowStore = create<WorkflowState>(set => ({
     }
   },
 
-  deleteWorkflow: async (id: string) => {
+  deleteWorkflow: async (id: string, forceDelete: boolean = false) => {
     try {
       set({ isLoading: true, error: null });
       
-      // Get workflow name before deletion for notification
       const workflowToDelete = useWorkflowStore.getState().workflows.find(w => w.id === id);
       
       console.log('🔥 DIRECT DELETE FIX - BYPASSING CACHE ISSUES');
       
-      // DIRECT FIX: Handle DELETE requests with empty responses
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`http://localhost:3000/workflows/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { Authorization: `Bearer ${token}` }),
-        }
-      });
+      // Use apiService instead of hardcoded URL
+      await apiService.deleteWorkflow(id, forceDelete);
       
-      console.log('📡 Direct DELETE response status:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.log('❌ Delete failed:', errorText);
-        throw new Error(errorText || `HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      // ✅ SUCCESS: Don't try to parse JSON for DELETE operations
-      console.log('✅ DELETE SUCCESS - No JSON parsing needed');
+      console.log('✅ DELETE SUCCESS - Using apiService');
       
       // Continue with success handling...
 

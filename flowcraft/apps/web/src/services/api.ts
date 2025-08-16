@@ -174,6 +174,33 @@ export interface CheckNameParams {
 }
 
 class ApiService {
+  private async refreshAccessToken(): Promise<string | null> {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        return null;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+        return data.accessToken;
+      }
+    } catch (error) {
+      console.error('Failed to refresh token:', error);
+    }
+    return null;
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
@@ -183,7 +210,7 @@ class ApiService {
     console.log('📍 Request:', options.method || 'GET', endpoint);
     
     const url = `${API_BASE_URL}${endpoint}`;
-    const token = localStorage.getItem('accessToken');
+    let token = localStorage.getItem('accessToken');
 
     const config: RequestInit = {
       headers: {
@@ -194,8 +221,48 @@ class ApiService {
       ...options,
     };
 
-    const response = await fetch(url, config);
+    let response = await fetch(url, config);
     console.log('📡 Response status:', response.status, response.statusText);
+
+    // If token is expired, try to refresh it and retry the request
+    if (response.status === 401 && token) {
+      console.log('🔄 Token expired, attempting to refresh...');
+      const newToken = await this.refreshAccessToken();
+      
+      if (newToken) {
+        console.log('✅ Token refreshed, retrying request...');
+        // Retry the request with the new token
+        const retryConfig: RequestInit = {
+          ...config,
+          headers: {
+            ...config.headers,
+            Authorization: `Bearer ${newToken}`,
+          },
+        };
+        response = await fetch(url, retryConfig);
+        console.log('📡 Retry response status:', response.status, response.statusText);
+      } else {
+        // Refresh failed, redirect to login
+        console.log('❌ Token refresh failed, redirecting to login...');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        
+        // Show notification to user
+        if (typeof window !== 'undefined') {
+          // Dispatch a custom event that can be caught by the notification system
+          window.dispatchEvent(new CustomEvent('auth:expired', {
+            detail: { message: 'Your session has expired. Please log in again.' }
+          }));
+        }
+        
+        // Redirect to login after a short delay
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 1000);
+        
+        throw new Error('Authentication required - Please log in again');
+      }
+    }
 
     if (!response.ok) {
       try {
@@ -353,8 +420,9 @@ class ApiService {
     });
   }
 
-  async deleteWorkflow(id: string): Promise<void> {
-    return this.request<void>(`/workflows/${id}`, {
+  async deleteWorkflow(id: string, forceDelete: boolean = false): Promise<void> {
+    const queryParams = forceDelete ? '?forceDelete=true' : '';
+    return this.request<void>(`/workflows/${id}${queryParams}`, {
       method: 'DELETE',
     });
   }

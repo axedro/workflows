@@ -346,7 +346,7 @@ export class WorkflowService {
   /**
    * Delete workflow
    */
-  async deleteWorkflow(workflowId: string, userId: string): Promise<void> {
+  async deleteWorkflow(workflowId: string, userId: string, forceDelete: boolean = false): Promise<void> {
     // Check if workflow exists and user has access
     const existingWorkflow = await this.getWorkflowById(workflowId, userId);
     if (!existingWorkflow) {
@@ -359,7 +359,14 @@ export class WorkflowService {
     });
 
     if (executionCount > 0) {
-      throw new Error('Cannot delete workflow with existing executions');
+      if (forceDelete) {
+        // Force delete: remove all executions first
+        await prisma.execution.deleteMany({
+          where: { workflowId },
+        });
+      } else {
+        throw new Error('Cannot delete workflow with existing executions');
+      }
     }
 
     await prisma.workflow.delete({

@@ -145,6 +145,10 @@ model Execution {
   errorDetails Json?
   executionTimeMs Int?
   userId       String
+  // Nuevos campos para datos de ejecución
+  summary      Json?         // Resumen estructurado de la ejecución
+  dataFlow     Json?         // Flujo de datos entre nodos
+  metadata     Json?         // Metadatos adicionales
 
   // Relations
   workflow     Workflow      @relation(fields: [workflowId], references: [id], onDelete: Cascade)
@@ -165,6 +169,11 @@ model ExecutionNode {
   inputData    Json?
   outputData   Json?
   errorDetails Json?
+  // Nuevos campos para datos detallados
+  dataSchema   Json?         // Esquema de datos de entrada/salida
+  transformations Json?     // Transformaciones aplicadas
+  performance  Json?         // Métricas de performance
+  metadata     Json?         // Metadatos del nodo
 
   // Relations
   execution    Execution     @relation(fields: [executionId], references: [id], onDelete: Cascade)

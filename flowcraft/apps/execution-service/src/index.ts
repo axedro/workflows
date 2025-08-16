@@ -64,26 +64,20 @@ fastify.post('/api/workflows/execute', async (request, reply) => {
       });
     }
 
-    // Generate a unique execution ID that will be used consistently
-    const executionId = `exec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-    // Add workflow execution job to queue
-    const job = await WorkflowQueue.addWorkflowExecution({
-      workflowId,
-      userId,
-      input: input || {},
-      executionId: executionId, // Pre-generated execution ID
-    });
+    // Execute workflow directly to get the real execution ID from database
+    const executionEngine = new ExecutionEngine();
+    const executionId = await executionEngine.executeWorkflow(workflowId, userId, input || {});
+    await executionEngine.disconnect();
 
     fastify.log.info(
-      { workflowId, userId, jobId: job.id, executionId },
-      'Workflow execution job queued'
+      { workflowId, userId, executionId },
+      'Workflow execution completed successfully'
     );
 
     return reply.status(200).send({
-      executionId: executionId, // Return the consistent execution ID
-      status: 'queued',
-      message: 'Workflow execution queued successfully',
+      executionId: executionId, // Return the real execution ID from database
+      status: 'completed',
+      message: 'Workflow executed successfully',
     });
 
   } catch (error) {

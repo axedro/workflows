@@ -112,7 +112,14 @@ export class ExecutionEngine {
         status: ExecutionStatus.RUNNING,
       };
 
-      await this.executeNodeSequence(startNode, nodes, edges, executionContext);
+      // Track data flow between nodes
+      const dataFlow: Record<string, any> = {};
+      const nodeResults: Record<string, any> = {};
+
+      await this.executeNodeSequence(startNode, nodes, edges, executionContext, dataFlow, nodeResults);
+
+      // Create execution summary
+      const summary = this.createExecutionSummary(nodes, nodeResults, dataFlow);
 
       // Mark execution as completed
       await this.prisma.execution.update({
@@ -120,7 +127,14 @@ export class ExecutionEngine {
         data: { 
           status: 'COMPLETED',
           completedAt: new Date(),
-          outputData: executionContext.output || {}
+          outputData: executionContext.output || {},
+          summary: summary,
+          dataFlow: dataFlow,
+          metadata: {
+            totalNodes: nodes.length,
+            completedNodes: Object.keys(nodeResults).length,
+            executionTime: Date.now() - executionContext.startedAt.getTime()
+          }
         }
       });
 
@@ -149,8 +163,11 @@ export class ExecutionEngine {
     currentNode: EditorNode,
     allNodes: EditorNode[],
     allEdges: EditorEdge[],
-    context: ExecutionContext
+    context: ExecutionContext,
+    dataFlow: Record<string, any>,
+    nodeResults: Record<string, any>
   ): Promise<ExecutionResult> {
+    const nodeStartTime = Date.now();
     logger.info({ nodeId: currentNode.id, nodeType: currentNode.type }, 'Executing node');
 
     try {
@@ -167,21 +184,50 @@ export class ExecutionEngine {
 
       // Execute the node based on its type
       const nodeResult = await this.executeNode(currentNode, context);
+      const nodeEndTime = Date.now();
+      const nodeDuration = nodeEndTime - nodeStartTime;
 
-      // Update execution node record
+      // Store node result with detailed information
+      nodeResults[currentNode.id] = {
+        success: nodeResult.success,
+        data: nodeResult.data,
+        error: nodeResult.error,
+        duration: nodeDuration,
+        startedAt: nodeStartTime,
+        completedAt: nodeEndTime
+      };
+
+      // Track data flow for this node
+      dataFlow[currentNode.id] = {
+        input: context.input || {},
+        output: nodeResult.data || {},
+        duration: nodeDuration,
+        nodeType: currentNode.type
+      };
+
+      // Update execution node record with detailed data
       await this.prisma.executionNode.update({
         where: { id: executionNode.id },
         data: {
           status: nodeResult.success ? 'COMPLETED' : 'FAILED',
           completedAt: new Date(),
           outputData: nodeResult.data || {},
-          errorDetails: nodeResult.error
+          errorDetails: nodeResult.error,
+          performance: {
+            duration: nodeDuration,
+            startedAt: new Date(nodeStartTime),
+            completedAt: new Date(nodeEndTime)
+          },
+          metadata: {
+            nodeType: currentNode.type,
+            nodeName: currentNode.data?.label || currentNode.id
+          }
         }
       });
 
       // Log execution result
       await this.addExecutionLog(context.executionId, currentNode.id, 'INFO', 
-        `Node ${currentNode.type} ${nodeResult.success ? 'completed' : 'failed'}`, 
+        `Node ${currentNode.type} ${nodeResult.success ? 'completed' : 'failed'} in ${nodeDuration}ms`, 
         nodeResult.data
       );
 
@@ -203,6 +249,15 @@ export class ExecutionEngine {
       for (const edge of outgoingEdges) {
         const nextNode = allNodes.find(node => node.id === edge.target);
         if (nextNode) {
+          // Track data flow between nodes
+          dataFlow[`${currentNode.id}_to_${nextNode.id}`] = {
+            sourceId: currentNode.id,
+            targetId: nextNode.id,
+            input: nodeResult.data || context.input,
+            output: nodeResult.data || context.input,
+            edgeId: edge.id
+          };
+
           // Continue with next node, passing current output as input
           const nextContext = {
             ...context,
@@ -210,14 +265,26 @@ export class ExecutionEngine {
             input: nodeResult.data || context.input
           };
           
-          await this.executeNodeSequence(nextNode, allNodes, allEdges, nextContext);
+          await this.executeNodeSequence(nextNode, allNodes, allEdges, nextContext, dataFlow, nodeResults);
         }
       }
 
       return nodeResult;
 
     } catch (error) {
+      const nodeEndTime = Date.now();
+      const nodeDuration = nodeEndTime - nodeStartTime;
+      
       logger.error({ error, nodeId: currentNode.id }, 'Node execution failed');
+      
+      // Store failed node result
+      nodeResults[currentNode.id] = {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        duration: nodeDuration,
+        startedAt: nodeStartTime,
+        completedAt: nodeEndTime
+      };
       
       // Log error
       await this.addExecutionLog(context.executionId, currentNode.id, 'ERROR',
@@ -421,13 +488,46 @@ export class ExecutionEngine {
   }
 
   /**
-   * Get execution status
+   * Get execution status with detailed data
    */
-  async getExecutionStatus(executionId: string): Promise<any> {
+  async getExecutionStatus(executionId: string): Promise<{
+    id: string;
+    status: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+    startedAt: string;
+    completedAt?: string;
+    progress: number;
+    currentNode?: string;
+    error?: string;
+    logs: Array<{
+      id: string;
+      timestamp: string;
+      level: 'INFO' | 'WARN' | 'ERROR' | 'DEBUG';
+      message: string;
+      nodeId?: string;
+    }>;
+    // Nuevos campos para datos detallados
+    summary?: Record<string, any>;
+    dataFlow?: Record<string, any>;
+    nodes?: Array<{
+      id: string;
+      nodeId: string;
+      status: string;
+      startedAt?: string;
+      completedAt?: string;
+      inputData?: Record<string, any>;
+      outputData?: Record<string, any>;
+      errorDetails?: string;
+      performance?: Record<string, any>;
+      metadata?: Record<string, any>;
+    }>;
+    metadata?: Record<string, any>;
+  } | null> {
     const execution = await this.prisma.execution.findUnique({
       where: { id: executionId },
       include: {
-        nodes: true,
+        nodes: {
+          orderBy: { startedAt: 'asc' }
+        },
         logs: {
           orderBy: { createdAt: 'desc' },
           take: 50
@@ -435,7 +535,58 @@ export class ExecutionEngine {
       }
     });
 
-    return execution;
+    if (!execution) {
+      return null;
+    }
+
+    // Calculate progress based on completed nodes
+    const totalNodes = execution.nodes.length;
+    const completedNodes = execution.nodes.filter(node => 
+      node.status === 'COMPLETED' || node.status === 'FAILED'
+    ).length;
+    const progress = totalNodes > 0 ? Math.round((completedNodes / totalNodes) * 100) : 0;
+
+    // Get current running node
+    const currentNode = execution.nodes.find(node => node.status === 'RUNNING')?.nodeId;
+
+    // Format logs
+    const logs = execution.logs.map(log => ({
+      id: log.id,
+      timestamp: log.createdAt.toISOString(),
+      level: log.level as 'INFO' | 'WARN' | 'ERROR' | 'DEBUG',
+      message: log.message,
+      nodeId: (log.metadata as any)?.nodeId
+    }));
+
+    // Format nodes with detailed data
+    const nodes = execution.nodes.map(node => ({
+      id: node.id,
+      nodeId: node.nodeId,
+      status: node.status,
+      startedAt: node.startedAt?.toISOString(),
+      completedAt: node.completedAt?.toISOString(),
+      inputData: node.inputData as Record<string, any> | undefined,
+      outputData: node.outputData as Record<string, any> | undefined,
+      errorDetails: node.errorDetails as string | undefined,
+      performance: node.performance as Record<string, any> | undefined,
+      metadata: node.metadata as Record<string, any> | undefined
+    }));
+
+    return {
+      id: execution.id,
+      status: execution.status as 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED',
+      startedAt: execution.startedAt.toISOString(),
+      completedAt: execution.completedAt?.toISOString(),
+      progress,
+      currentNode,
+      error: execution.errorDetails as string | undefined,
+      logs,
+      // Nuevos campos
+      summary: execution.summary as Record<string, any> | undefined,
+      dataFlow: execution.dataFlow as Record<string, any> | undefined,
+      nodes,
+      metadata: execution.metadata as Record<string, any> | undefined
+    };
   }
 
   /**
@@ -458,5 +609,51 @@ export class ExecutionEngine {
    */
   async disconnect(): Promise<void> {
     await this.prisma.$disconnect();
+  }
+
+  /**
+   * Create execution summary
+   */
+  private createExecutionSummary(
+    nodes: EditorNode[],
+    nodeResults: Record<string, any>,
+    dataFlow: Record<string, any>
+  ): Record<string, any> {
+    const summary: Record<string, any> = {};
+    const nodeIds = Object.keys(nodeResults);
+
+    // Add basic counts
+    summary.totalNodes = nodes.length;
+    summary.completedNodes = nodeIds.length;
+    summary.failedNodes = nodeIds.filter(id => nodeResults[id].success === false).length;
+    summary.executionTime = Date.now() - (nodeResults[nodeIds[0]]?.startedAt || 0); // Estimate based on first node
+
+    // Add detailed node results
+    summary.nodes = nodeIds.map(id => {
+      const node = nodes.find(n => n.id === id);
+      const result = nodeResults[id];
+      return {
+        id,
+        type: node?.type,
+        name: node?.name,
+        success: result.success,
+        error: result.error,
+        duration: result.duration,
+        input: dataFlow[id]?.input || {},
+        output: result.data || {},
+        startedAt: result.startedAt,
+        completedAt: result.completedAt
+      };
+    });
+
+    // Add data flow summary
+    summary.dataFlow = Object.entries(dataFlow).map(([sourceId, flow]) => ({
+      sourceId,
+      targetId: flow.targetId,
+      input: flow.input,
+      output: flow.output
+    }));
+
+    return summary;
   }
 }

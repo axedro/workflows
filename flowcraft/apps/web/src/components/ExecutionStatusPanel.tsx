@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useExecutionStatus } from '../hooks/useExecutionStatus';
+import { NodeDataViewer } from './execution/NodeDataViewer';
+import { DataFlowViewer } from './execution/DataFlowViewer';
+import { ExecutionSummary } from './execution/ExecutionSummary';
 
 interface ExecutionStatusPanelProps {
   executionId: string | null;
@@ -11,6 +14,7 @@ export const ExecutionStatusPanel: React.FC<ExecutionStatusPanelProps> = ({
   onClose
 }) => {
   const [autoScroll, setAutoScroll] = useState(true);
+  const [activeTab, setActiveTab] = useState<'status' | 'nodes' | 'dataflow' | 'summary'>('status');
   const { data: execution, isLoading, error } = useExecutionStatus(executionId);
 
   // Auto-scroll to bottom of logs
@@ -223,46 +227,103 @@ export const ExecutionStatusPanel: React.FC<ExecutionStatusPanelProps> = ({
           </div>
         )}
 
-        {/* Logs */}
-        <div className="flex-1 min-h-0">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-700">Execution Logs</h3>
-            <label className="flex items-center text-sm text-gray-600">
-              <input
-                type="checkbox"
-                checked={autoScroll}
-                onChange={(e) => setAutoScroll(e.target.checked)}
-                className="mr-1"
-              />
-              Auto-scroll
-            </label>
-          </div>
-          <div 
-            id="execution-logs"
-            className="bg-gray-900 text-green-400 rounded-lg p-4 font-mono text-sm overflow-y-auto max-h-64"
-          >
-            {execution?.logs && execution.logs.length > 0 ? (
-              execution.logs.map((log) => (
-                <div key={log.id} className="mb-1">
-                  <span className="text-gray-500">[{new Date(log.timestamp).toLocaleTimeString()}]</span>
-                  <span className={`ml-2 ${
-                    log.level === 'ERROR' ? 'text-red-400' :
-                    log.level === 'WARN' ? 'text-yellow-400' :
-                    log.level === 'DEBUG' ? 'text-blue-400' :
-                    'text-green-400'
-                  }`}>
-                    [{log.level}]
-                  </span>
-                  {log.nodeId && (
-                    <span className="text-purple-400 ml-2">[{log.nodeId}]</span>
-                  )}
-                  <span className="ml-2">{log.message}</span>
+        {/* Tabs */}
+        <div className="border-b border-gray-200 mb-4">
+          <nav className="-mb-px flex space-x-8">
+            {[
+              { id: 'status', label: 'Status & Logs' },
+              { id: 'nodes', label: 'Node Data' },
+              { id: 'dataflow', label: 'Data Flow' },
+              { id: 'summary', label: 'Summary' }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        {/* Tab Content */}
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          {activeTab === 'status' && (
+            <div className="space-y-4">
+              {/* Logs */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-medium text-gray-700">Execution Logs</h3>
+                  <label className="flex items-center text-sm text-gray-600">
+                    <input
+                      type="checkbox"
+                      checked={autoScroll}
+                      onChange={(e) => setAutoScroll(e.target.checked)}
+                      className="mr-1"
+                    />
+                    Auto-scroll
+                  </label>
                 </div>
-              ))
-            ) : (
-              <div className="text-gray-500">No logs available</div>
-            )}
-          </div>
+                <div 
+                  id="execution-logs"
+                  className="bg-gray-900 text-green-400 rounded-lg p-4 font-mono text-sm overflow-y-auto max-h-64"
+                >
+                  {execution?.logs && execution.logs.length > 0 ? (
+                    execution.logs.map((log) => (
+                      <div key={log.id} className="mb-1">
+                        <span className="text-gray-500">[{new Date(log.timestamp).toLocaleTimeString()}]</span>
+                        <span className={`ml-2 ${
+                          log.level === 'ERROR' ? 'text-red-400' :
+                          log.level === 'WARN' ? 'text-yellow-400' :
+                          log.level === 'DEBUG' ? 'text-blue-400' :
+                          'text-green-400'
+                        }`}>
+                          [{log.level}]
+                        </span>
+                        {log.nodeId && (
+                          <span className="text-purple-400 ml-2">[{log.nodeId}]</span>
+                        )}
+                        <span className="ml-2">{log.message}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-gray-500">No logs available</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'nodes' && execution?.nodes && (
+            <div className="space-y-4">
+              {execution.nodes.map((node) => (
+                <NodeDataViewer
+                  key={node.id}
+                  node={node}
+                  isExpanded={true}
+                />
+              ))}
+            </div>
+          )}
+
+          {activeTab === 'dataflow' && execution?.dataFlow && execution?.nodes && (
+            <DataFlowViewer
+              dataFlow={execution.dataFlow}
+              nodes={execution.nodes}
+            />
+          )}
+
+          {activeTab === 'summary' && execution?.summary && (
+            <ExecutionSummary
+              summary={execution.summary}
+              metadata={execution.metadata}
+            />
+          )}
         </div>
       </div>
     </div>
