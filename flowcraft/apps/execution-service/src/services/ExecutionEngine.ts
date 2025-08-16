@@ -1,4 +1,4 @@
-import { PrismaClient } from '@flowcraft/database';
+import { PrismaClient } from '@prisma/client';
 import { EditorNode, EditorEdge } from '@flowcraft/shared-types';
 import { ExecutionContext, ExecutionStatus, ExecutionResult } from '../types/execution.js';
 import { logger } from '../utils/logger.js';
@@ -8,10 +8,14 @@ export class ExecutionEngine {
   private prisma: PrismaClient;
 
   constructor() {
+    // Use environment variables directly
+    const databaseUrl = process.env.DATABASE_URL || config.DATABASE_URL;
+    logger.info({ databaseUrl: databaseUrl?.replace(/\/\/.*@/, '//***:***@') }, 'Initializing PrismaClient');
+    
     this.prisma = new PrismaClient({
       datasources: {
         db: {
-          url: config.DATABASE_URL
+          url: databaseUrl
         }
       }
     });
