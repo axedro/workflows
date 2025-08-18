@@ -47,6 +47,8 @@
   "last_saved": "Último guardado",
   "not_saved": "No guardado",
   "execution": {
+    "progress": "Progreso",
+    "truncated": "Datos truncados",
     "status": {
       "title": "Estado de Ejecución"
     },

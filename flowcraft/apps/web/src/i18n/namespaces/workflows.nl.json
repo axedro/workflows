@@ -47,6 +47,8 @@
   "last_saved": "Laatst opgeslagen",
   "not_saved": "Niet opgeslagen",
   "execution": {
+    "progress": "Voortgang",
+    "truncated": "Gegevens afgekapt",
     "status": {
       "title": "Uitvoeringsstatus"
     },

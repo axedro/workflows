@@ -50,23 +50,40 @@ export const ExecutionHistoryPanel: React.FC<ExecutionHistoryPanelProps> = ({
   const [executions, setExecutions] = useState<ExecutionItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<ExecutionItem['status'] | 'ALL'>('ALL');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+
+  const loadExecutions = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiService.getWorkflowExecutions(
+        workflowId,
+        statusFilter === 'ALL' ? undefined : { status: statusFilter }
+      );
+      let list = res.executions || [];
+      // client-side date filtering
+      if (startDate) {
+        const start = new Date(startDate).getTime();
+        list = list.filter(e => new Date(e.startedAt).getTime() >= start);
+      }
+      if (endDate) {
+        const end = new Date(endDate).getTime();
+        list = list.filter(e => new Date(e.startedAt).getTime() <= end);
+      }
+      setExecutions(list);
+    } catch (e: any) {
+      setError(e?.message || 'Failed to load executions');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const load = async () => {
-      if (!isOpen) return;
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await apiService.getWorkflowExecutions(workflowId);
-        setExecutions(res.executions || []);
-      } catch (e: any) {
-        setError(e?.message || 'Failed to load executions');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [isOpen, workflowId]);
+    if (!isOpen) return;
+    loadExecutions();
+  }, [isOpen, workflowId, statusFilter, startDate, endDate]);
 
   if (!isOpen) return null;
 
@@ -90,6 +107,37 @@ export const ExecutionHistoryPanel: React.FC<ExecutionHistoryPanelProps> = ({
         )}
 
         <div className="flex-1 overflow-y-auto">
+          {/* Filters */}
+          <div className="mb-3 flex items-center gap-3">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="border border-gray-300 rounded px-2 py-1 text-sm"
+            >
+              {['ALL','PENDING','RUNNING','COMPLETED','FAILED','CANCELLED'].map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="border border-gray-300 rounded px-2 py-1 text-sm"
+            />
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="border border-gray-300 rounded px-2 py-1 text-sm"
+            />
+            <button
+              onClick={loadExecutions}
+              className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
+            >
+              Refresh
+            </button>
+          </div>
+
           {executions.length === 0 && !loading ? (
             <div className="text-center text-gray-500 py-12">No executions found</div>
           ) : (

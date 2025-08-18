@@ -29,6 +29,16 @@ export const ExecutionStatusPanel: React.FC<ExecutionStatusPanelProps> = ({
 
   const [logLevel, setLogLevel] = useState<'ALL' | 'INFO' | 'WARN' | 'ERROR' | 'DEBUG'>('ALL');
   const [logSearch, setLogSearch] = useState<string>('');
+  const [autoScroll, setAutoScroll] = useState(true);
+  const logsRef = React.useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!logsRef.current) return;
+    if (!executionStatus?.logs) return;
+    if (autoScroll) {
+      logsRef.current.scrollTop = logsRef.current.scrollHeight;
+    }
+  }, [executionStatus?.logs, autoScroll]);
 
   // Auto-refresh for running executions
   useEffect(() => {
@@ -230,7 +240,36 @@ export const ExecutionStatusPanel: React.FC<ExecutionStatusPanelProps> = ({
 
             {/* Execution Logs */}
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-3">{t('execution.logs')}</h4>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-sm font-medium text-gray-700">{t('execution.logs')}</h4>
+                <label className="flex items-center text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={autoScroll}
+                    onChange={(e) => setAutoScroll(e.target.checked)}
+                    className="mr-1"
+                  />
+                  {t('common.autoscroll') || 'Autoscroll'}
+                </label>
+              </div>
+
+              {/* Progress by nodes */}
+              {executionStatus.summary?.totalNodes && (
+                <div className="mb-3">
+                  <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
+                    <span>{t('execution.progress') || 'Progress'}</span>
+                    <span>
+                      {Math.round((executionStatus.summary.completedNodes || 0) / executionStatus.summary.totalNodes * 100)}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${Math.round((executionStatus.summary.completedNodes || 0) / executionStatus.summary.totalNodes * 100)}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
 
               {/* Log controls */}
               <div className="flex items-center gap-3 mb-3">
@@ -252,7 +291,7 @@ export const ExecutionStatusPanel: React.FC<ExecutionStatusPanelProps> = ({
                 />
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
+              <div ref={logsRef} className="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
                 {executionStatus.logs && executionStatus.logs.length > 0 ? (
                   <div className="space-y-2">
                     {executionStatus.logs

@@ -174,6 +174,22 @@ fastify.post('/api/executions/:id/resume', async (request, reply) => {
   }
 });
 
+// Worker stats endpoint
+fastify.get('/api/worker/stats', async (request, reply) => {
+  try {
+    const queueStats = await WorkflowQueue.getQueueStats();
+    return reply.status(200).send({
+      queue: queueStats,
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    logger.error({ error }, 'Failed to get worker stats');
+    return reply.status(500).send({ error: 'Failed to get worker stats' });
+  }
+});
+
 // Graceful shutdown
 const gracefulShutdown = async () => {
   logger.info('Shutting down execution service...');

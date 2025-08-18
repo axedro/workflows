@@ -40,6 +40,18 @@ export const NodeDataViewer: React.FC<NodeDataViewerProps> = ({
     }
   };
 
+  const renderTruncationNotice = (data: any) => {
+    if (data && typeof data === 'object' && (data.__truncated || data.__preview)) {
+      return (
+        <div className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded px-2 py-1 mb-2 inline-block">
+          {t('execution.truncated') || 'Data truncated'}
+          {data.__bytes ? ` (${data.__bytes} bytes)` : ''}
+        </div>
+      );
+    }
+    return null;
+  };
+
   const isFailed = nodeData.status === 'FAILED';
 
   return (
@@ -108,6 +120,7 @@ export const NodeDataViewer: React.FC<NodeDataViewerProps> = ({
               </button>
             </div>
             <pre className="bg-gray-50 p-3 rounded text-sm overflow-auto max-h-64">
+              {renderTruncationNotice(nodeData.inputData)}
               {formatJson(nodeData.inputData)}
             </pre>
           </div>
@@ -125,6 +138,7 @@ export const NodeDataViewer: React.FC<NodeDataViewerProps> = ({
               </button>
             </div>
             <pre className="bg-gray-50 p-3 rounded text-sm overflow-auto max-h-64">
+              {renderTruncationNotice(nodeData.outputData)}
               {formatJson(nodeData.outputData)}
             </pre>
           </div>
