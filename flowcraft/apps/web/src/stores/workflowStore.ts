@@ -187,12 +187,8 @@ export const useWorkflowStore = create<WorkflowState>(set => ({
       
       const workflowToDelete = useWorkflowStore.getState().workflows.find(w => w.id === id);
       
-      console.log('🔥 DIRECT DELETE FIX - BYPASSING CACHE ISSUES');
-      
       // Use apiService instead of hardcoded URL
       await apiService.deleteWorkflow(id, forceDelete);
-      
-      console.log('✅ DELETE SUCCESS - Using apiService');
       
       // Continue with success handling...
 

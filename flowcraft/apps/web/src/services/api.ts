@@ -211,9 +211,6 @@ class ApiService {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    console.log('🎯 NEW CODE LOADED - DELETE FIX ACTIVE!');
-    console.log('🔧 Using FIXED ApiService.request method');
-    console.log('📍 Request:', options.method || 'GET', endpoint);
     
     const url = `${API_BASE_URL}${endpoint}`;
     let token = localStorage.getItem('accessToken');
@@ -228,15 +225,12 @@ class ApiService {
     };
 
     let response = await fetch(url, config);
-    console.log('📡 Response status:', response.status, response.statusText);
 
     // If token is expired, try to refresh it and retry the request
     if (response.status === 401 && token) {
-      console.log('🔄 Token expired, attempting to refresh...');
       const newToken = await this.refreshAccessToken();
       
       if (newToken) {
-        console.log('✅ Token refreshed, retrying request...');
         // Retry the request with the new token
         const retryConfig: RequestInit = {
           ...config,
@@ -246,10 +240,8 @@ class ApiService {
           },
         };
         response = await fetch(url, retryConfig);
-        console.log('📡 Retry response status:', response.status, response.statusText);
       } else {
         // Refresh failed, redirect to login
-        console.log('❌ Token refresh failed, redirecting to login...');
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         

@@ -1,9 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 
-// Force complete reload - 2025-08-09-09:20
-console.log('🔄 MAIN APP LOADED - DIRECT DELETE FIX ACTIVE');
-
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
