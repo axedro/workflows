@@ -1,56 +1,88 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useExecutionStatus } from '../hooks/useExecutionStatus';
+import { apiService } from '../services/api';
 import { NodeDataViewer } from './execution/NodeDataViewer';
 import { DataFlowViewer } from './execution/DataFlowViewer';
 import { ExecutionSummary } from './execution/ExecutionSummary';
+import { useNotificationStore } from '../stores/notificationStore';
 
 interface ExecutionStatusPanelProps {
-  executionId: string | null;
-  onClose: () => void;
+  executionId: string;
+  onClose?: () => void;
 }
 
-export const ExecutionStatusPanel: React.FC<ExecutionStatusPanelProps> = ({
-  executionId,
-  onClose
+export const ExecutionStatusPanel: React.FC<ExecutionStatusPanelProps> = ({ 
+  executionId, 
+  onClose 
 }) => {
-  const [autoScroll, setAutoScroll] = useState(true);
-  const [isCancelling, setIsCancelling] = useState(false);
-  const [activeTab, setActiveTab] = useState<'status' | 'nodes' | 'dataflow' | 'summary'>('status');
-  const { data: execution, isLoading, error } = useExecutionStatus(executionId);
+  const { t } = useTranslation('workflows');
+  const { addNotification } = useNotificationStore();
+  const [activeTab, setActiveTab] = useState<'status' | 'nodeData' | 'dataFlow' | 'summary'>('status');
+  
+  const { 
+    data: executionStatus, 
+    isLoading, 
+    error, 
+    refetch 
+  } = useExecutionStatus(executionId);
 
-  // Auto-scroll to bottom of logs
+  const [logLevel, setLogLevel] = useState<'ALL' | 'INFO' | 'WARN' | 'ERROR' | 'DEBUG'>('ALL');
+  const [logSearch, setLogSearch] = useState<string>('');
+
+  // Auto-refresh for running executions
   useEffect(() => {
-    if (autoScroll && execution?.logs) {
-      const logsContainer = document.getElementById('execution-logs');
-      if (logsContainer) {
-        logsContainer.scrollTop = logsContainer.scrollHeight;
-      }
+    if (executionStatus?.status === 'RUNNING' || executionStatus?.status === 'PENDING') {
+      const interval = setInterval(() => {
+        refetch();
+      }, 2000);
+      return () => clearInterval(interval);
     }
-  }, [execution?.logs, autoScroll]);
+  }, [executionStatus?.status, refetch]);
 
-  if (!executionId) {
-    return null;
-  }
+  const handleCancel = async () => {
+    try {
+      await apiService.cancelExecution(executionId);
+      addNotification({
+        type: 'success',
+        title: t('execution.cancelled'),
+        message: t('execution.cancelled'),
+      });
+      refetch();
+    } catch (error) {
+      addNotification({
+        type: 'error',
+        title: t('execution.cancelError'),
+        message: t('execution.cancelError'),
+      });
+    }
+  };
+
+  const handleResume = async (nodeId: string) => {
+    try {
+      await apiService.resumeExecution(executionId, nodeId);
+      addNotification({
+        type: 'success',
+        title: t('execution.resumed'),
+        message: t('execution.resumed'),
+      });
+      refetch();
+    } catch (error) {
+      addNotification({
+        type: 'error',
+        title: t('execution.resumeError'),
+        message: t('execution.resumeError'),
+      });
+    }
+  };
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Execution Status</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <span className="ml-2">Loading execution status...</span>
-          </div>
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
         </div>
       </div>
     );
@@ -58,30 +90,19 @@ export const ExecutionStatusPanel: React.FC<ExecutionStatusPanelProps> = ({
 
   if (error) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Execution Status</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <div className="flex items-center">
-              <svg className="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="text-red-700">Failed to load execution status</span>
-            </div>
-            <p className="text-red-600 text-sm mt-1">
-              {error instanceof Error ? error.message : 'Unknown error occurred'}
-            </p>
-          </div>
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="text-red-600">
+          {t('execution.errorLoading')}
+        </div>
+      </div>
+    );
+  }
+
+  if (!executionStatus) {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="text-gray-500">
+          {t('execution.notFound')}
         </div>
       </div>
     );
@@ -89,53 +110,18 @@ export const ExecutionStatusPanel: React.FC<ExecutionStatusPanelProps> = ({
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'RUNNING':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'COMPLETED':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-green-100 text-green-800';
       case 'FAILED':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-red-100 text-red-800';
+      case 'RUNNING':
+        return 'bg-blue-100 text-blue-800';
+      case 'PENDING':
+        return 'bg-yellow-100 text-yellow-800';
       case 'CANCELLED':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-100 text-gray-800';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return (
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        );
-      case 'RUNNING':
-        return (
-          <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-        );
-      case 'COMPLETED':
-        return (
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-        );
-      case 'FAILED':
-        return (
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        );
-      default:
-        return (
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        );
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -143,221 +129,184 @@ export const ExecutionStatusPanel: React.FC<ExecutionStatusPanelProps> = ({
     const start = new Date(startedAt);
     const end = completedAt ? new Date(completedAt) : new Date();
     const duration = end.getTime() - start.getTime();
-    
-    const seconds = Math.floor(duration / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    
-    if (hours > 0) {
-      return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
-    } else if (minutes > 0) {
-      return `${minutes}m ${seconds % 60}s`;
-    } else {
-      return `${seconds}s`;
-    }
+    return `${duration}ms`;
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4 flex-shrink-0">
+    <div className="bg-white rounded-lg border border-gray-200">
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-gray-200">
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <h2 className="text-lg font-semibold">Execution Status</h2>
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(execution?.status || 'PENDING')}`}>
-              {getStatusIcon(execution?.status || 'PENDING')}
-              <span className="ml-1">{execution?.status || 'PENDING'}</span>
+            <h3 className="text-lg font-semibold text-gray-900">
+              {t('execution.status.title')}
+            </h3>
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(executionStatus.status)}`}>
+              {executionStatus.status}
             </span>
           </div>
           <div className="flex items-center space-x-2">
-            {(execution?.status === 'RUNNING' || execution?.status === 'PENDING') && (
+            {(executionStatus.status === 'RUNNING' || executionStatus.status === 'PENDING') && (
               <button
-                disabled={isCancelling}
-                onClick={async () => {
-                  try {
-                    setIsCancelling(true);
-                    const { apiService } = await import('../services/api');
-                    await apiService.cancelExecution(executionId!);
-                  } catch (e) {
-                    console.error('Cancel execution failed', e);
-                  } finally {
-                    setIsCancelling(false);
-                  }
-                }}
-                className="inline-flex items-center px-2 py-1 text-xs border border-red-300 text-red-700 rounded hover:bg-red-50 disabled:opacity-50"
-                title="Cancel execution"
+                onClick={handleCancel}
+                className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
               >
-                {isCancelling ? (
-                  <svg className="animate-spin -ml-1 mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                ) : (
-                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                )}
-                Cancel
+                {t('execution.cancel')}
               </button>
             )}
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Execution Info */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 flex-shrink-0">
-          <div className="bg-gray-50 rounded-lg p-3">
-            <div className="text-sm text-gray-600">Execution ID</div>
-            <div className="font-mono text-sm">{executionId}</div>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-3">
-            <div className="text-sm text-gray-600">Duration</div>
-            <div className="text-sm">
-              {execution?.startedAt ? formatDuration(execution.startedAt, execution.completedAt) : 'N/A'}
-            </div>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-3">
-            <div className="text-sm text-gray-600">Current Node</div>
-            <div className="text-sm">{execution?.currentNode || 'N/A'}</div>
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        {execution?.status === 'RUNNING' && (
-          <div className="mb-4 flex-shrink-0">
-            <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
-              <span>Progress</span>
-              <span>{execution.progress || 0}%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${execution.progress || 0}%` }}
-              ></div>
-            </div>
-          </div>
-        )}
-
-        {/* Error Display */}
-        {execution?.error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 flex-shrink-0">
-            <div className="flex items-start">
-              <svg className="w-5 h-5 text-red-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div>
-                <div className="text-red-700 font-medium">Execution Error</div>
-                <div className="text-red-600 text-sm mt-1">{execution.error}</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Tabs */}
-        <div className="border-b border-gray-200 mb-4">
-          <nav className="-mb-px flex space-x-8">
-            {[
-              { id: 'status', label: 'Status & Logs' },
-              { id: 'nodes', label: 'Node Data' },
-              { id: 'dataflow', label: 'Data Flow' },
-              { id: 'summary', label: 'Summary' }
-            ].map((tab) => (
+            {onClose && (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600"
               >
-                {tab.label}
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
-            ))}
-          </nav>
+            )}
+          </div>
         </div>
+        
+        {/* Execution Info */}
+        <div className="mt-3 text-sm text-gray-600">
+          <div className="flex items-center space-x-4">
+            <span>
+              {t('execution.started')}: {new Date(executionStatus.startedAt).toLocaleString()}
+            </span>
+            {executionStatus.completedAt && (
+              <span>
+                {t('execution.completed')}: {new Date(executionStatus.completedAt).toLocaleString()}
+              </span>
+            )}
+            <span>
+              {t('execution.duration')}: {formatDuration(executionStatus.startedAt, executionStatus.completedAt)}
+            </span>
+          </div>
+        </div>
+      </div>
 
-        {/* Tab Content */}
-        <div className="flex-1 min-h-0 overflow-y-auto">
-          {activeTab === 'status' && (
-            <div className="space-y-4">
-              {/* Logs */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium text-gray-700">Execution Logs</h3>
-                  <label className="flex items-center text-sm text-gray-600">
-                    <input
-                      type="checkbox"
-                      checked={autoScroll}
-                      onChange={(e) => setAutoScroll(e.target.checked)}
-                      className="mr-1"
-                    />
-                    Auto-scroll
-                  </label>
-                </div>
-                <div 
-                  id="execution-logs"
-                  className="bg-gray-900 text-green-400 rounded-lg p-4 font-mono text-sm overflow-y-auto max-h-64"
-                >
-                  {execution?.logs && execution.logs.length > 0 ? (
-                    execution.logs.map((log) => (
-                      <div key={log.id} className="mb-1">
-                        <span className="text-gray-500">[{new Date(log.timestamp).toLocaleTimeString()}]</span>
-                        <span className={`ml-2 ${
-                          log.level === 'ERROR' ? 'text-red-400' :
-                          log.level === 'WARN' ? 'text-yellow-400' :
-                          log.level === 'DEBUG' ? 'text-blue-400' :
-                          'text-green-400'
-                        }`}>
-                          [{log.level}]
-                        </span>
-                        {log.nodeId && (
-                          <span className="text-purple-400 ml-2">[{log.nodeId}]</span>
-                        )}
-                        <span className="ml-2">{log.message}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-gray-500">No logs available</div>
-                  )}
+      {/* Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="flex space-x-8 px-6">
+          {[
+            { key: 'status', label: t('execution.tabs.status') },
+            { key: 'nodeData', label: t('execution.tabs.nodeData') },
+            { key: 'dataFlow', label: t('execution.tabs.dataFlow') },
+            { key: 'summary', label: t('execution.tabs.summary') }
+          ].map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key as any)}
+              className={`py-3 px-1 border-b-2 font-medium text-sm ${
+                activeTab === key
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      <div className="p-6">
+        {activeTab === 'status' && (
+          <div className="space-y-4">
+            {/* Error Display */}
+            {executionStatus.errorDetails && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-start">
+                  <div className="text-red-500 mr-3 mt-0.5">⚠️</div>
+                  <div>
+                    <div className="text-red-700 font-medium">{t('execution.error')}</div>
+                    <div className="text-red-600 text-sm mt-1">
+                      {JSON.stringify(executionStatus.errorDetails, null, 2)}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {activeTab === 'nodes' && execution?.nodes && (
-            <div className="space-y-4">
-              {execution.nodes.map((node) => (
-                <NodeDataViewer
-                  key={node.id}
-                  node={node}
-                  isExpanded={true}
+            {/* Execution Logs */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">{t('execution.logs')}</h4>
+
+              {/* Log controls */}
+              <div className="flex items-center gap-3 mb-3">
+                <select
+                  value={logLevel}
+                  onChange={(e) => setLogLevel(e.target.value as any)}
+                  className="border border-gray-300 rounded px-2 py-1 text-sm"
+                >
+                  {['ALL', 'INFO', 'WARN', 'ERROR', 'DEBUG'].map(level => (
+                    <option key={level} value={level}>{level}</option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  value={logSearch}
+                  onChange={(e) => setLogSearch(e.target.value)}
+                  placeholder={t('common.search')}
+                  className="border border-gray-300 rounded px-2 py-1 text-sm flex-1"
                 />
-              ))}
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
+                {executionStatus.logs && executionStatus.logs.length > 0 ? (
+                  <div className="space-y-2">
+                    {executionStatus.logs
+                      .filter(log => logLevel === 'ALL' ? true : log.level === logLevel)
+                      .filter(log => logSearch ? (log.message?.toLowerCase().includes(logSearch.toLowerCase()) || log.nodeId?.toLowerCase().includes(logSearch.toLowerCase())) : true)
+                      .map((log, index) => (
+                        <div key={index} className="text-sm">
+                          <span className="text-gray-500">
+                            {new Date(log.timestamp).toLocaleTimeString()}
+                          </span>
+                          <span className={`ml-2 px-2 py-0.5 rounded text-xs ${
+                            log.level === 'ERROR' ? 'bg-red-100 text-red-800' :
+                            log.level === 'WARN' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            {log.level}
+                          </span>
+                          {log.nodeId && (
+                            <span className="ml-2 text-purple-700 text-xs">[{log.nodeId}]</span>
+                          )}
+                          <span className="ml-2 text-gray-700">{log.message}</span>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <div className="text-gray-500 text-sm italic">
+                    {t('execution.noLogs')}
+                  </div>
+                )}
+              </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {activeTab === 'dataflow' && execution?.dataFlow && execution?.nodes && (
-            <DataFlowViewer
-              dataFlow={execution.dataFlow}
-              nodes={execution.nodes}
-            />
-          )}
+        {activeTab === 'nodeData' && executionStatus.nodes && (
+          <div className="space-y-4">
+            {Object.entries(executionStatus.nodes).map(([nodeId, nodeData]) => (
+              <NodeDataViewer
+                key={nodeId}
+                nodeId={nodeId}
+                nodeData={nodeData as any}
+                onResume={handleResume}
+              />
+            ))}
+          </div>
+        )}
 
-          {activeTab === 'summary' && execution?.summary && (
-            <ExecutionSummary
-              summary={execution.summary}
-              metadata={execution.metadata}
-            />
-          )}
-        </div>
+        {activeTab === 'dataFlow' && executionStatus.dataFlow && (
+          <DataFlowViewer dataFlow={executionStatus.dataFlow} />
+        )}
+
+        {activeTab === 'summary' && executionStatus.summary && (
+          <ExecutionSummary summary={executionStatus.summary} />
+        )}
       </div>
     </div>
   );

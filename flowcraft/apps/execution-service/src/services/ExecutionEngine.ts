@@ -261,25 +261,56 @@ export class ExecutionEngine {
         }
       });
 
-      // Execute the node based on its type
-      const nodeResult = await this.executeNode(currentNode, context);
+      // Execute the node with retries
+      const maxRetries = 2;
+      let attempt = 0;
+      let nodeResult: ExecutionResult | null = null;
+      let lastError: any = null;
+
+      while (attempt <= maxRetries) {
+        nodeResult = await this.executeNode(currentNode, context);
+        if (nodeResult.success) break;
+
+        lastError = nodeResult.error;
+        if (attempt < maxRetries) {
+          const delay = Math.min(1000 * Math.pow(2, attempt), 8000);
+          logger.warn({ nodeId: currentNode.id, attempt: attempt + 1, delay }, 'Node failed, retrying with backoff');
+          // Mark retry metadata
+          await this.prisma.executionNode.update({
+            where: { id: executionNode.id },
+            data: {
+              metadata: {
+                ...(executionNode as any).metadata,
+                retrying: true,
+                attempts: attempt + 1,
+                lastError: nodeResult.error,
+              },
+            }
+          });
+          await new Promise(res => setTimeout(res, delay));
+        }
+        attempt++;
+      }
+
+      const finalResult = nodeResult!;
       const nodeEndTime = Date.now();
       const nodeDuration = nodeEndTime - nodeStartTime;
 
       // Store node result with detailed information
       nodeResults[currentNode.id] = {
-        success: nodeResult.success,
-        data: nodeResult.data,
-        error: nodeResult.error,
+        success: finalResult.success,
+        data: finalResult.data,
+        error: finalResult.error,
         duration: nodeDuration,
         startedAt: nodeStartTime,
-        completedAt: nodeEndTime
-      };
+        completedAt: nodeEndTime,
+        attempts: attempt + (finalResult.success ? 0 : 0)
+      } as any;
 
       // Track data flow for this node
       dataFlow[currentNode.id] = {
-        input: context.input || {},
-        output: nodeResult.data || {},
+        input: this.truncateData(context.input || {}),
+        output: this.truncateData(finalResult.data || {}),
         duration: nodeDuration,
         nodeType: currentNode.type
       };
@@ -288,10 +319,10 @@ export class ExecutionEngine {
       await this.prisma.executionNode.update({
         where: { id: executionNode.id },
         data: {
-          status: nodeResult.success ? 'COMPLETED' : 'FAILED',
+          status: finalResult.success ? 'COMPLETED' : 'FAILED',
           completedAt: new Date(),
-          outputData: nodeResult.data || {},
-          errorDetails: nodeResult.error,
+          outputData: this.truncateData(finalResult.data || {}),
+          errorDetails: finalResult.error,
           performance: {
             duration: nodeDuration,
             startedAt: new Date(nodeStartTime),
@@ -299,33 +330,34 @@ export class ExecutionEngine {
           },
           metadata: {
             nodeType: currentNode.type,
-            nodeName: currentNode.data?.label || currentNode.id
+            nodeName: currentNode.data?.label || currentNode.id,
+            attempts: attempt,
           }
         }
       });
 
       // Log execution result
-      await this.addExecutionLog(context.executionId, currentNode.id, 'INFO', 
-        `Node ${currentNode.type} ${nodeResult.success ? 'completed' : 'failed'} in ${nodeDuration}ms`, 
-        nodeResult.data
+      await this.addExecutionLog(context.executionId, currentNode.id, finalResult.success ? 'INFO' : 'WARN', 
+        `Node ${currentNode.type} ${finalResult.success ? 'completed' : 'failed'} in ${nodeDuration}ms` + (attempt ? ` after ${attempt} retries` : ''), 
+        finalResult.data
       );
 
-      if (!nodeResult.success) {
-        throw new Error(`Node execution failed: ${nodeResult.error}`);
+      if (!finalResult.success) {
+        throw new Error(`Node execution failed: ${lastError || finalResult.error}`);
       }
 
       // Update context with output data
-      context.output = nodeResult.data;
+      context.output = finalResult.data;
 
       // If this is an END node, stop execution
       if (currentNode.type === 'end') {
-        return nodeResult;
+        return finalResult;
       }
 
       // Cooperative cancellation check after node
       if (ExecutionEngine.cancelledExecutions.has(context.executionId)) {
         logger.warn({ executionId: context.executionId }, 'Execution cancelled after node');
-        return nodeResult;
+        return finalResult;
       }
 
       // Find next nodes connected to this node
@@ -338,8 +370,8 @@ export class ExecutionEngine {
           dataFlow[`${currentNode.id}_to_${nextNode.id}`] = {
             sourceId: currentNode.id,
             targetId: nextNode.id,
-            input: nodeResult.data || context.input,
-            output: nodeResult.data || context.input,
+            input: this.truncateData(finalResult.data || context.input),
+            output: this.truncateData(finalResult.data || context.input),
             edgeId: edge.id
           };
 
@@ -347,14 +379,14 @@ export class ExecutionEngine {
           const nextContext = {
             ...context,
             nodeId: nextNode.id,
-            input: nodeResult.data || context.input
+            input: finalResult.data || context.input
           };
           
           await this.executeNodeSequence(nextNode, allNodes, allEdges, nextContext, dataFlow, nodeResults);
         }
       }
 
-      return nodeResult;
+      return finalResult;
 
     } catch (error) {
       const nodeEndTime = Date.now();
@@ -714,6 +746,152 @@ export class ExecutionEngine {
     });
 
     logger.info({ executionId }, 'Execution cancelled');
+  }
+
+  /**
+   * Mark execution as failed (used by worker for final failure)
+   */
+  async markExecutionAsFailed(executionId: string, errorMessage: string): Promise<void> {
+    await this.prisma.execution.update({
+      where: { id: executionId },
+      data: {
+        status: 'FAILED',
+        completedAt: new Date(),
+        errorDetails: {
+          message: errorMessage,
+          timestamp: new Date().toISOString()
+        }
+      }
+    });
+
+    logger.info({ executionId, errorMessage }, 'Execution marked as failed');
+  }
+
+  /**
+   * Resume execution from a failed node (or specified nodeId)
+   */
+  async resumeExecution(executionId: string, nodeId?: string): Promise<void> {
+    // Load execution and related info
+    const execution = await this.prisma.execution.findUnique({
+      where: { id: executionId },
+      select: {
+        id: true,
+        workflowId: true,
+        status: true,
+      }
+    });
+    if (!execution) {
+      throw new Error(`Execution not found: ${executionId}`);
+    }
+
+    // Find target node to resume
+    let targetNode = await this.prisma.executionNode.findFirst({
+      where: {
+        executionId,
+        ...(nodeId ? { nodeId } : { status: 'FAILED' as any })
+      },
+      orderBy: { startedAt: 'desc' }
+    });
+    if (!targetNode) {
+      throw new Error('No failed node found to resume');
+    }
+
+    // Load workflow definition
+    const workflow = await this.prisma.workflow.findUnique({
+      where: { id: execution.workflowId },
+      select: { definition: true }
+    });
+    if (!workflow) {
+      throw new Error(`Workflow not found: ${execution.workflowId}`);
+    }
+
+    const workflowDefinition = workflow.definition as unknown as {
+      nodes: EditorNode[];
+      edges: EditorEdge[];
+    };
+
+    // Set execution to RUNNING
+    await this.prisma.execution.update({
+      where: { id: executionId },
+      data: { status: 'RUNNING' }
+    });
+
+    // Execute from target node using its inputData
+    await this.executeWorkflowFromNode(
+      executionId,
+      workflowDefinition,
+      targetNode.nodeId,
+      (targetNode.inputData as any) || {}
+    );
+  }
+
+  /**
+   * Execute workflow starting from a specific node
+   */
+  private async executeWorkflowFromNode(
+    executionId: string,
+    workflowDefinition: { nodes: EditorNode[]; edges: EditorEdge[] },
+    startNodeId: string,
+    initialInput: Record<string, any>
+  ): Promise<void> {
+    const { nodes, edges } = workflowDefinition;
+
+    // Find start node by id
+    const startNode = nodes.find(n => n.id === startNodeId);
+    if (!startNode) {
+      throw new Error(`Start node not found: ${startNodeId}`);
+    }
+
+    const executionContext: ExecutionContext = {
+      executionId,
+      workflowId: '',
+      userId: '',
+      nodeId: startNode.id,
+      input: initialInput,
+      startedAt: new Date(),
+      status: ExecutionStatus.RUNNING,
+    };
+
+    const dataFlow: Record<string, any> = {};
+    const nodeResults: Record<string, any> = {};
+
+    try {
+      await this.executeNodeSequence(startNode, nodes, edges, executionContext, dataFlow, nodeResults);
+
+      // If completed path to END, mark execution completed
+      await this.prisma.execution.update({
+        where: { id: executionId },
+        data: {
+          status: 'COMPLETED',
+          completedAt: new Date(),
+          outputData: executionContext.output || {}
+        }
+      });
+
+      logger.info({ executionId, startNodeId }, 'Execution resumed and completed successfully');
+    } catch (error) {
+      // Failure handled in node sequence; propagate
+      throw error;
+    }
+  }
+
+  /**
+   * Truncate large JSON payloads to avoid oversized storage
+   */
+  private truncateData(data: any, maxChars: number = 10000): any {
+    try {
+      const str = JSON.stringify(data);
+      if (str.length > maxChars) {
+        return {
+          __preview: str.slice(0, maxChars),
+          __truncated: true,
+          __bytes: str.length,
+        };
+      }
+      return data;
+    } catch {
+      return data;
+    }
   }
 
   /**

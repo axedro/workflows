@@ -9,13 +9,12 @@ export interface ExecutionStatus {
   progress: number;
   currentNode?: string;
   error?: string;
+  errorDetails?: Record<string, any>;
   logs: ExecutionLog[];
   // Nuevos campos para datos detallados
   summary?: Record<string, any>;
   dataFlow?: Record<string, any>;
-  nodes?: Array<{
-    id: string;
-    nodeId: string;
+  nodes?: Record<string, {
     status: string;
     startedAt?: string;
     completedAt?: string;

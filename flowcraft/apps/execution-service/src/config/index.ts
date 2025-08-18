@@ -5,7 +5,7 @@ export const config = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
 
   // Database configuration
-  DATABASE_URL: process.env.DATABASE_URL || 'postgresql://flowcraft:flowcraft@localhost:5432/flowcraft',
+  DATABASE_URL: process.env.DATABASE_URL || 'postgresql://flowcraft:flowcraft123@localhost:5432/flowcraft',
 
   // Redis configuration
   REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6379',

@@ -10,16 +10,10 @@ interface DataFlowItem {
 
 interface DataFlowViewerProps {
   dataFlow: Record<string, any>;
-  nodes: Array<{
-    id: string;
-    nodeId: string;
-    metadata?: Record<string, any>;
-  }>;
 }
 
 export const DataFlowViewer: React.FC<DataFlowViewerProps> = ({
-  dataFlow,
-  nodes
+  dataFlow
 }) => {
   const [selectedFlow, setSelectedFlow] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'input' | 'output'>('input');
@@ -36,8 +30,9 @@ export const DataFlowViewer: React.FC<DataFlowViewerProps> = ({
     }));
 
   const getNodeName = (nodeId: string) => {
-    const node = nodes.find(n => n.nodeId === nodeId);
-    return node?.metadata?.nodeName || nodeId;
+    // Try to get node name from dataFlow if available
+    const nodeData = dataFlow[nodeId];
+    return nodeData?.nodeName || nodeData?.metadata?.nodeName || nodeId;
   };
 
   const renderJsonData = (data: Record<string, any>, title: string) => {

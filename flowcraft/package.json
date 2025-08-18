@@ -31,7 +31,10 @@
     "db:seed": "pnpm --filter database seed",
     "db:studio": "pnpm --filter database studio",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "test:e2e:resume": "node test-resume-execution.js",
+    "test:smoke:resume": "node test-resume-simple.js",
+    "ci:test:resume": "bash scripts/test-resume.sh"
   },
   "devDependencies": {
     "@babel/preset-react": "^7.18.6",

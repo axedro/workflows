@@ -683,9 +683,16 @@ class ApiService {
     return this.request<any[]>(`/executions/${executionId}/logs`);
   }
 
-  async cancelExecution(executionId: string): Promise<{ message: string; status: string }> {
-    return this.request<{ message: string; status: string }>(`/executions/${executionId}/cancel`, {
+  async cancelExecution(executionId: string): Promise<void> {
+    await this.request(`/executions/${executionId}/cancel`, {
       method: 'POST',
+    });
+  }
+
+  async resumeExecution(executionId: string, nodeId?: string): Promise<void> {
+    await this.request(`/executions/${executionId}/resume`, {
+      method: 'POST',
+      body: JSON.stringify({ nodeId }),
     });
   }
 

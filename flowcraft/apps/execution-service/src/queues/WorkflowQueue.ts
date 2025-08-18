@@ -3,13 +3,14 @@ import Redis from 'ioredis';
 import { config } from '../config/index.js';
 import { WorkflowExecutionJob, NodeExecutionJob } from '../types/execution.js';
 import { ExecutionEngine } from '../services/ExecutionEngine.js';
+import { WorkflowWorker } from '../workers/WorkflowWorker.js';
 import { logger } from '../utils/logger.js';
 
 export class WorkflowQueue {
   private static queue: Queue<WorkflowExecutionJob>;
   private static worker: Worker<WorkflowExecutionJob>;
+  private static workflowWorker: WorkflowWorker;
   private static redis: Redis;
-  private static executionEngine: ExecutionEngine;
 
   /**
    * Initialize queue system
@@ -22,31 +23,34 @@ export class WorkflowQueue {
       maxRetriesPerRequest: 3,
     });
 
-    // Create execution engine instance
-    this.executionEngine = new ExecutionEngine();
+    // Create workflow worker instance
+    this.workflowWorker = new WorkflowWorker();
 
-    // Create queue
+    // Create queue with enhanced configuration
     this.queue = new Queue<WorkflowExecutionJob>(config.QUEUE_NAME, {
       connection: this.redis,
       defaultJobOptions: {
-        removeOnComplete: true, 
-        removeOnFail: true,      
-        attempts: config.MAX_RETRIES,
-        delay: config.RETRY_DELAY,
+        removeOnComplete: 100, // Keep last 100 completed jobs
+        removeOnFail: 50,      // Keep last 50 failed jobs
+        attempts: 3,           // Max 3 retry attempts
         backoff: {
           type: 'exponential',
-          delay: 2000,
+          delay: 2000,         // Start with 2 seconds
         },
+        delay: 0,              // No initial delay
       },
     });
 
-    // Create worker
+    // Create worker with enhanced configuration
     this.worker = new Worker<WorkflowExecutionJob>(
       config.QUEUE_NAME,
       this.processJob.bind(this),
       {
         connection: this.redis,
-        concurrency: config.QUEUE_CONCURRENCY,
+        concurrency: 5,        // Process up to 5 jobs concurrently
+        autorun: true,         // Start processing immediately
+        stalledInterval: 30000, // Check for stalled jobs every 30 seconds
+        maxStalledCount: 1,    // Mark as stalled after 1 failed attempt
       }
     );
 
@@ -68,6 +72,11 @@ export class WorkflowQueue {
     const queueJob = await this.queue.add('execute-workflow', job, {
       jobId: job.executionId,
       delay: 0,
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 2000,
+      },
     });
 
     logger.info(
@@ -83,7 +92,7 @@ export class WorkflowQueue {
   }
 
   /**
-   * Process workflow execution job
+   * Process workflow execution job using WorkflowWorker
    */
   private static async processJob(job: Job<WorkflowExecutionJob>): Promise<void> {
     const { workflowId, executionId, userId, input } = job.data;
@@ -99,8 +108,9 @@ export class WorkflowQueue {
     );
 
     try {
-      // Execute workflow using provided executionId (pre-created)
-      await this.executionEngine.executeWorkflowByExecutionId(executionId, workflowId, userId, input);
+      // Use the WorkflowWorker to process the job
+      await this.workflowWorker.processWorkflowJob(job);
+      
       logger.info({ jobId: job.id, executionId, workflowId }, 'Workflow execution job completed successfully');
 
     } catch (error) {
@@ -115,7 +125,7 @@ export class WorkflowQueue {
         'Workflow execution job failed'
       );
 
-      // Re-throw error so BullMQ can handle retries
+      // Let the WorkflowWorker handle retry logic
       throw error;
     }
   }
@@ -125,7 +135,7 @@ export class WorkflowQueue {
    */
   private static setupEventListeners(): void {
     // Worker events
-    this.worker.on('completed', (job) => {
+    this.worker.on('completed', async (job) => {
       logger.info(
         { 
           jobId: job.id, 
@@ -133,22 +143,33 @@ export class WorkflowQueue {
         }, 
         'Job completed'
       );
+
+      // Handle job completion
+      await this.workflowWorker.handleJobCompletion(job);
     });
 
-    this.worker.on('failed', (job, err) => {
+    this.worker.on('failed', async (job, err) => {
       logger.error(
         { 
           jobId: job?.id, 
           error: err.message,
           attempts: job?.attemptsMade,
-          maxAttempts: config.MAX_RETRIES
+          maxAttempts: 3
         }, 
         'Job failed'
       );
+
+      // Handle job failure
+      if (job) {
+        await this.workflowWorker.handleJobFailure(job, err);
+      }
     });
 
-    this.worker.on('stalled', (jobId) => {
+    this.worker.on('stalled', async (jobId) => {
       logger.warn({ jobId }, 'Job stalled');
+      
+      // Handle job stalling
+      await this.workflowWorker.handleJobStalled(jobId);
     });
 
     this.worker.on('error', (err) => {
@@ -172,6 +193,17 @@ export class WorkflowQueue {
     this.redis.on('disconnect', () => {
       logger.warn('Redis disconnected');
     });
+
+    // Graceful shutdown handling
+    process.on('SIGTERM', async () => {
+      logger.info('SIGTERM received, shutting down gracefully...');
+      await this.shutdown();
+    });
+
+    process.on('SIGINT', async () => {
+      logger.info('SIGINT received, shutting down gracefully...');
+      await this.shutdown();
+    });
   }
 
   /**
@@ -182,6 +214,7 @@ export class WorkflowQueue {
     active: number;
     completed: number;
     failed: number;
+    workerStats: any;
   }> {
     if (!this.queue) {
       throw new Error('Queue not initialized');
@@ -192,11 +225,14 @@ export class WorkflowQueue {
     const completed = await this.queue.getCompleted();
     const failed = await this.queue.getFailed();
 
+    const workerStats = this.workflowWorker.getStats();
+
     return {
       waiting: waiting.length,
       active: active.length,
       completed: completed.length,
       failed: failed.length,
+      workerStats,
     };
   }
 
@@ -265,27 +301,49 @@ export class WorkflowQueue {
   }
 
   /**
-   * Disconnect and cleanup
+   * Get worker health status
    */
-  static async disconnect(): Promise<void> {
-    logger.info('Disconnecting WorkflowQueue...');
+  static async getWorkerHealth(): Promise<any> {
+    if (!this.workflowWorker) {
+      throw new Error('Worker not initialized');
+    }
 
+    return await this.workflowWorker.healthCheck();
+  }
+
+  /**
+   * Graceful shutdown
+   */
+  static async shutdown(): Promise<void> {
+    logger.info('Shutting down WorkflowQueue...');
+
+    // Shutdown workflow worker first
+    if (this.workflowWorker) {
+      await this.workflowWorker.shutdown();
+    }
+
+    // Close worker
     if (this.worker) {
       await this.worker.close();
     }
 
+    // Close queue
     if (this.queue) {
       await this.queue.close();
     }
 
-    if (this.executionEngine) {
-      await this.executionEngine.disconnect();
-    }
-
+    // Disconnect Redis
     if (this.redis) {
       this.redis.disconnect();
     }
 
-    logger.info('WorkflowQueue disconnected');
+    logger.info('WorkflowQueue shutdown completed');
+  }
+
+  /**
+   * Disconnect and cleanup (legacy method)
+   */
+  static async disconnect(): Promise<void> {
+    await this.shutdown();
   }
 }

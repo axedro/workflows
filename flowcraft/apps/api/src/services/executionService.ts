@@ -259,6 +259,39 @@ export class ExecutionService {
     }
   }
 
+  async resumeExecution(executionId: string, nodeId?: string): Promise<void> {
+    try {
+      await this.client.post(`/api/executions/${executionId}/resume`, {
+        nodeId: nodeId,
+      });
+
+      this.logger.info(
+        { executionId, nodeId }, 
+        'Execution resumed via ExecutionService'
+      );
+
+    } catch (error: any) {
+      this.logger.error(
+        { 
+          error, 
+          executionId, 
+          nodeId 
+        }, 
+        'Failed to resume execution via ExecutionService'
+      );
+
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 404) {
+          throw new Error(`Execution not found: ${executionId}`);
+        }
+        const message = error.response?.data?.error || error.message;
+        throw new Error(`ExecutionService error: ${message}`);
+      }
+
+      throw error;
+    }
+  }
+
   /**
    * List executions for a workflow
    */

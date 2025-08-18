@@ -45,5 +45,39 @@
   "no_description": "No description",
   "saving": "Saving...",
   "last_saved": "Last saved",
-  "not_saved": "Not saved"
+  "not_saved": "Not saved",
+  "execution": {
+    "status": {
+      "title": "Execution Status"
+    },
+    "tabs": {
+      "status": "Status & Logs",
+      "nodeData": "Node Data",
+      "dataFlow": "Data Flow",
+      "summary": "Summary"
+    },
+    "nodeData": {
+      "title": "Node Data",
+      "input": "Input",
+      "output": "Output",
+      "performance": "Performance",
+      "metadata": "Metadata",
+      "inputData": "Input Data",
+      "outputData": "Output Data"
+    },
+    "started": "Started",
+    "completed": "Completed",
+    "duration": "Duration",
+    "logs": "Execution Logs",
+    "noLogs": "No logs available",
+    "error": "Error",
+    "errorLoading": "Failed to load execution status",
+    "notFound": "Execution not found",
+    "cancel": "Cancel",
+    "cancelled": "Execution cancelled successfully",
+    "cancelError": "Failed to cancel execution",
+    "resume": "Resume",
+    "resumed": "Execution resumed successfully",
+    "resumeError": "Failed to resume execution"
+  }
 } 

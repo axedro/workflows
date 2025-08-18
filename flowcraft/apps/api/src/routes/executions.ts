@@ -256,4 +256,51 @@ export default async function executionRoutes(fastify: FastifyInstance, options:
       });
     }
   });
+
+  // Resume execution from failed node
+  fastify.post('/executions/:id/resume', {
+    preHandler: fastify.authenticate,
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const { id: executionId } = executionParamsSchema.parse(request.params);
+      const { nodeId } = request.body as { nodeId?: string };
+      
+      // Get the authenticated user from the request
+      const userId = (request as any).user?.userId;
+
+      if (!userId) {
+        return reply.status(401).send({ error: 'User not authenticated' });
+      }
+
+      // Check if execution exists and user has access
+      const execution = await prisma.execution.findFirst({
+        where: {
+          id: executionId,
+          userId: userId, // Use the authenticated user ID
+        },
+      });
+
+      if (!execution) {
+        return reply.status(404).send({ error: 'Execution not found or access denied' });
+      }
+
+      // Resume execution
+      await executionService.resumeExecution(executionId, nodeId);
+
+      fastify.log.info({ executionId, userId, nodeId }, 'Execution resumed');
+
+      return reply.status(200).send({
+        message: 'Execution resumed successfully',
+        status: 'resumed',
+      });
+
+    } catch (error) {
+      fastify.log.error({ error, params: request.params }, 'Failed to resume execution');
+
+      return reply.status(500).send({
+        error: 'Failed to resume execution',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
 }

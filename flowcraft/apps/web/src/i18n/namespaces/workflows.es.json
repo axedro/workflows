@@ -45,5 +45,39 @@
   "no_description": "Sin descripción",
   "saving": "Guardando...",
   "last_saved": "Último guardado",
-  "not_saved": "No guardado"
+  "not_saved": "No guardado",
+  "execution": {
+    "status": {
+      "title": "Estado de Ejecución"
+    },
+    "tabs": {
+      "status": "Estado y Logs",
+      "nodeData": "Datos del Nodo",
+      "dataFlow": "Flujo de Datos",
+      "summary": "Resumen"
+    },
+    "nodeData": {
+      "title": "Datos del Nodo",
+      "input": "Entrada",
+      "output": "Salida",
+      "performance": "Rendimiento",
+      "metadata": "Metadatos",
+      "inputData": "Datos de Entrada",
+      "outputData": "Datos de Salida"
+    },
+    "started": "Iniciado",
+    "completed": "Completado",
+    "duration": "Duración",
+    "logs": "Logs de Ejecución",
+    "noLogs": "No hay logs disponibles",
+    "error": "Error",
+    "errorLoading": "Error al cargar el estado de ejecución",
+    "notFound": "Ejecución no encontrada",
+    "cancel": "Cancelar",
+    "cancelled": "Ejecución cancelada exitosamente",
+    "cancelError": "Error al cancelar la ejecución",
+    "resume": "Reanudar",
+    "resumed": "Ejecución reanudada exitosamente",
+    "resumeError": "Error al reanudar la ejecución"
+  }
 } 

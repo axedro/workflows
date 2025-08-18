@@ -45,5 +45,39 @@
   "no_description": "Geen beschrijving",
   "saving": "Opslaan...",
   "last_saved": "Laatst opgeslagen",
-  "not_saved": "Niet opgeslagen"
+  "not_saved": "Niet opgeslagen",
+  "execution": {
+    "status": {
+      "title": "Uitvoeringsstatus"
+    },
+    "tabs": {
+      "status": "Status & Logs",
+      "nodeData": "Knooppuntgegevens",
+      "dataFlow": "Gegevensstroom",
+      "summary": "Samenvatting"
+    },
+    "nodeData": {
+      "title": "Knooppuntgegevens",
+      "input": "Invoer",
+      "output": "Uitvoer",
+      "performance": "Prestaties",
+      "metadata": "Metagegevens",
+      "inputData": "Invoergegevens",
+      "outputData": "Uitvoergegevens"
+    },
+    "started": "Gestart",
+    "completed": "Voltooid",
+    "duration": "Duur",
+    "logs": "Uitvoeringslogs",
+    "noLogs": "Geen logs beschikbaar",
+    "error": "Fout",
+    "errorLoading": "Fout bij het laden van uitvoeringsstatus",
+    "notFound": "Uitvoering niet gevonden",
+    "cancel": "Annuleren",
+    "cancelled": "Uitvoering succesvol geannuleerd",
+    "cancelError": "Fout bij annuleren van uitvoering",
+    "resume": "Hervatten",
+    "resumed": "Uitvoering succesvol hervat",
+    "resumeError": "Fout bij hervatten van uitvoering"
+  }
 } 

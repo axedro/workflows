@@ -146,6 +146,34 @@ fastify.get('/api/executions/:id', async (request, reply) => {
   }
 });
 
+// Resume execution from failed node
+fastify.post('/api/executions/:id/resume', async (request, reply) => {
+  try {
+    const { id: executionId } = request.params as { id: string };
+    const { nodeId } = request.body as { nodeId?: string };
+
+    if (!executionId) {
+      return reply.status(400).send({ error: 'Missing execution ID' });
+    }
+
+    const executionEngine = new ExecutionEngine();
+    await executionEngine.resumeExecution(executionId, nodeId);
+    await executionEngine.disconnect();
+
+    return reply.status(200).send({
+      message: 'Execution resumed successfully',
+      executionId,
+      nodeId,
+    });
+  } catch (error) {
+    logger.error({ error, url: request.url, method: request.method }, 'Failed to resume execution');
+    return reply.status(500).send({
+      error: 'Failed to resume execution',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
 // Graceful shutdown
 const gracefulShutdown = async () => {
   logger.info('Shutting down execution service...');

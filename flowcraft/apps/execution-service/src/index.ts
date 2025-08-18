@@ -49,6 +49,56 @@ fastify.get('/health', async (request, reply) => {
   }
 });
 
+// Detailed health check endpoint
+fastify.get('/health/detailed', async (request, reply) => {
+  try {
+    // Check queue status
+    const queueStats = await WorkflowQueue.getQueueStats();
+    
+    // Check worker health
+    const workerHealth = await WorkflowQueue.getWorkerHealth();
+    
+    return reply.status(200).send({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      service: 'execution-service',
+      version: '1.0.0',
+      queue: queueStats,
+      worker: workerHealth,
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+    });
+  } catch (error) {
+    fastify.log.error('Detailed health check failed:', error);
+    return reply.status(500).send({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      service: 'execution-service',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// Worker stats endpoint
+fastify.get('/api/worker/stats', async (request, reply) => {
+  try {
+    const workerHealth = await WorkflowQueue.getWorkerHealth();
+    const queueStats = await WorkflowQueue.getQueueStats();
+    
+    return reply.status(200).send({
+      worker: workerHealth,
+      queue: queueStats,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    fastify.log.error('Worker stats failed:', error);
+    return reply.status(500).send({
+      error: 'Failed to get worker stats',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
 // Execute workflow endpoint
 fastify.post('/api/workflows/execute', async (request, reply) => {
   try {
@@ -163,6 +213,30 @@ fastify.post('/api/executions/:id/cancel', async (request, reply) => {
     return reply.status(500).send({
       error: 'Failed to cancel execution',
       details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// Resume execution from failed node
+fastify.post('/api/executions/:id/resume', async (request, reply) => {
+  try {
+    const { id: executionId } = request.params as { id: string };
+    const { nodeId } = request.body as { nodeId?: string };
+    
+    const executionEngine = new ExecutionEngine();
+    await executionEngine.resumeExecution(executionId, nodeId);
+    await executionEngine.disconnect();
+    
+    return reply.status(200).send({ 
+      message: 'Execution resumed successfully',
+      executionId,
+      nodeId 
+    });
+  } catch (error) {
+    fastify.log.error({ error, executionId: (request.params as any).id }, 'Failed to resume execution');
+    return reply.status(500).send({ 
+      error: 'Failed to resume execution',
+      details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });

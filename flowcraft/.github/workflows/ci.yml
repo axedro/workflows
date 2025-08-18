@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [ develop, main ]
+  pull_request:
+    branches: [ develop, main ]
+
+jobs:
+  resume-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.0
+          run_install: true
+
+      - name: Start Docker services
+        run: |
+          docker compose -f infrastructure/docker/docker-compose.yml up -d
+
+      - name: Wait for Postgres
+        run: |
+          for i in {1..20}; do
+            if docker exec flowcraft-postgres pg_isready -U flowcraft -d flowcraft; then
+              echo "Postgres is ready"; exit 0; fi
+            sleep 3; done; echo "Postgres not ready"; exit 1
+
+      - name: Run Resume E2E
+        run: pnpm run ci:test:resume
+
+      - name: Dump Logs on Failure
+        if: failure()
+        run: |
+          echo "===== API Logs =====" || true
+          [ -f logs/api.log ] && tail -n 200 logs/api.log || true
+          echo "===== Execution Logs =====" || true
+          [ -f logs/execution.log ] && tail -n 200 logs/execution.log || true
+
+      - name: Shutdown Docker
+        if: always()
+        run: docker compose -f infrastructure/docker/docker-compose.yml down
