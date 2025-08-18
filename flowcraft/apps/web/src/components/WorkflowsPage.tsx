@@ -8,6 +8,7 @@ import { useTranslation } from '../hooks/i18n';
 import { WorkflowCreationModal } from './WorkflowCreationModal';
 import { WorkflowImportModal } from './WorkflowImportModal';
 import { useNotificationStore } from '../stores/notificationStore';
+import { ExecutionHistoryPanel } from './ExecutionHistoryPanel';
 
 // Using FIXED delete workflow API: 2025-08-09-09:13
 
@@ -36,6 +37,7 @@ const WorkflowsPage: React.FC = () => {
   const [duplicateName, setDuplicateName] = useState('');
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [workflowToDuplicate, setWorkflowToDuplicate] = useState<Workflow | null>(null);
+  const [historyWorkflowId, setHistoryWorkflowId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchWorkflows({
@@ -65,37 +67,48 @@ const WorkflowsPage: React.FC = () => {
 
   const confirmDelete = async (id: string) => {
     try {
+      console.log('🔄 Attempting to delete workflow:', id);
       await deleteWorkflow(id);
+      console.log('✅ Workflow deleted successfully');
       // Close modal and clear state on successful deletion
       setShowDeleteModal(false);
       setWorkflowToDelete(null);
     } catch (error: any) {
+      console.log('❌ Delete failed with error:', error);
+      console.log('❌ Error message:', error.message);
+      console.log('❌ Error type:', typeof error.message);
+      
       // Check if it's a conflict error (workflow has executions)
-      if (error.message && error.message.includes('Conflict')) {
+      if (error.message && (error.message.includes('Conflict') || error.message.includes('Cannot delete workflow with existing executions'))) {
+        console.log('🔍 Detected conflict error, showing force delete dialog');
         // Show confirmation dialog for force delete
         const shouldForceDelete = window.confirm(
           'This workflow has execution history. Do you want to delete it anyway? This will also delete all execution history.'
         );
         
         if (shouldForceDelete) {
+          console.log('🔄 User confirmed force delete, attempting...');
           try {
             await deleteWorkflow(id, true); // Force delete
+            console.log('✅ Force delete successful');
             // Close modal and clear state on successful force deletion
             setShowDeleteModal(false);
             setWorkflowToDelete(null);
           } catch (forceError: any) {
-            console.error('Force delete failed:', forceError);
-            // Show error notification
+            console.error('❌ Force delete failed:', forceError);
+            // Show error notification only for force delete failures
             useNotificationStore.getState().addNotification({
               type: 'error',
               title: 'Failed to Delete Workflow',
               message: forceError.message || 'Failed to delete workflow',
             });
           }
+        } else {
+          console.log('❌ User cancelled force delete');
         }
       } else {
-        console.error('Failed to delete workflow:', error);
-        // Show error notification
+        console.error('❌ Failed to delete workflow:', error);
+        // Show error notification only for unexpected errors (not 409 conflicts)
         useNotificationStore.getState().addNotification({
           type: 'error',
           title: 'Failed to Delete Workflow',
@@ -263,6 +276,13 @@ const WorkflowsPage: React.FC = () => {
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={() => setHistoryWorkflowId(workflow.id)}
+                >
+                  History
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => handleDuplicate(workflow)}
                 >
                   Duplicate
@@ -401,6 +421,15 @@ const WorkflowsPage: React.FC = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Execution History Panel */}
+      {historyWorkflowId && (
+        <ExecutionHistoryPanel
+          workflowId={historyWorkflowId}
+          isOpen={!!historyWorkflowId}
+          onClose={() => setHistoryWorkflowId(null)}
+        />
+      )}
     </div>
   );
 };

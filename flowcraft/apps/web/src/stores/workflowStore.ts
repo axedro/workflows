@@ -217,13 +217,6 @@ export const useWorkflowStore = create<WorkflowState>(set => ({
         isLoading: false,
       });
       
-      // Show error notification
-      useNotificationStore.getState().addNotification({
-        type: 'error',
-        title: 'Failed to Delete Workflow',
-        message: errorMessage,
-      });
-      
       throw error;
     }
   },

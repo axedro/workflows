@@ -64,20 +64,28 @@ fastify.post('/api/workflows/execute', async (request, reply) => {
       });
     }
 
-    // Execute workflow directly to get the real execution ID from database
+    // Async flow: pre-create execution and enqueue job
     const executionEngine = new ExecutionEngine();
-    const executionId = await executionEngine.executeWorkflow(workflowId, userId, input || {});
+    const executionId = await executionEngine.createExecutionRecord(workflowId, userId, input || {});
     await executionEngine.disconnect();
 
+    // Enqueue job with stable executionId
+    const job = await WorkflowQueue.addWorkflowExecution({
+      workflowId,
+      userId,
+      input: input || {},
+      executionId,
+    });
+
     fastify.log.info(
-      { workflowId, userId, executionId },
-      'Workflow execution completed successfully'
+      { workflowId, userId, executionId, jobId: job.id },
+      'Workflow execution queued'
     );
 
     return reply.status(200).send({
-      executionId: executionId, // Return the real execution ID from database
-      status: 'completed',
-      message: 'Workflow executed successfully',
+      executionId,
+      status: 'queued',
+      message: 'Workflow execution queued successfully',
     });
 
   } catch (error) {

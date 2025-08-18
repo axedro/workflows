@@ -6,6 +6,7 @@ import { useTranslation } from '../hooks/i18n';
 import { useWorkflowStore } from '../stores/workflowStore';
 import { WorkflowCreationModal } from './WorkflowCreationModal';
 import { WorkflowImportModal } from './WorkflowImportModal';
+import { apiService } from '../services/api';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -14,10 +15,25 @@ const Dashboard: React.FC = () => {
   
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [runningTotal, setRunningTotal] = useState(0);
 
   useEffect(() => {
     fetchWorkflows();
   }, [fetchWorkflows]);
+
+  useEffect(() => {
+    const loadRunning = async () => {
+      let total = 0;
+      for (const wf of workflows) {
+        try {
+          const r = await apiService.getWorkflowExecutions(wf.id, { status: 'RUNNING', limit: 50 });
+          total += (r.executions || []).length;
+        } catch {}
+      }
+      setRunningTotal(total);
+    };
+    if (workflows.length) loadRunning();
+  }, [workflows]);
 
   const handleCreateWorkflow = () => {
     setShowCreateModal(true);
@@ -74,7 +90,7 @@ const Dashboard: React.FC = () => {
                         {t('stats.workflows')}
                       </dt>
                       <dd className="text-lg font-medium text-gray-900 dark:text-white">
-                        0
+                        {workflows.length}
                       </dd>
                     </dl>
                   </div>
@@ -96,7 +112,7 @@ const Dashboard: React.FC = () => {
                         {t('stats.executions')}
                       </dt>
                       <dd className="text-lg font-medium text-gray-900 dark:text-white">
-                        0
+                        {runningTotal} running
                       </dd>
                     </dl>
                   </div>
@@ -219,15 +235,24 @@ const Dashboard: React.FC = () => {
             ) : workflows.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {workflows.slice(0, 6).map(workflow => (
-                  <div key={workflow.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer bg-white dark:bg-gray-800 rounded-lg shadow" onClick={() => navigate(`/workflow/${workflow.id}`)}>
+                  <div
+                    key={workflow.id}
+                    className="p-4 hover:shadow-md transition-shadow cursor-pointer bg-white dark:bg-gray-800 rounded-lg shadow"
+                    onClick={() => navigate(`/workflow/${workflow.id}`)}
+                  >
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-medium text-gray-900 truncate">{workflow.name}</h4>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        workflow.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
-                        workflow.status === 'DRAFT' ? 'bg-gray-100 text-gray-800' :
-                        workflow.status === 'PAUSED' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          workflow.status === 'ACTIVE'
+                            ? 'bg-green-100 text-green-800'
+                            : workflow.status === 'DRAFT'
+                            ? 'bg-gray-100 text-gray-800'
+                            : workflow.status === 'PAUSED'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}
+                      >
                         {workflow.status}
                       </span>
                     </div>
@@ -235,7 +260,7 @@ const Dashboard: React.FC = () => {
                       {workflow.description || t('recent_workflows.no_description')}
                     </p>
                     <div className="text-xs text-gray-500">
-                      {new Date(workflow.updatedAt).toLocaleDateString()}
+                      {new Date((workflow as any).updatedAt).toLocaleDateString()}
                     </div>
                   </div>
                 ))}

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useWorkflowStore } from '../stores/workflowStore';
 import { Workflow } from '@flowcraft/shared-types';
 import { Button, Card, Input, Modal } from '@flowcraft/ui';
+import { apiService } from '../services/api';
 
 interface WorkflowListProps {
   onSelectWorkflow?: (workflow: Workflow) => void;
@@ -38,6 +39,8 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [workflowToDuplicate, setWorkflowToDuplicate] =
     useState<Workflow | null>(null);
+  const [runningCounts, setRunningCounts] = useState<Record<string, { running: number; pending: number }>>({});
+  const [canceling, setCanceling] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchWorkflows({
@@ -47,6 +50,24 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({
       search: searchTerm,
     });
   }, [pagination.page, pagination.limit, statusFilter, searchTerm]);
+
+  useEffect(() => {
+    // Fetch running/pending counts per workflow when list changes
+    const loadCounts = async () => {
+      const entries: [string, { running: number; pending: number }][] = [];
+      for (const wf of workflows) {
+        try {
+          const [r, p] = await Promise.all([
+            apiService.getWorkflowExecutions(wf.id, { status: 'RUNNING', limit: 50 }),
+            apiService.getWorkflowExecutions(wf.id, { status: 'PENDING', limit: 50 }),
+          ]);
+          entries.push([wf.id, { running: (r.executions || []).length, pending: (p.executions || []).length }]);
+        } catch {}
+      }
+      setRunningCounts(Object.fromEntries(entries));
+    };
+    if (workflows.length) loadCounts();
+  }, [workflows]);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -102,6 +123,23 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({
       await toggleWorkflowStatus(workflow.id, newStatus);
     } catch (error) {
       console.error('Failed to toggle workflow status:', error);
+    }
+  };
+
+  const handleCancelRunning = async (workflow: Workflow) => {
+    try {
+      setCanceling(prev => ({ ...prev, [workflow.id]: true }));
+      await apiService.cancelWorkflowExecutions(workflow.id);
+      // refresh counts
+      const [r, p] = await Promise.all([
+        apiService.getWorkflowExecutions(workflow.id, { status: 'RUNNING', limit: 50 }),
+        apiService.getWorkflowExecutions(workflow.id, { status: 'PENDING', limit: 50 }),
+      ]);
+      setRunningCounts(prev => ({ ...prev, [workflow.id]: { running: (r.executions || []).length, pending: (p.executions || []).length } }));
+    } catch (e) {
+      console.error('Failed to cancel workflow executions', e);
+    } finally {
+      setCanceling(prev => ({ ...prev, [workflow.id]: false }));
     }
   };
 
@@ -189,6 +227,12 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({
                   <span className="text-xs text-gray-500">
                     v{workflow.version}
                   </span>
+                  <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                    {runningCounts[workflow.id]?.running || 0} running
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
+                    {runningCounts[workflow.id]?.pending || 0} pending
+                  </span>
                 </div>
                 <div className="text-xs text-gray-500">
                   Created: {formatDate(workflow.createdAt.toString())}
@@ -228,6 +272,17 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({
                 }`}
               >
                 {workflow.status === 'ACTIVE' ? '⏸ Pause' : '▶ Activate'}
+              </Button>
+
+              {/* Cancel Running/Pending Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleCancelRunning(workflow)}
+                disabled={canceling[workflow.id] || ((runningCounts[workflow.id]?.running || 0) + (runningCounts[workflow.id]?.pending || 0)) === 0}
+                className="text-red-600 hover:text-red-700 border-red-300"
+              >
+                {canceling[workflow.id] ? 'Cancelling...' : 'Cancel Running'}
               </Button>
 
               <Button

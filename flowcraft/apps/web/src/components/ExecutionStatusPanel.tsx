@@ -14,6 +14,7 @@ export const ExecutionStatusPanel: React.FC<ExecutionStatusPanelProps> = ({
   onClose
 }) => {
   const [autoScroll, setAutoScroll] = useState(true);
+  const [isCancelling, setIsCancelling] = useState(false);
   const [activeTab, setActiveTab] = useState<'status' | 'nodes' | 'dataflow' | 'summary'>('status');
   const { data: execution, isLoading, error } = useExecutionStatus(executionId);
 
@@ -168,14 +169,46 @@ export const ExecutionStatusPanel: React.FC<ExecutionStatusPanelProps> = ({
               <span className="ml-1">{execution?.status || 'PENDING'}</span>
             </span>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <div className="flex items-center space-x-2">
+            {(execution?.status === 'RUNNING' || execution?.status === 'PENDING') && (
+              <button
+                disabled={isCancelling}
+                onClick={async () => {
+                  try {
+                    setIsCancelling(true);
+                    const { apiService } = await import('../services/api');
+                    await apiService.cancelExecution(executionId!);
+                  } catch (e) {
+                    console.error('Cancel execution failed', e);
+                  } finally {
+                    setIsCancelling(false);
+                  }
+                }}
+                className="inline-flex items-center px-2 py-1 text-xs border border-red-300 text-red-700 rounded hover:bg-red-50 disabled:opacity-50"
+                title="Cancel execution"
+              >
+                {isCancelling ? (
+                  <svg className="animate-spin -ml-1 mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                )}
+                Cancel
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Execution Info */}

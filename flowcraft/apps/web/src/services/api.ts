@@ -173,6 +173,12 @@ export interface CheckNameParams {
   excludeId?: string;
 }
 
+export interface WorkflowExecutionsQuery {
+  status?: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+  page?: number;
+  limit?: number;
+}
+
 class ApiService {
   private async refreshAccessToken(): Promise<string | null> {
     try {
@@ -657,12 +663,49 @@ class ApiService {
     return this.request<any>(`/executions/${executionId}`);
   }
 
-  async getWorkflowExecutions(workflowId: string): Promise<any[]> {
-    return this.request<any[]>(`/workflows/${workflowId}/executions`);
+  async getWorkflowExecutions(
+    workflowId: string,
+    query?: WorkflowExecutionsQuery
+  ): Promise<{ executions: any[]; pagination?: any }> {
+    const qs = new URLSearchParams();
+    if (query?.status) qs.append('status', String(query.status));
+    if (query?.page) qs.append('page', String(query.page));
+    if (query?.limit) qs.append('limit', String(query.limit));
+    const res = await this.request<any>(`/workflows/${workflowId}/executions${qs.toString() ? `?${qs.toString()}` : ''}`);
+    // Normalize response to always return { executions, pagination }
+    if (Array.isArray(res)) {
+      return { executions: res };
+    }
+    return res;
   }
 
   async getExecutionLogs(executionId: string): Promise<any[]> {
     return this.request<any[]>(`/executions/${executionId}/logs`);
+  }
+
+  async cancelExecution(executionId: string): Promise<{ message: string; status: string }> {
+    return this.request<{ message: string; status: string }>(`/executions/${executionId}/cancel`, {
+      method: 'POST',
+    });
+  }
+
+  async cancelWorkflowExecutions(workflowId: string): Promise<{ cancelled: string[] }> {
+    // Fetch RUNNING and PENDING executions then cancel them
+    const [running, pending] = await Promise.all([
+      this.getWorkflowExecutions(workflowId, { status: 'RUNNING', limit: 50 }),
+      this.getWorkflowExecutions(workflowId, { status: 'PENDING', limit: 50 }),
+    ]);
+    const toCancel = [...(running.executions || []), ...(pending.executions || [])];
+    const cancelled: string[] = [];
+    for (const exec of toCancel) {
+      try {
+        await this.cancelExecution(exec.id);
+        cancelled.push(exec.id);
+      } catch (e) {
+        // ignore individual failures
+      }
+    }
+    return { cancelled };
   }
 }
 

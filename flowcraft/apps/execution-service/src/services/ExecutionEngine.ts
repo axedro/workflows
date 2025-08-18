@@ -7,6 +7,10 @@ import axios from 'axios';
 
 export class ExecutionEngine {
   private prisma: PrismaClient;
+  // In-memory cancellation registry (simple cooperative cancellation)
+  private static cancelledExecutions: Set<string> = new Set<string>();
+  // Active abort controllers for each execution
+  private static activeControllers: Map<string, Set<AbortController>> = new Map();
 
   constructor() {
     // Use environment variables directly
@@ -73,6 +77,72 @@ export class ExecutionEngine {
       logger.error({ error, workflowId, userId }, 'Failed to start workflow execution');
       throw error;
     }
+  }
+
+  /**
+   * Create an execution record without starting it (for async queue flow)
+   */
+  async createExecutionRecord(
+    workflowId: string,
+    userId: string,
+    input?: Record<string, any>
+  ): Promise<string> {
+    // Validate workflow exists (and fetch minimal fields)
+    const workflow = await this.prisma.workflow.findUnique({
+      where: { id: workflowId },
+      select: { id: true }
+    });
+    if (!workflow) {
+      throw new Error(`Workflow not found: ${workflowId}`);
+    }
+
+    const execution = await this.prisma.execution.create({
+      data: {
+        workflowId,
+        userId,
+        status: 'PENDING',
+        inputData: input || {},
+        startedAt: new Date(),
+      },
+      select: { id: true }
+    });
+
+    logger.info({ executionId: execution.id, workflowId }, 'Execution record pre-created');
+    return execution.id;
+  }
+
+  /**
+   * Execute a workflow using an existing executionId (async queue consumer)
+   */
+  async executeWorkflowByExecutionId(
+    executionId: string,
+    workflowId: string,
+    userId: string,
+    input?: Record<string, any>
+  ): Promise<void> {
+    logger.info({ executionId, workflowId, userId }, 'Executing workflow by existing executionId');
+
+    // 1. Get workflow data (including definition)
+    const workflow = await this.prisma.workflow.findUnique({
+      where: { id: workflowId },
+      include: {
+        user: true,
+        organization: true,
+      }
+    });
+
+    if (!workflow) {
+      throw new Error(`Workflow not found: ${workflowId}`);
+    }
+
+    // 2. Parse workflow definition
+    const workflowDefinition = workflow.definition as unknown as {
+      nodes: EditorNode[];
+      edges: EditorEdge[];
+    };
+
+    // 3. Start execution process using provided executionId
+    await this.executeWorkflowNodes(executionId, workflowDefinition, input || {});
   }
 
   /**
@@ -171,6 +241,15 @@ export class ExecutionEngine {
     logger.info({ nodeId: currentNode.id, nodeType: currentNode.type }, 'Executing node');
 
     try {
+      // Cooperative cancellation check before starting node
+      if (ExecutionEngine.cancelledExecutions.has(context.executionId)) {
+        logger.warn({ executionId: context.executionId }, 'Execution cancelled before node start');
+        return {
+          success: false,
+          error: 'Execution cancelled',
+          duration: 0
+        };
+      }
       // Create execution node record
       const executionNode = await this.prisma.executionNode.create({
         data: {
@@ -240,6 +319,12 @@ export class ExecutionEngine {
 
       // If this is an END node, stop execution
       if (currentNode.type === 'end') {
+        return nodeResult;
+      }
+
+      // Cooperative cancellation check after node
+      if (ExecutionEngine.cancelledExecutions.has(context.executionId)) {
+        logger.warn({ executionId: context.executionId }, 'Execution cancelled after node');
         return nodeResult;
       }
 
@@ -369,8 +454,20 @@ export class ExecutionEngine {
   private async executeHttpRequestNode(node: EditorNode, context: ExecutionContext): Promise<ExecutionResult> {
     const startTime = Date.now();
     const nodeData = node.data as any;
+    // Abort controller for HTTP request
+    const controller = new AbortController();
+    const signal = controller.signal;
 
     try {
+      // Register controller for this execution
+      if (!ExecutionEngine.activeControllers.has(context.executionId)) {
+        ExecutionEngine.activeControllers.set(context.executionId, new Set());
+      }
+      ExecutionEngine.activeControllers.get(context.executionId)!.add(controller);
+      // If already cancelled, abort immediately
+      if (ExecutionEngine.cancelledExecutions.has(context.executionId)) {
+        controller.abort();
+      }
       // Validate required configuration
       if (!nodeData.url) {
         throw new Error('HTTP Request node requires a URL');
@@ -384,7 +481,8 @@ export class ExecutionEngine {
         headers: {
           'Content-Type': 'application/json',
           ...nodeData.headers
-        }
+        },
+        signal
       };
 
       // Add request body for POST, PUT, PATCH methods
@@ -442,6 +540,9 @@ export class ExecutionEngine {
         success: result.success 
       }, 'HTTP request completed');
 
+      // Cleanup controller
+      ExecutionEngine.activeControllers.get(context.executionId)?.delete(controller);
+
       return {
         success: result.success,
         data: result,
@@ -449,6 +550,8 @@ export class ExecutionEngine {
       };
 
     } catch (error) {
+      // Cleanup controller on error
+      ExecutionEngine.activeControllers.get(context.executionId)?.delete(controller);
       logger.error({ 
         nodeId: node.id, 
         error: error instanceof Error ? error.message : String(error) 
@@ -593,6 +696,15 @@ export class ExecutionEngine {
    * Cancel execution
    */
   async cancelExecution(executionId: string): Promise<void> {
+    // Mark as cancelled in memory so running tasks can check
+    ExecutionEngine.cancelledExecutions.add(executionId);
+    // Abort all active controllers for this execution
+    const controllers = ExecutionEngine.activeControllers.get(executionId);
+    if (controllers) {
+      controllers.forEach(controller => controller.abort());
+      controllers.clear();
+    }
+    ExecutionEngine.activeControllers.delete(executionId);
     await this.prisma.execution.update({
       where: { id: executionId },
       data: {
@@ -609,6 +721,9 @@ export class ExecutionEngine {
    */
   async disconnect(): Promise<void> {
     await this.prisma.$disconnect();
+    // Clear all active controllers
+    ExecutionEngine.activeControllers.clear();
+    ExecutionEngine.cancelledExecutions.clear();
   }
 
   /**
@@ -635,7 +750,7 @@ export class ExecutionEngine {
       return {
         id,
         type: node?.type,
-        name: node?.name,
+        name: (node as any)?.data?.label || node?.id,
         success: result.success,
         error: result.error,
         duration: result.duration,

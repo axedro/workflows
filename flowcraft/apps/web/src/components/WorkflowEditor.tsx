@@ -41,6 +41,7 @@ import UnifiedValidationService, { UnifiedValidationResult } from '../services/u
 import { useExecuteWorkflow } from '../hooks/useExecuteWorkflow';
 import { ExecutionStatusPanel } from './ExecutionStatusPanel';
 import { useAuthStore } from '../stores/authStore';
+import { ExecutionHistoryPanel } from './ExecutionHistoryPanel';
 
 
 interface WorkflowEditorProps {
@@ -173,6 +174,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
   // Execution status state
   const [currentExecutionId, setCurrentExecutionId] = useState<string | null>(null);
   const [showExecutionStatus, setShowExecutionStatus] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   // Execution hook
   const executeWorkflowMutation = useExecuteWorkflow();
@@ -914,6 +916,19 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
           </div>
 
           <div className="flex items-center space-x-2">
+            {/* History Button */}
+            {id && id !== 'new' && (
+              <button
+                onClick={() => setShowHistory(true)}
+                className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                title="View execution history"
+              >
+                <svg className="-ml-1 mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                History
+              </button>
+            )}
             {/* Save Button */}
             <button
               onClick={saveWorkflow}
@@ -1189,6 +1204,20 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({ initialNodes = [], init
           onClose={() => {
             setShowExecutionStatus(false);
             setCurrentExecutionId(null);
+          }}
+        />
+      )}
+
+      {/* Execution History Panel */}
+      {id && id !== 'new' && (
+        <ExecutionHistoryPanel
+          workflowId={id}
+          isOpen={showHistory}
+          onClose={() => setShowHistory(false)}
+          onOpenExecution={(execId) => {
+            setCurrentExecutionId(execId);
+            setShowExecutionStatus(true);
+            setShowHistory(false);
           }}
         />
       )}
