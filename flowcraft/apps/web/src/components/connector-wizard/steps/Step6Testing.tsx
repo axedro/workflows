@@ -17,12 +17,28 @@ export const Step6Testing: React.FC<Step6TestingProps> = ({ data, onUpdate, onFi
 
   const handleTest = async () => {
     try {
+      console.log('handleTest - data.configuration:', data.configuration);
+      console.log('handleTest - testData:', testData);
+      
+      // Use test data if available, otherwise use configuration
+      const testConfiguration = { ...data.configuration };
+      
+      if (data.type === 'http' && testData.url) {
+        testConfiguration.baseUrl = testData.url;
+        testConfiguration.method = testData.method || data.configuration?.method || 'GET';
+        if (testData.body) {
+          testConfiguration.body = testData.body;
+        }
+      }
+      
+      console.log('handleTest - testConfiguration:', testConfiguration);
+
       // Create a temporary connector in backend for testing
       const temp = await createConnector.mutateAsync({
         name: `${data.name || 'Temp'} (test ${Date.now()})`,
         type: data.type!,
         description: 'Temporary connector for test',
-        configuration: data.configuration,
+        configuration: testConfiguration,
       });
 
       const result = await testConnectorMutation.mutateAsync(temp.id);
@@ -48,12 +64,17 @@ export const Step6Testing: React.FC<Step6TestingProps> = ({ data, onUpdate, onFi
   };
 
   const getTestDataForType = () => {
+    console.log('Step6Testing - data.configuration:', data.configuration);
     switch (data.type) {
       case 'http':
+        const baseUrl = data.configuration?.baseUrl || '';
+        const endpoint = data.configuration?.endpoint || '';
+        const fullUrl = baseUrl ? (endpoint ? `${baseUrl}${endpoint}` : baseUrl) : '';
+        console.log('Step6Testing - baseUrl:', baseUrl, 'endpoint:', endpoint, 'fullUrl:', fullUrl);
         return {
-          method: 'GET',
-          url: 'https://httpbin.org/get',
-          headers: { 'Content-Type': 'application/json' },
+          method: data.configuration?.method || 'GET',
+          url: fullUrl,
+          headers: data.configuration?.headers || { 'Content-Type': 'application/json' },
           body: { test: true }
         };
       case 'email':
@@ -95,7 +116,7 @@ export const Step6Testing: React.FC<Step6TestingProps> = ({ data, onUpdate, onFi
               <div>
                 <label className="block text-xs text-gray-600 mb-1">Método</label>
                 <select
-                  value={testData.method || defaultTestData.method}
+                  value={testData.method !== undefined ? testData.method : defaultTestData.method}
                   onChange={(e) => setTestData({ ...testData, method: e.target.value })}
                   className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
                 >
@@ -109,9 +130,9 @@ export const Step6Testing: React.FC<Step6TestingProps> = ({ data, onUpdate, onFi
                 <label className="block text-xs text-gray-600 mb-1">URL</label>
                 <input
                   type="text"
-                  value={testData.url || defaultTestData.url}
+                  value={testData.url !== undefined ? testData.url : defaultTestData.url}
                   onChange={(e) => setTestData({ ...testData, url: e.target.value })}
-                  placeholder="https://httpbin.org/get"
+                  placeholder="Ingresa la URL para probar (ej: https://api.ejemplo.com/endpoint)"
                   className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
                 />
               </div>

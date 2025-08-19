@@ -35,8 +35,21 @@ export const useConnectors = (filters: ConnectorFilters = {}) => {
       if (filters.isActive !== undefined) params.append('isActive', filters.isActive.toString());
       if (filters.search) params.append('search', filters.search);
 
-      const response = await apiService.get(`/api/connectors?${params.toString()}`);
-      return response.data as Connector[];
+      const response = await apiService.request(`/api/connectors?${params.toString()}`);
+      
+      // Ensure response is an array
+      if (Array.isArray(response)) {
+        return response as Connector[];
+      }
+      
+      // If response has a data property (like { success: true, data: [...] })
+      if (response && typeof response === 'object' && 'data' in response && Array.isArray(response.data)) {
+        return response.data as Connector[];
+      }
+      
+      // Fallback to empty array
+      console.warn('useConnectors: Unexpected response format:', response);
+      return [] as Connector[];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -46,14 +59,16 @@ export const useConnectorStats = () => {
   return useQuery({
     queryKey: ['connector-stats'],
     queryFn: async () => {
-      const connectors = await apiService.get('/api/connectors');
-      const data = connectors.data as Connector[];
+      const data = await apiService.request('/api/connectors') as Connector[];
+      
+      // Ensure data is an array
+      const connectors = Array.isArray(data) ? data : [];
       
       const stats: ConnectorStats = {
-        total: data.length,
-        active: data.filter(c => c.isActive).length,
-        inactive: data.filter(c => !c.isActive).length,
-        byType: data.reduce((acc, connector) => {
+        total: connectors.length,
+        active: connectors.filter(c => c.isActive).length,
+        inactive: connectors.filter(c => !c.isActive).length,
+        byType: connectors.reduce((acc, connector) => {
           acc[connector.type] = (acc[connector.type] || 0) + 1;
           return acc;
         }, {} as Record<string, number>),
@@ -69,8 +84,15 @@ export const useConnector = (id: string) => {
   return useQuery({
     queryKey: ['connector', id],
     queryFn: async () => {
-      const response = await apiService.get(`/api/connectors/${id}`);
-      return response.data as Connector;
+      const response = await apiService.request(`/api/connectors/${id}`);
+      
+      // If response has a data property (like { success: true, data: {...} })
+      if (response && typeof response === 'object' && 'data' in response) {
+        return response.data as Connector;
+      }
+      
+      // Otherwise return response directly
+      return response as Connector;
     },
     enabled: !!id,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -83,12 +105,11 @@ export const useCreateConnector = () => {
   
   return useMutation({
     mutationFn: async (data: Omit<Connector, 'id' | 'createdAt' | 'updatedAt' | 'organizationId'>) => {
-      const response = await apiService.request({
+      const response = await apiService.request('/api/connectors', {
         method: 'POST',
-        url: '/api/connectors',
-        data,
+        body: JSON.stringify(data),
       });
-      return response.data as Connector;
+      return response as Connector;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['connectors'] });
@@ -102,12 +123,11 @@ export const useUpdateConnector = () => {
   
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Connector> }) => {
-      const response = await apiService.request({
+      const response = await apiService.request(`/api/connectors/${id}`, {
         method: 'PUT',
-        url: `/api/connectors/${id}`,
-        data,
+        body: JSON.stringify(data),
       });
-      return response.data as Connector;
+      return response as Connector;
     },
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['connectors'] });
@@ -122,9 +142,8 @@ export const useDeleteConnector = () => {
   
   return useMutation({
     mutationFn: async (id: string) => {
-      await apiService.request({
+      await apiService.request(`/api/connectors/${id}`, {
         method: 'DELETE',
-        url: `/api/connectors/${id}`,
       });
       return id;
     },
@@ -138,11 +157,10 @@ export const useDeleteConnector = () => {
 export const useTestConnector = () => {
   return useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiService.request({
+      const response = await apiService.request(`/api/connectors/${id}/test`, {
         method: 'POST',
-        url: `/api/connectors/${id}/test`,
       });
-      return response.data as { success: boolean; message: string; details?: any };
+      return response as { success: boolean; message: string; details?: any };
     },
   });
 };
@@ -152,8 +170,8 @@ export const useTemplates = () => {
   return useQuery({
     queryKey: ['connector-templates'],
     queryFn: async () => {
-      const response = await apiService.get('/api/connector-templates');
-      return response.data;
+      const response = await apiService.request('/api/connector-templates');
+      return response;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -163,8 +181,8 @@ export const useTemplate = (id: string) => {
   return useQuery({
     queryKey: ['connector-template', id],
     queryFn: async () => {
-      const response = await apiService.get(`/api/connector-templates/${id}`);
-      return response.data;
+      const response = await apiService.request(`/api/connector-templates/${id}`);
+      return response;
     },
     enabled: !!id,
     staleTime: 5 * 60 * 1000, // 5 minutes

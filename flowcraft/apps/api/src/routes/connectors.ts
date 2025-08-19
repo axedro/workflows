@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import connectorManagementService from '../services/connectorManagement.service';
-import connectorTemplatesService from '../services/connectorTemplates.service';
+// ConnectorTemplatesService removed as ConnectorTemplate model doesn't exist in database
 
 // Request schemas
 const CreateConnectorSchema = z.object({
@@ -26,20 +26,12 @@ const CreateCredentialSchema = z.object({
   expiresAt: z.string().optional(),
 });
 
-const CreateTemplateSchema = z.object({
-  name: z.string().min(1).max(255),
-  type: z.enum(['http', 'email', 'webhook', 'timer', 'data-transform']),
-  category: z.string().optional(),
-  description: z.string().optional(),
-  configurationSchema: z.record(z.any()),
-  isPublic: z.boolean().default(false),
-  organizationId: z.string().optional(),
-});
+// CreateTemplateSchema removed as ConnectorTemplate model doesn't exist in database
 
 // Request interfaces
 interface AuthenticatedRequest extends FastifyRequest {
   user: {
-    id: string;
+    userId: string;
     email: string;
     organizationId?: string;
   };
@@ -60,9 +52,7 @@ interface CredentialParams {
   id: string;
 }
 
-interface TemplateParams {
-  id: string;
-}
+// TemplateParams removed as ConnectorTemplate model doesn't exist in database
 
 export default async function connectorRoutes(fastify: FastifyInstance) {
   // Require authentication for all connector routes, but skip CORS preflight (OPTIONS)
@@ -77,10 +67,17 @@ export default async function connectorRoutes(fastify: FastifyInstance) {
     try {
       assertAuthenticatedRequest(request);
       const { type, isActive, search } = request.query as any;
+      
+      // Convert isActive from string to boolean if provided
+      const filters: any = { type, search };
+      if (isActive !== undefined) {
+        filters.isActive = isActive === 'true';
+      }
+      
       const connectors = await connectorManagementService.getConnectors(
-        request.user.id,
+        request.user.userId,
         request.user.organizationId,
-        { type, isActive, search }
+        filters
       );
 
       return reply.send({
@@ -89,6 +86,7 @@ export default async function connectorRoutes(fastify: FastifyInstance) {
       });
     } catch (error) {
       fastify.log.error('Error getting connectors:', error);
+      console.error('Error getting connectors - details:', error);
       return reply.status(500).send({
         success: false,
         error: 'Failed to get connectors',
@@ -104,7 +102,7 @@ export default async function connectorRoutes(fastify: FastifyInstance) {
         const { id } = request.params as ConnectorParams;
         const connector = await connectorManagementService.getConnector(
           id,
-          request.user.id,
+          request.user.userId,
           request.user.organizationId
         );
 
@@ -133,7 +131,10 @@ export default async function connectorRoutes(fastify: FastifyInstance) {
   fastify.post('/connectors', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       assertAuthenticatedRequest(request);
-      fastify.log.info({ userId: request.user.id, orgId: request.user.organizationId, body: request.body }, 'Create connector request');
+      console.log('Create connector - request.user:', request.user);
+      console.log('Create connector - request.user.userId:', request.user.userId);
+      console.log('Create connector - request.user.organizationId:', request.user.organizationId);
+      fastify.log.info({ userId: request.user.userId, orgId: request.user.organizationId, body: request.body }, 'Create connector request');
       const validatedData = CreateConnectorSchema.parse(request.body);
       // Ensure organization context if not provided explicitly
       const dataWithOrg = {
@@ -142,7 +143,7 @@ export default async function connectorRoutes(fastify: FastifyInstance) {
       };
       const connector = await connectorManagementService.createConnector(
         dataWithOrg,
-        request.user.id
+        request.user.userId
       );
       fastify.log.info({ connectorId: connector.id, name: (connector as any).name, type: (connector as any).type }, 'Connector created');
 
@@ -179,7 +180,7 @@ export default async function connectorRoutes(fastify: FastifyInstance) {
       const connector = await connectorManagementService.updateConnector(
         id,
         validatedData,
-        request.user.id,
+        request.user.userId,
         request.user.organizationId
       );
 
@@ -213,7 +214,7 @@ export default async function connectorRoutes(fastify: FastifyInstance) {
       const { id } = request.params as ConnectorParams;
       await connectorManagementService.deleteConnector(
         id,
-        request.user.id,
+        request.user.userId,
         request.user.organizationId
       );
 
@@ -238,7 +239,7 @@ export default async function connectorRoutes(fastify: FastifyInstance) {
       const { id } = request.params as ConnectorParams;
       const result = await connectorManagementService.testConnector(
         id,
-        request.user.id,
+        request.user.userId,
         request.user.organizationId
       );
 
@@ -261,7 +262,7 @@ export default async function connectorRoutes(fastify: FastifyInstance) {
     try {
       assertAuthenticatedRequest(request);
       const stats = await connectorManagementService.getConnectorStats(
-        request.user.id,
+        request.user.userId,
         request.user.organizationId
       );
 
@@ -286,7 +287,7 @@ export default async function connectorRoutes(fastify: FastifyInstance) {
       const { id } = request.params as ConnectorParams;
       const credentials = await connectorManagementService.getCredentials(
         id,
-        request.user.id,
+        request.user.userId,
         request.user.organizationId
       );
 
@@ -320,7 +321,7 @@ export default async function connectorRoutes(fastify: FastifyInstance) {
       const credential = await connectorManagementService.addCredentials(
         id,
         credentialData,
-        request.user.id,
+        request.user.userId,
         request.user.organizationId
       );
 
@@ -354,7 +355,7 @@ export default async function connectorRoutes(fastify: FastifyInstance) {
       const { id } = request.params as CredentialParams;
       await connectorManagementService.deleteCredentials(
         id,
-        request.user.id,
+        request.user.userId,
         request.user.organizationId
       );
 
@@ -381,7 +382,7 @@ export default async function connectorRoutes(fastify: FastifyInstance) {
       
       const logs = await connectorManagementService.getLogs(
         id,
-        request.user.id,
+        request.user.userId,
         request.user.organizationId,
         parseInt(limit)
       );
@@ -400,183 +401,5 @@ export default async function connectorRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // Template routes
-  // Get all templates
-  fastify.get('/connector-templates', async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      assertAuthenticatedRequest(request);
-      const { type, category, isPublic, search } = request.query as any;
-      const templates = await connectorTemplatesService.getTemplates(
-        request.user.id,
-        request.user.organizationId,
-        { type, category, isPublic, search }
-      );
-
-      return reply.send({
-        success: true,
-        data: templates,
-      });
-    } catch (error) {
-      fastify.log.error('Error getting templates:', error);
-      return reply.status(500).send({
-        success: false,
-        error: 'Failed to get templates',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  });
-
-  // Get template by ID
-  fastify.get('/connector-templates/:id', async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      assertAuthenticatedRequest(request);
-      const { id } = request.params as TemplateParams;
-      const template = await connectorTemplatesService.getTemplate(
-        id,
-        request.user.id,
-        request.user.organizationId
-      );
-
-      if (!template) {
-        return reply.status(404).send({
-          success: false,
-          error: 'Template not found',
-        });
-      }
-
-      return reply.send({
-        success: true,
-        data: template,
-      });
-    } catch (error) {
-      fastify.log.error('Error getting template:', error);
-      return reply.status(500).send({
-        success: false,
-        error: 'Failed to get template',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  });
-
-  // Create template
-  fastify.post('/connector-templates', async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      assertAuthenticatedRequest(request);
-      const validatedData = CreateTemplateSchema.parse(request.body);
-      const template = await connectorTemplatesService.createTemplate(
-        validatedData,
-        request.user.id
-      );
-
-      return reply.status(201).send({
-        success: true,
-        data: template,
-      });
-    } catch (error) {
-      fastify.log.error('Error creating template:', error);
-      
-      if (error instanceof z.ZodError) {
-        return reply.status(400).send({
-          success: false,
-          error: 'Validation error',
-          details: error.errors,
-        });
-      }
-
-      return reply.status(500).send({
-        success: false,
-        error: 'Failed to create template',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  });
-
-  // Get template categories
-  fastify.get('/connector-templates/categories', async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      assertAuthenticatedRequest(request);
-      const categories = await connectorTemplatesService.getCategories();
-
-      return reply.send({
-        success: true,
-        data: categories,
-      });
-    } catch (error) {
-      fastify.log.error('Error getting categories:', error);
-      return reply.status(500).send({
-        success: false,
-        error: 'Failed to get categories',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  });
-
-  // Get popular templates
-  fastify.get('/connector-templates/popular', async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      assertAuthenticatedRequest(request);
-      const { limit = 10 } = request.query as any;
-      const templates = await connectorTemplatesService.getPopularTemplates(
-        parseInt(limit),
-        request.user.id,
-        request.user.organizationId
-      );
-
-      return reply.send({
-        success: true,
-        data: templates,
-      });
-    } catch (error) {
-      fastify.log.error('Error getting popular templates:', error);
-      return reply.status(500).send({
-        success: false,
-        error: 'Failed to get popular templates',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  });
-
-  // Get template statistics
-  fastify.get('/connector-templates/stats', async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      assertAuthenticatedRequest(request);
-      const stats = await connectorTemplatesService.getTemplateStats(
-        request.user.id,
-        request.user.organizationId
-      );
-
-      return reply.send({
-        success: true,
-        data: stats,
-      });
-    } catch (error) {
-      fastify.log.error('Error getting template stats:', error);
-      return reply.status(500).send({
-        success: false,
-        error: 'Failed to get template statistics',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  });
-
-  // Seed default templates (admin only)
-  fastify.post('/connector-templates/seed', async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      assertAuthenticatedRequest(request);
-      // TODO: Add admin check
-      await connectorTemplatesService.seedDefaultTemplates();
-
-      return reply.send({
-        success: true,
-        message: 'Default templates seeded successfully',
-      });
-    } catch (error) {
-      fastify.log.error('Error seeding templates:', error);
-      return reply.status(500).send({
-        success: false,
-        error: 'Failed to seed templates',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  });
+  // Template routes removed as ConnectorTemplate model doesn't exist in database
 }

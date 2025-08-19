@@ -1,6 +1,7 @@
-import { PrismaClient } from '@prisma/client'
+import { prisma } from './client'
+import bcrypt from 'bcrypt'
 
-const prisma = new PrismaClient()
+// Using unified prisma client
 
 async function main() {
   console.log('🌱 Starting database seeding...')
@@ -17,13 +18,14 @@ async function main() {
   })
 
   // Create a test user
+  const passwordHash = await bcrypt.hash('test123', 12);
   const user = await prisma.user.upsert({
     where: { email: 'test@flowcraft.io' },
     update: {},
     create: {
       email: 'test@flowcraft.io',
       name: 'Test User',
-      passwordHash: 'hashed-password',
+      passwordHash: passwordHash,
       organizationId: organization.id,
       role: 'ADMIN',
     },

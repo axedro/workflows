@@ -1,10 +1,10 @@
 import React from 'react';
 import { Search, Filter } from 'lucide-react';
-import { ConnectorFilters } from '../../hooks/useConnectors';
+import { ConnectorFilters as ConnectorFiltersType } from '../../hooks/useConnectors';
 
 interface ConnectorFiltersProps {
-  filters: ConnectorFilters;
-  onFiltersChange: (filters: Partial<ConnectorFilters>) => void;
+  filters: ConnectorFiltersType;
+  onFiltersChange: (filters: Partial<ConnectorFiltersType>) => void;
 }
 
 export const ConnectorFilters: React.FC<ConnectorFiltersProps> = ({

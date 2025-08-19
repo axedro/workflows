@@ -4,7 +4,10 @@ declare global {
   var __prisma: PrismaClient | undefined;
 }
 
-export const prisma = globalThis.__prisma || new PrismaClient();
+// Create a single PrismaClient instance that can be shared throughout your app
+export const prisma = globalThis.__prisma || new PrismaClient({
+  log: ['query', 'info', 'warn', 'error'],
+});
 
 if (process.env.NODE_ENV !== 'production') {
   globalThis.__prisma = prisma;

@@ -16,6 +16,7 @@ export const HttpConfiguration: React.FC<HttpConfigurationProps> = ({
   const [activeTab, setActiveTab] = useState<'basic' | 'headers' | 'auth' | 'advanced'>('basic');
 
   const updateField = (field: string, value: any) => {
+    console.log('HttpConfiguration - updateField:', field, value);
     onUpdate({ [field]: value });
   };
 

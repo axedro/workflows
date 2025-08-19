@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client'
+import { prisma } from './client'
 
-const prisma = new PrismaClient()
+// Using unified prisma client
 
 async function main() {
   console.log('🌱 Starting database seeding...')

@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@flowcraft/database';
 import { EditorNode, EditorEdge } from '@flowcraft/shared-types';
 import { ExecutionContext, ExecutionStatus, ExecutionResult } from '../types/execution.js';
 import { logger } from '../utils/logger.js';
@@ -6,24 +6,13 @@ import { config } from '../config/index.js';
 import axios from 'axios';
 
 export class ExecutionEngine {
-  private prisma: PrismaClient;
   // In-memory cancellation registry (simple cooperative cancellation)
   private static cancelledExecutions: Set<string> = new Set<string>();
   // Active abort controllers for each execution
   private static activeControllers: Map<string, Set<AbortController>> = new Map();
 
   constructor() {
-    // Use environment variables directly
-    const databaseUrl = process.env.DATABASE_URL || config.DATABASE_URL;
-    logger.info({ databaseUrl: databaseUrl?.replace(/\/\/.*@/, '//***:***@') }, 'Initializing PrismaClient');
-    
-    this.prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: databaseUrl
-        }
-      }
-    });
+    logger.info('Initializing ExecutionEngine with unified Prisma client');
   }
 
   /**
@@ -38,7 +27,7 @@ export class ExecutionEngine {
 
     try {
       // 1. Get workflow data
-      const workflow = await this.prisma.workflow.findUnique({
+      const workflow = await prisma.workflow.findUnique({
         where: { id: workflowId },
         include: {
           user: true,
@@ -51,7 +40,7 @@ export class ExecutionEngine {
       }
 
       // 2. Create execution record
-      const execution = await this.prisma.execution.create({
+      const execution = await prisma.execution.create({
         data: {
           workflowId,
           userId,
@@ -88,7 +77,7 @@ export class ExecutionEngine {
     input?: Record<string, any>
   ): Promise<string> {
     // Validate workflow exists (and fetch minimal fields)
-    const workflow = await this.prisma.workflow.findUnique({
+    const workflow = await prisma.workflow.findUnique({
       where: { id: workflowId },
       select: { id: true }
     });
@@ -96,7 +85,7 @@ export class ExecutionEngine {
       throw new Error(`Workflow not found: ${workflowId}`);
     }
 
-    const execution = await this.prisma.execution.create({
+    const execution = await prisma.execution.create({
       data: {
         workflowId,
         userId,
@@ -123,7 +112,7 @@ export class ExecutionEngine {
     logger.info({ executionId, workflowId, userId }, 'Executing workflow by existing executionId');
 
     // 1. Get workflow data (including definition)
-    const workflow = await this.prisma.workflow.findUnique({
+    const workflow = await prisma.workflow.findUnique({
       where: { id: workflowId },
       include: {
         user: true,
@@ -157,7 +146,7 @@ export class ExecutionEngine {
     
     try {
       // Update execution status to RUNNING
-      await this.prisma.execution.update({
+      await prisma.execution.update({
         where: { id: executionId },
         data: { 
           status: 'RUNNING',
@@ -192,7 +181,7 @@ export class ExecutionEngine {
       const summary = this.createExecutionSummary(nodes, nodeResults, dataFlow);
 
       // Mark execution as completed
-      await this.prisma.execution.update({
+      await prisma.execution.update({
         where: { id: executionId },
         data: { 
           status: 'COMPLETED',
@@ -212,7 +201,7 @@ export class ExecutionEngine {
 
     } catch (error) {
       // Mark execution as failed
-      await this.prisma.execution.update({
+      await prisma.execution.update({
         where: { id: executionId },
         data: { 
           status: 'FAILED',
@@ -251,7 +240,7 @@ export class ExecutionEngine {
         };
       }
       // Create execution node record
-      const executionNode = await this.prisma.executionNode.create({
+      const executionNode = await prisma.executionNode.create({
         data: {
           executionId: context.executionId,
           nodeId: currentNode.id,
@@ -276,7 +265,7 @@ export class ExecutionEngine {
           const delay = Math.min(1000 * Math.pow(2, attempt), 8000);
           logger.warn({ nodeId: currentNode.id, attempt: attempt + 1, delay }, 'Node failed, retrying with backoff');
           // Mark retry metadata
-          await this.prisma.executionNode.update({
+          await prisma.executionNode.update({
             where: { id: executionNode.id },
             data: {
               metadata: {
@@ -316,7 +305,7 @@ export class ExecutionEngine {
       };
 
       // Update execution node record with detailed data
-      await this.prisma.executionNode.update({
+      await prisma.executionNode.update({
         where: { id: executionNode.id },
         data: {
           status: finalResult.success ? 'COMPLETED' : 'FAILED',
@@ -608,7 +597,7 @@ export class ExecutionEngine {
     data?: Record<string, any>
   ): Promise<void> {
     try {
-      await this.prisma.executionLog.create({
+      await prisma.executionLog.create({
         data: {
           executionId,
           level,
@@ -657,7 +646,7 @@ export class ExecutionEngine {
     }>;
     metadata?: Record<string, any>;
   } | null> {
-    const execution = await this.prisma.execution.findUnique({
+    const execution = await prisma.execution.findUnique({
       where: { id: executionId },
       include: {
         nodes: {
@@ -737,7 +726,7 @@ export class ExecutionEngine {
       controllers.clear();
     }
     ExecutionEngine.activeControllers.delete(executionId);
-    await this.prisma.execution.update({
+    await prisma.execution.update({
       where: { id: executionId },
       data: {
         status: 'CANCELLED',
@@ -752,7 +741,7 @@ export class ExecutionEngine {
    * Mark execution as failed (used by worker for final failure)
    */
   async markExecutionAsFailed(executionId: string, errorMessage: string): Promise<void> {
-    await this.prisma.execution.update({
+    await prisma.execution.update({
       where: { id: executionId },
       data: {
         status: 'FAILED',
@@ -772,7 +761,7 @@ export class ExecutionEngine {
    */
   async resumeExecution(executionId: string, nodeId?: string): Promise<void> {
     // Load execution and related info
-    const execution = await this.prisma.execution.findUnique({
+    const execution = await prisma.execution.findUnique({
       where: { id: executionId },
       select: {
         id: true,
@@ -785,7 +774,7 @@ export class ExecutionEngine {
     }
 
     // Find target node to resume
-    let targetNode = await this.prisma.executionNode.findFirst({
+    let targetNode = await prisma.executionNode.findFirst({
       where: {
         executionId,
         ...(nodeId ? { nodeId } : { status: 'FAILED' as any })
@@ -797,7 +786,7 @@ export class ExecutionEngine {
     }
 
     // Load workflow definition
-    const workflow = await this.prisma.workflow.findUnique({
+    const workflow = await prisma.workflow.findUnique({
       where: { id: execution.workflowId },
       select: { definition: true }
     });
@@ -811,7 +800,7 @@ export class ExecutionEngine {
     };
 
     // Set execution to RUNNING
-    await this.prisma.execution.update({
+    await prisma.execution.update({
       where: { id: executionId },
       data: { status: 'RUNNING' }
     });
@@ -859,7 +848,7 @@ export class ExecutionEngine {
       await this.executeNodeSequence(startNode, nodes, edges, executionContext, dataFlow, nodeResults);
 
       // If completed path to END, mark execution completed
-      await this.prisma.execution.update({
+      await prisma.execution.update({
         where: { id: executionId },
         data: {
           status: 'COMPLETED',
@@ -898,7 +887,7 @@ export class ExecutionEngine {
    * Cleanup resources
    */
   async disconnect(): Promise<void> {
-    await this.prisma.$disconnect();
+    await prisma.$disconnect();
     // Clear all active controllers
     ExecutionEngine.activeControllers.clear();
     ExecutionEngine.cancelledExecutions.clear();

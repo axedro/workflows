@@ -1,9 +1,7 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import { PrismaClient } from '@flowcraft/database';
+import { prisma } from '@flowcraft/database';
 import { ExecutionService } from '../services/executionService.js';
-
-const prisma = new PrismaClient();
 const executionService = new ExecutionService();
 
 // Validation schemas

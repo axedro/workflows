@@ -1,5 +1,5 @@
 import { prisma } from '@flowcraft/database';
-import type { Connector, ConnectorCredential, ConnectorTemplate, ConnectorLog } from '@prisma/client';
+import type { Connector, ConnectorCredential, ConnectorLog } from '@flowcraft/database';
 import { createHash, randomBytes } from 'crypto';
 import { z } from 'zod';
 
@@ -36,11 +36,7 @@ export interface ConnectorWithRelations extends Connector {
   };
 }
 
-export interface ConnectorTemplateWithRelations extends ConnectorTemplate {
-  _count: {
-    // Add counts if needed
-  };
-}
+// ConnectorTemplate model removed as it doesn't exist in the database
 
 export class ConnectorManagementService {
   /**
@@ -64,12 +60,24 @@ export class ConnectorManagementService {
       throw new Error(`Connector with name "${validatedData.name}" already exists`);
     }
 
+    const createData: any = {
+      ...validatedData,
+      createdBy: userId,
+      version: 1,
+    };
+
+    // Handle organization relation if organizationId is provided
+    if (validatedData.organizationId) {
+      createData.organization = {
+        connect: {
+          id: validatedData.organizationId
+        }
+      };
+      delete createData.organizationId; // Remove the direct field
+    }
+
     return await prisma.connector.create({
-      data: {
-        ...validatedData,
-        createdBy: userId,
-        version: 1,
-      },
+      data: createData,
     });
   }
 
@@ -85,12 +93,18 @@ export class ConnectorManagementService {
       search?: string;
     }
   ): Promise<ConnectorWithRelations[]> {
+    console.log('getConnectors - userId:', userId, 'organizationId:', organizationId, 'filters:', filters);
+    
     const where: any = {
       OR: [
         { createdBy: userId },
-        { organizationId: organizationId || null },
       ],
     };
+
+    // Add organization filter if provided
+    if (organizationId) {
+      where.OR.push({ organizationId });
+    }
 
     if (filters?.type) {
       where.type = filters.type;
@@ -131,14 +145,20 @@ export class ConnectorManagementService {
     userId: string,
     organizationId?: string
   ): Promise<ConnectorWithRelations | null> {
+    const where: any = {
+      id: connectorId,
+      OR: [
+        { createdBy: userId },
+      ],
+    };
+
+    // Add organization filter if provided
+    if (organizationId) {
+      where.OR.push({ organizationId });
+    }
+
     return await prisma.connector.findFirst({
-      where: {
-        id: connectorId,
-        OR: [
-          { createdBy: userId },
-          { organizationId: organizationId || null },
-        ],
-      },
+      where,
       include: {
         credentials: true,
         logs: {
@@ -462,6 +482,8 @@ export class ConnectorManagementService {
   private async testHttpConnector(connector: Connector) {
     try {
       const config: any = connector.configuration as any;
+      console.log('testHttpConnector - connector.configuration:', config);
+      
       // Support both old format (baseUrl + endpoint) and new format (url)
       const url: string = config.url || `${config.baseUrl || ''}${config.endpoint || ''}`;
       const method: string = (config.method || 'GET').toUpperCase();
@@ -469,6 +491,10 @@ export class ConnectorManagementService {
       const headers: Record<string, string> = config.headers || {};
       const followRedirects: boolean = config.followRedirects !== false;
       const validateSSL: boolean = config.validateSSL !== false;
+      
+      console.log('testHttpConnector - constructed URL:', url);
+      console.log('testHttpConnector - method:', method);
+      console.log('testHttpConnector - headers:', headers);
 
       if (!url) {
         return { success: false, message: 'Falta URL en la configuración', details: { field: 'url' } };
