@@ -70,7 +70,6 @@ export const ConnectorWizard: React.FC<ConnectorWizardProps> = ({
   // Initialize wizard data when editing a connector
   useEffect(() => {
     if (editingConnector) {
-      console.log('🔧 Initializing wizard with editing connector:', editingConnector);
       setWizardData({
         name: editingConnector.name || '',
         description: editingConnector.description || '',
@@ -109,8 +108,6 @@ export const ConnectorWizard: React.FC<ConnectorWizardProps> = ({
 
   const handleFinish = async () => {
     try {
-      console.log('Processing connector with data:', wizardData);
-      
       const connectorData = {
         name: wizardData.name,
         description: wizardData.description,
@@ -122,18 +119,14 @@ export const ConnectorWizard: React.FC<ConnectorWizardProps> = ({
       let result;
       if (editingConnector) {
         // Update existing connector
-        console.log('🔧 Updating connector:', editingConnector.id);
         result = await updateConnector.mutateAsync({
           id: editingConnector.id,
           data: connectorData
         });
       } else {
         // Create new connector
-        console.log('✨ Creating new connector');
         result = await createConnector.mutateAsync(connectorData);
       }
-
-      console.log('✅ Connector operation successful:', result);
       onSuccess(result.id || result.data?.id || 'unknown');
       onClose();
       
