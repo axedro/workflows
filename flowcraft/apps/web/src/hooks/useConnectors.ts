@@ -30,12 +30,7 @@ export const useConnectors = (filters: ConnectorFilters = {}) => {
   return useQuery({
     queryKey: ['connectors', filters],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (filters.type) params.append('type', filters.type);
-      if (filters.isActive !== undefined) params.append('isActive', filters.isActive.toString());
-      if (filters.search) params.append('search', filters.search);
-
-      const response = await apiService.request(`/api/connectors?${params.toString()}`);
+      const response = await apiService.getConnectors(filters);
       
       // Ensure response is an array
       if (Array.isArray(response)) {
@@ -59,7 +54,13 @@ export const useConnectorStats = () => {
   return useQuery({
     queryKey: ['connector-stats'],
     queryFn: async () => {
-      const data = await apiService.request('/api/connectors') as Connector[];
+      const response = await apiService.getConnectors();
+      
+      // Extract data from response if it has a data property
+      let data = response;
+      if (response && typeof response === 'object' && 'data' in response && Array.isArray(response.data)) {
+        data = response.data;
+      }
       
       // Ensure data is an array
       const connectors = Array.isArray(data) ? data : [];
@@ -84,7 +85,7 @@ export const useConnector = (id: string) => {
   return useQuery({
     queryKey: ['connector', id],
     queryFn: async () => {
-      const response = await apiService.request(`/api/connectors/${id}`);
+      const response = await apiService.getConnector(id);
       
       // If response has a data property (like { success: true, data: {...} })
       if (response && typeof response === 'object' && 'data' in response) {
@@ -105,10 +106,7 @@ export const useCreateConnector = () => {
   
   return useMutation({
     mutationFn: async (data: Omit<Connector, 'id' | 'createdAt' | 'updatedAt' | 'organizationId'>) => {
-      const response = await apiService.request('/api/connectors', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      const response = await apiService.createConnector(data);
       return response as Connector;
     },
     onSuccess: () => {
@@ -123,10 +121,7 @@ export const useUpdateConnector = () => {
   
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Connector> }) => {
-      const response = await apiService.request(`/api/connectors/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      });
+      const response = await apiService.updateConnector(id, data);
       return response as Connector;
     },
     onSuccess: (_, { id }) => {
@@ -142,9 +137,7 @@ export const useDeleteConnector = () => {
   
   return useMutation({
     mutationFn: async (id: string) => {
-      await apiService.request(`/api/connectors/${id}`, {
-        method: 'DELETE',
-      });
+      await apiService.deleteConnector(id);
       return id;
     },
     onSuccess: () => {
@@ -157,9 +150,14 @@ export const useDeleteConnector = () => {
 export const useTestConnector = () => {
   return useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiService.request(`/api/connectors/${id}/test`, {
-        method: 'POST',
-      });
+      const response = await apiService.testConnector(id);
+      
+      // If response has a data property (like { success: true, data: {...} })
+      if (response && typeof response === 'object' && 'data' in response) {
+        return response.data as { success: boolean; message: string; details?: any };
+      }
+      
+      // Otherwise return response directly
       return response as { success: boolean; message: string; details?: any };
     },
   });

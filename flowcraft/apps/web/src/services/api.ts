@@ -706,6 +706,58 @@ class ApiService {
     }
     return { cancelled };
   }
+
+  // Connector endpoints
+  async getConnectors(filters: Record<string, any> = {}): Promise<any> {
+    const searchParams = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        searchParams.append(key, String(value));
+      }
+    });
+    const query = searchParams.toString();
+    return this.request<any>(`/api/connectors${query ? `?${query}` : ''}`);
+  }
+
+  async getConnector(id: string): Promise<any> {
+    return this.request<any>(`/api/connectors/${id}`);
+  }
+
+  async createConnector(data: any): Promise<any> {
+    return this.request<any>('/api/connectors', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateConnector(id: string, data: any): Promise<any> {
+    return this.request<any>(`/api/connectors/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteConnector(id: string): Promise<any> {
+    return this.request<any>(`/api/connectors/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async testConnector(id: string): Promise<any> {
+    return this.request<any>(`/api/connectors/${id}/test`, {
+      method: 'POST',
+      body: JSON.stringify({}), // Send empty JSON object to satisfy Fastify
+    });
+  }
+
+  async getConnectorStats(): Promise<any> {
+    return this.request<any>('/api/connectors/stats');
+  }
+
+  // Generic request method for backward compatibility with useConnectors hooks
+  async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, options);
+  }
 }
 
 // Force module reload with timestamp: 2025-08-09-09:13
