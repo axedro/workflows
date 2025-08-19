@@ -1,0 +1,397 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Users and Organizations
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  name           String
+  passwordHash   String
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  role           UserRole @default(USER)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  workflows      Workflow[]
+  workflowVersions WorkflowVersion[]
+  workflowTemplates WorkflowTemplate[]
+  executions     Execution[]
+  connectorConfigs ConnectorConfig[]
+  connectors     Connector[]
+  connectorTemplates ConnectorTemplate[]
+  approvedTranslations Translation[]
+
+  @@map("users")
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  plan      Plan     @default(FREE)
+  settings  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  users     User[]
+  workflows Workflow[]
+  workflowTemplates WorkflowTemplate[]
+  connectors Connector[]
+  connectorTemplates ConnectorTemplate[]
+
+  @@map("organizations")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+  VIEWER
+}
+
+enum Plan {
+  FREE
+  PRO
+  TEAM
+  ENTERPRISE
+}
+
+// Workflows
+model Workflow {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  definition     Json
+  userId         String
+  organizationId String?
+  status         WorkflowStatus @default(DRAFT)
+  version        Int      @default(1)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  executions     Execution[]
+  versions       WorkflowVersion[]
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("workflows")
+}
+
+model WorkflowVersion {
+  id         String   @id @default(cuid())
+  workflowId String
+  versionNumber Int
+  definition Json
+  changelog  String?
+  createdBy  String
+  createdAt  DateTime @default(now())
+
+  // Relations
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [createdBy], references: [id])
+
+  @@unique([workflowId, versionNumber])
+  @@map("workflow_versions")
+}
+
+model WorkflowTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  definition  Json
+  category    String
+  isPublic    Boolean  @default(false)
+  organizationId String?
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  user         User         @relation(fields: [createdBy], references: [id])
+
+  @@index([category])
+  @@index([isPublic])
+  @@index([organizationId])
+  @@map("workflow_templates")
+}
+
+enum WorkflowStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+// Executions
+model Execution {
+  id           String        @id @default(cuid())
+  workflowId   String
+  status       ExecutionStatus
+  startedAt    DateTime      @default(now())
+  completedAt  DateTime?
+  inputData    Json?
+  outputData   Json?
+  errorDetails Json?
+  executionTimeMs Int?
+  userId       String
+  // Nuevos campos para datos de ejecución
+  summary      Json?         // Resumen estructurado de la ejecución
+  dataFlow     Json?         // Flujo de datos entre nodos
+  metadata     Json?         // Metadatos adicionales
+
+  // Relations
+  workflow     Workflow      @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id])
+  nodes        ExecutionNode[]
+  logs         ExecutionLog[]
+
+  @@map("executions")
+}
+
+model ExecutionNode {
+  id           String        @id @default(cuid())
+  executionId  String
+  nodeId       String
+  status       ExecutionStatus
+  startedAt    DateTime?
+  completedAt  DateTime?
+  inputData    Json?
+  outputData   Json?
+  errorDetails Json?
+  // Nuevos campos para datos detallados
+  dataSchema   Json?         // Esquema de datos de entrada/salida
+  transformations Json?     // Transformaciones aplicadas
+  performance  Json?         // Métricas de performance
+  metadata     Json?         // Metadatos del nodo
+
+  // Relations
+  execution    Execution     @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  @@map("execution_nodes")
+}
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// Enhanced Connector Management System
+model Connector {
+  id          String   @id @default(cuid())
+  name        String
+  type        String   // 'http', 'email', 'webhook', 'timer', 'data-transform'
+  description String?
+  configuration Json   // Connector configuration
+  isActive    Boolean  @default(true)
+  version     Int      @default(1)
+  createdBy   String
+  organizationId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User     @relation(fields: [createdBy], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  credentials ConnectorCredential[]
+  configs     ConnectorConfig[]
+  logs        ConnectorLog[]
+
+  @@index([organizationId])
+  @@index([type])
+  @@index([isActive])
+  @@map("connectors")
+}
+
+model ConnectorCredential {
+  id           String   @id @default(cuid())
+  connectorId  String
+  name         String
+  type         String   // 'oauth2', 'api_key', 'username_password', 'custom'
+  encryptedData String  // AES-256 encrypted credentials
+  expiresAt    DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  connector    Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+
+  @@index([connectorId])
+  @@map("connector_credentials")
+}
+
+model ConnectorTemplate {
+  id                  String   @id @default(cuid())
+  name                String
+  type                String
+  category            String?  // 'crm', 'marketing', 'communication', etc.
+  description         String?
+  configurationSchema Json     // JSON Schema for configuration
+  isPublic            Boolean  @default(false)
+  createdBy           String?
+  organizationId      String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  user                User?    @relation(fields: [createdBy], references: [id])
+  organization        Organization? @relation(fields: [organizationId], references: [id])
+
+  @@index([type])
+  @@index([category])
+  @@index([isPublic])
+  @@map("connector_templates")
+}
+
+model ConnectorLog {
+  id          String   @id @default(cuid())
+  connectorId String
+  level       LogLevel
+  message     String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  connector   Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+
+  @@index([connectorId])
+  @@index([createdAt])
+  @@map("connector_logs")
+}
+
+model ConnectorConfig {
+  id         String   @id @default(cuid())
+  connectorId String
+  userId     String
+  configData Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  connector  Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("connector_configs")
+}
+
+// Monitoring
+model ExecutionLog {
+  id         String   @id @default(cuid())
+  executionId String
+  level      LogLevel
+  message    String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  // Relations
+  execution  Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  @@map("execution_logs")
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+}
+
+model Metric {
+  id        String   @id @default(cuid())
+  name      String
+  value     Float
+  labels    Json?
+  timestamp DateTime @default(now())
+
+  @@map("metrics")
+}
+
+model Alert {
+  id        String   @id @default(cuid())
+  name      String
+  condition String
+  status    AlertStatus @default(ACTIVE)
+  createdAt DateTime @default(now())
+  resolvedAt DateTime?
+
+  @@map("alerts")
+}
+
+enum AlertStatus {
+  ACTIVE
+  RESOLVED
+  ACKNOWLEDGED
+}
+
+// Internationalization (i18n)
+model Language {
+  id          String   @id @default(cuid())
+  code        String   @unique // 'es', 'en', 'nl'
+  name        String   // 'Spanish', 'English', 'Dutch'
+  nativeName  String   // 'Español', 'English', 'Nederlands'
+  flagEmoji   String?  // '🇪🇸', '🇺🇸', '🇳🇱'
+  isActive    Boolean  @default(true)
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  translations Translation[]
+
+  @@map("languages")
+}
+
+model TranslationKey {
+  id          String   @id @default(cuid())
+  key         String   @unique // 'auth.login.title'
+  namespace   String   // 'auth', 'common', 'dashboard'
+  category    String?  // 'buttons', 'messages', 'labels'
+  description String?  // Context for translators
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  translations Translation[]
+
+  @@index([namespace])
+  @@map("translation_keys")
+}
+
+model Translation {
+  id          String   @id @default(cuid())
+  languageId  String
+  keyId       String
+  value       String
+  isApproved  Boolean  @default(false)
+  approvedBy  String?
+  approvedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  language    Language      @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  key         TranslationKey @relation(fields: [keyId], references: [id], onDelete: Cascade)
+  approver    User?         @relation(fields: [approvedBy], references: [id])
+
+  @@unique([languageId, keyId])
+  @@index([languageId, keyId])
+  @@map("translations")
+} 

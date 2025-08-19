@@ -32,4 +32,11 @@ export interface ConnectorInstance {
   enabled: boolean;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ConnectorResult {
+  success: boolean;
+  data?: any;
+  error?: string;
+  message: string;
 } 

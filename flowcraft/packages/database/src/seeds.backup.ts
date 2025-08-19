@@ -32,39 +32,44 @@ async function main() {
   // Create some test connectors
   const connectors = await Promise.all([
     prisma.connector.upsert({
-      where: { name: 'http' },
+      where: { id: 'http-connector' },
       update: {},
       create: {
-        name: 'http',
-        category: 'core',
-        version: '1.0.0',
-        definition: {
-          name: 'HTTP Request',
-          description: 'Make HTTP requests',
-          config: {
-            method: { type: 'string', enum: ['GET', 'POST', 'PUT', 'DELETE'] },
-            url: { type: 'string' },
-            headers: { type: 'object' },
-            body: { type: 'object' },
+        id: 'http-connector',
+        name: 'HTTP Request Connector',
+        type: 'http',
+        description: 'Make HTTP requests to APIs and web services',
+        configuration: {
+          baseUrl: 'https://api.example.com',
+          endpoint: '/users',
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
           },
         },
+        version: 1,
+        createdBy: user.id,
       },
     }),
     prisma.connector.upsert({
-      where: { name: 'slack' },
+      where: { id: 'email-connector' },
       update: {},
       create: {
-        name: 'slack',
-        category: 'communication',
-        version: '1.0.0',
-        definition: {
-          name: 'Slack',
-          description: 'Send messages to Slack',
-          config: {
-            channel: { type: 'string' },
-            message: { type: 'string' },
+        id: 'email-connector',
+        name: 'Email/SMTP Connector',
+        type: 'email',
+        description: 'Send emails via SMTP',
+        configuration: {
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          auth: {
+            user: 'your-email@gmail.com',
+            pass: 'your-app-password',
           },
         },
+        version: 1,
+        createdBy: user.id,
       },
     }),
   ])

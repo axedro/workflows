@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# FlowCraft Development Startup Script
-# This script starts all services needed for development
+# FlowCraft Development Startup Script (Improved Version)
+# This script starts all services needed for development with proper cleanup
 
 set -e
 
@@ -51,20 +51,6 @@ cleanup_existing_processes() {
     echo -e "${GREEN}✅ Cleanup completed${NC}"
 }
 
-# Function to handle script interruption
-cleanup_on_exit() {
-    echo -e "\n${YELLOW}🛑 Received interrupt signal. Cleaning up...${NC}"
-    cleanup_existing_processes
-    echo -e "${GREEN}✅ Cleanup completed. Exiting.${NC}"
-    exit 0
-}
-
-# Set up signal handlers
-trap cleanup_on_exit INT TERM
-
-echo -e "${BLUE}🚀 Starting FlowCraft Development Environment${NC}"
-echo "=================================================="
-
 # Function to check if a port is in use
 check_port() {
     local port=$1
@@ -98,6 +84,20 @@ wait_for_service() {
     echo -e "${RED}❌ $service failed to start on port $port${NC}"
     return 1
 }
+
+# Function to handle script interruption
+cleanup_on_exit() {
+    echo -e "\n${YELLOW}🛑 Received interrupt signal. Cleaning up...${NC}"
+    cleanup_existing_processes
+    echo -e "${GREEN}✅ Cleanup completed. Exiting.${NC}"
+    exit 0
+}
+
+# Set up signal handlers
+trap cleanup_on_exit INT TERM
+
+echo -e "${BLUE}🚀 Starting FlowCraft Development Environment (Improved)${NC}"
+echo "=================================================="
 
 # Ensure we are at repo root before any relative paths
 cd "$ROOT_DIR"
@@ -134,78 +134,54 @@ pnpm install
 
 # Step 3: Start API service
 echo -e "${BLUE}📋 Step 3: Starting API service...${NC}"
-if check_port 3000; then
-    echo -e "${YELLOW}⚠️  Port 3000 is already in use${NC}"
-else
-    echo -e "${GREEN}🚀 Starting API service on port 3000...${NC}"
-    cd "$ROOT_DIR/apps/api"
-    pnpm run dev > "$ROOT_DIR/logs/api.log" 2>&1 &
-    API_PID=$!
-    echo $API_PID > "$ROOT_DIR/.api.pid"
-    cd "$ROOT_DIR"
-fi
+echo -e "${GREEN}🚀 Starting API service on port 3000...${NC}"
+cd "$ROOT_DIR/apps/api"
+pnpm run dev > "$ROOT_DIR/logs/api.log" 2>&1 &
+API_PID=$!
+echo $API_PID > "$ROOT_DIR/.api.pid"
+cd "$ROOT_DIR"
 
 # Step 4: Start Web service
 echo -e "${BLUE}📋 Step 4: Starting Web service...${NC}"
-if check_port 5173; then
-    echo -e "${YELLOW}⚠️  Port 5173 is already in use${NC}"
-else
-    echo -e "${GREEN}🚀 Starting Web service on port 5173...${NC}"
-    cd "$ROOT_DIR/apps/web"
-    pnpm run dev > "$ROOT_DIR/logs/web.log" 2>&1 &
-    WEB_PID=$!
-    echo $WEB_PID > "$ROOT_DIR/.web.pid"
-    cd "$ROOT_DIR"
-fi
+echo -e "${GREEN}🚀 Starting Web service on port 5173...${NC}"
+cd "$ROOT_DIR/apps/web"
+pnpm run dev > "$ROOT_DIR/logs/web.log" 2>&1 &
+WEB_PID=$!
+echo $WEB_PID > "$ROOT_DIR/.web.pid"
+cd "$ROOT_DIR"
 
 # Step 5: Start Execution Service
 echo -e "${BLUE}📋 Step 5: Starting Execution Service...${NC}"
-if check_port 3001; then
-    echo -e "${YELLOW}⚠️  Port 3001 is already in use${NC}"
-else
-    echo -e "${GREEN}🚀 Starting Execution Service on port 3001...${NC}"
-    cd "$ROOT_DIR/apps/execution-service"
-    pnpm run dev > "$ROOT_DIR/logs/execution.log" 2>&1 &
-    EXEC_PID=$!
-    echo $EXEC_PID > "$ROOT_DIR/.execution.pid"
-    cd "$ROOT_DIR"
-fi
+echo -e "${GREEN}🚀 Starting Execution Service on port 3001...${NC}"
+cd "$ROOT_DIR/apps/execution-service"
+pnpm run dev > "$ROOT_DIR/logs/execution.log" 2>&1 &
+EXEC_PID=$!
+echo $EXEC_PID > "$ROOT_DIR/.execution.pid"
+cd "$ROOT_DIR"
 
 # Step 6: Start Prisma Studio
 echo -e "${BLUE}📋 Step 6: Starting Prisma Studio...${NC}"
-if check_port 5555; then
-    echo -e "${YELLOW}⚠️  Port 5555 is already in use${NC}"
-else
-    echo -e "${GREEN}🚀 Starting Prisma Studio on port 5555...${NC}"
-    cd "$ROOT_DIR/packages/database"
-    pnpm studio > "$ROOT_DIR/logs/prisma.log" 2>&1 &
-    PRISMA_PID=$!
-    echo $PRISMA_PID > "$ROOT_DIR/.prisma.pid"
-    cd "$ROOT_DIR"
-fi
+echo -e "${GREEN}🚀 Starting Prisma Studio on port 5555...${NC}"
+cd "$ROOT_DIR/packages/database"
+pnpm studio > "$ROOT_DIR/logs/prisma.log" 2>&1 &
+PRISMA_PID=$!
+echo $PRISMA_PID > "$ROOT_DIR/.prisma.pid"
+cd "$ROOT_DIR"
 
 # Step 7: Wait for services to be ready
 echo -e "${BLUE}📋 Step 7: Waiting for services to be ready...${NC}"
 
 # Wait for API
-if [ ! -z "$API_PID" ]; then
-    wait_for_service "API" 3000
-fi
+wait_for_service "API" 3000
 
 # Wait for Web
-if [ ! -z "$WEB_PID" ]; then
-    wait_for_service "Web" 5173
-fi
+wait_for_service "Web" 5173
 
 # Wait for Execution Service
-if [ ! -z "$EXEC_PID" ]; then
-    wait_for_service "Execution Service" 3001
-fi
+wait_for_service "Execution Service" 3001
 
 # Wait for Prisma Studio
-if [ ! -z "$PRISMA_PID" ]; then
-    wait_for_service "Prisma Studio" 5555
-fi
+wait_for_service "Prisma Studio" 5555
 
 # Step 8: Display status
 echo -e "${BLUE}📋 Step 8: Service Status${NC}"
@@ -250,9 +226,3 @@ echo -e "${YELLOW}💡 Tip: Press Ctrl+C to stop all services cleanly${NC}"
 
 # Remove signal handler to allow normal exit
 trap - INT TERM
-echo ""
-echo -e "${BLUE}🌐 Access URLs:${NC}"
-echo "  Frontend: http://localhost:5173"
-echo "  API: http://localhost:3000"
-echo "  Prisma Studio: http://localhost:5555"
-echo "  Execution Service: http://localhost:3001"

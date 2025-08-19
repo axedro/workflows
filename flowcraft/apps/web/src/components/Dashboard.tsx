@@ -49,8 +49,7 @@ const Dashboard: React.FC = () => {
   // };
 
   const handleManageConnectors = () => {
-    // TODO: Navigate to connectors management page
-    console.log('Manage connectors clicked');
+    navigate('/connectors');
   };
 
   const handleViewAnalytics = () => {

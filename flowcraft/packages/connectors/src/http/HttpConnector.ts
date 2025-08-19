@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import { BaseConnector } from '../base.js';
-import { ConnectorConfig, ConnectorInstance } from '@flowcraft/shared-types';
+import { ConnectorResult } from '@flowcraft/shared-types';
 
 export interface HttpConnectorConfig {
   url: string;
@@ -44,14 +44,14 @@ export class HttpConnector extends BaseConnector {
   private client: AxiosInstance;
   private requestTimings: Map<string, number> = new Map();
 
-  constructor(config: ConnectorConfig, instance: ConnectorInstance) {
-    super(config, instance);
+  constructor() {
+    super();
     
     // Create axios instance with base configuration
     this.client = axios.create({
       timeout: 30000, // 30 second default timeout
       validateStatus: () => true, // Accept all status codes, handle in response
-      maxRedirects: this.getConfigValue('followRedirects', true) ? 5 : 0,
+      maxRedirects: 5, // Default to follow redirects
     });
 
     // Setup request/response interceptors
@@ -61,72 +61,92 @@ export class HttpConnector extends BaseConnector {
   /**
    * Execute HTTP request
    */
-  async execute(inputs: Record<string, any>): Promise<Record<string, any>> {
+  async execute(config: any, input?: any): Promise<ConnectorResult> {
     const requestId = `req_${Date.now()}_${Math.random()}`;
     const startTime = Date.now();
     this.requestTimings.set(requestId, startTime);
     
     try {
-      const httpConfig = this.buildRequestConfig(inputs);
+      const httpConfig = this.buildRequestConfig(config, input);
       await this.log(`Making ${httpConfig.method} request to ${httpConfig.url}`, 'info');
       
       const response = await this.makeRequestWithRetries(httpConfig);
       const result = this.processResponse(response, requestId);
       
       await this.log(`Request completed successfully with status ${result.status}`, 'info');
-      return result;
+      return {
+        success: true,
+        data: result,
+        message: 'HTTP request completed successfully',
+      };
       
     } catch (error) {
       const httpError = this.processError(error, requestId);
       await this.log(`Request failed: ${httpError.message}`, 'error');
-      throw new Error(`HTTP request failed: ${httpError.message}`);
+      return {
+        success: false,
+        error: httpError.message,
+        message: 'HTTP request failed',
+      };
     } finally {
       this.requestTimings.delete(requestId);
     }
   }
 
   /**
-   * Validate connector configuration
+   * Test connector configuration
    */
-  async validate(): Promise<boolean> {
+  async test(config: any): Promise<ConnectorResult> {
     try {
       // Check required configuration
-      const url = this.getConfigValue('url');
-      const method = this.getConfigValue('method', 'GET');
+      const url = config.url || config.baseUrl;
+      const method = config.method || 'GET';
 
       if (!url) {
-        await this.log('Validation failed: URL is required', 'error');
-        return false;
+        return {
+          success: false,
+          error: 'URL is required',
+          message: 'Validation failed: URL is required',
+        };
       }
 
       if (!this.isValidHttpMethod(method)) {
-        await this.log(`Validation failed: Invalid HTTP method '${method}'`, 'error');
-        return false;
+        return {
+          success: false,
+          error: `Invalid HTTP method '${method}'`,
+          message: 'Validation failed: Invalid HTTP method',
+        };
       }
 
       // Validate URL format
       try {
         new URL(url);
       } catch {
-        await this.log(`Validation failed: Invalid URL format '${url}'`, 'error');
-        return false;
+        return {
+          success: false,
+          error: `Invalid URL format '${url}'`,
+          message: 'Validation failed: Invalid URL format',
+        };
       }
 
-      // Validate authentication config if present
-      const auth = this.getConfigValue('authentication');
-      if (auth && !this.isValidAuthentication(auth)) {
-        await this.log('Validation failed: Invalid authentication configuration', 'error');
-        return false;
-      }
+      // Make a test request
+      const testConfig = {
+        ...config,
+        method: 'GET',
+        url: url,
+      };
 
-      await this.log('Configuration validation passed', 'info');
-      return true;
-
+      return await this.execute(testConfig);
     } catch (error) {
-      await this.log(`Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
-      return false;
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        message: 'HTTP connector test failed',
+      };
     }
   }
+
+
 
   /**
    * Setup axios interceptors for logging and authentication
@@ -156,34 +176,34 @@ export class HttpConnector extends BaseConnector {
   /**
    * Build axios request configuration from inputs
    */
-  private buildRequestConfig(inputs: Record<string, any>): AxiosRequestConfig {
+  private buildRequestConfig(connectorConfig: any, input?: any): AxiosRequestConfig {
     const config: AxiosRequestConfig = {
-      url: this.getConfigValue('url', inputs.url),
-      method: (this.getConfigValue('method', inputs.method) || 'GET').toUpperCase(),
-      timeout: this.getConfigValue('timeout', 30000),
+      url: connectorConfig.url || input?.url,
+      method: (connectorConfig.method || input?.method || 'GET').toUpperCase(),
+      timeout: connectorConfig.timeout || 30000,
       headers: {
         'Content-Type': 'application/json',
         'User-Agent': 'FlowCraft-HTTP-Connector/1.0',
-        ...this.getConfigValue('headers', {}),
-        ...inputs.headers,
+        ...connectorConfig.headers,
+        ...input?.headers,
       },
     };
 
     // Add body for methods that support it
     if (['POST', 'PUT', 'PATCH'].includes(config.method!)) {
-      const body = this.getConfigValue('body', inputs.body);
+      const body = connectorConfig.body || input?.body;
       if (body) {
         config.data = typeof body === 'string' ? body : JSON.stringify(body);
       }
     }
 
     // Add query parameters
-    if (inputs.params || inputs.queryParams) {
-      config.params = inputs.params || inputs.queryParams;
+    if (input?.params || input?.queryParams) {
+      config.params = input.params || input.queryParams;
     }
 
     // Add authentication
-    this.addAuthentication(config);
+    this.addAuthentication(config, connectorConfig);
 
     return config;
   }
@@ -191,8 +211,8 @@ export class HttpConnector extends BaseConnector {
   /**
    * Add authentication to request config
    */
-  private addAuthentication(config: AxiosRequestConfig): void {
-    const auth = this.getConfigValue('authentication');
+  private addAuthentication(config: AxiosRequestConfig, connectorConfig: any): void {
+    const auth = connectorConfig.authentication;
     if (!auth) return;
 
     switch (auth.type) {
@@ -224,8 +244,8 @@ export class HttpConnector extends BaseConnector {
    * Make HTTP request with retry logic
    */
   private async makeRequestWithRetries(config: AxiosRequestConfig): Promise<AxiosResponse> {
-    const maxRetries = this.getConfigValue('retries', 3);
-    const retryDelay = this.getConfigValue('retryDelay', 1000);
+    const maxRetries = 3; // Default retries
+    const retryDelay = 1000; // Default delay
     
     let lastError: any;
     
@@ -347,12 +367,7 @@ export class HttpConnector extends BaseConnector {
     }
   }
 
-  /**
-   * Get configuration value with fallback
-   */
-  private getConfigValue(key: string, fallback?: any): any {
-    return this.instance.config[key] ?? fallback;
-  }
+
 
   /**
    * Utility function for delays

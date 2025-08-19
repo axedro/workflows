@@ -16,8 +16,10 @@ import { workflowRoutes } from './routes/workflows.js';
 import { workflowTemplateRoutes } from './routes/workflowTemplates.js';
 import { workflowImportExportRoutes } from './routes/workflowImportExport.js';
 import executionRoutes from './routes/executions.js';
+import connectorRoutes from './routes/connectors.js';
 import { authenticate } from './middleware/auth.middleware.js';
 import { i18nPlugin } from './middleware/i18n.middleware.js';
+import { initializeConnectors } from './connectors.js';
 
 // Load environment variables
 dotenv.config();
@@ -87,6 +89,7 @@ await fastify.register(swagger, {
         description: 'Workflow template endpoints',
       },
       { name: 'import-export', description: 'Import/Export endpoints' },
+      { name: 'connectors', description: 'Connector management endpoints' },
       { name: 'i18n', description: 'Internationalization endpoints' },
       { name: 'health', description: 'Health check endpoints' },
     ],
@@ -137,35 +140,38 @@ await fastify.register(workflowImportExportRoutes, {
   prefix: '/import-export',
 });
 await fastify.register(executionRoutes);
+await fastify.register(connectorRoutes, { prefix: '/api' });
 
 // Global error handler
 fastify.setErrorHandler((error, request, reply) => {
   fastify.log.error(error);
 
-  if (error.validation) {
+  if ((error as any).validation) {
     return reply.status(400).send({
       error: 'Validation Error',
-      message: error.message,
-      details: error.validation,
+      message: (error as any).message,
+      details: (error as any).validation,
     });
   }
 
-  if (error.statusCode) {
-    return reply.status(error.statusCode).send({
-      error: error.name,
-      message: error.message,
-    });
+  const isDev = process.env.NODE_ENV !== 'production';
+  const status = (error as any).statusCode || 500;
+  const payload: any = {
+    error: (error as any).name || 'Internal Server Error',
+    message: (error as any).message || 'Something went wrong',
+  };
+  if (isDev) {
+    payload.stack = (error as any).stack;
   }
-
-  return reply.status(500).send({
-    error: 'Internal Server Error',
-    message: 'Something went wrong',
-  });
+  return reply.status(status).send(payload);
 });
 
 // Start server
 const start = async () => {
   try {
+    // Initialize connectors
+    initializeConnectors();
+    
     const port = parseInt(process.env.PORT || '3000', 10);
     const host = process.env.HOST || '0.0.0.0';
 

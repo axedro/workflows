@@ -1,6 +1,5 @@
 import { BaseConnector } from './base';
-import { ConnectorValidator, ValidationResult } from './validation';
-import { ConnectorInstance } from '@flowcraft/shared-types';
+import { ConnectorResult } from '@flowcraft/shared-types';
 
 export interface ExecutionContext {
   executionId: string;
@@ -21,46 +20,27 @@ export interface ExecutionResult {
 export class ConnectorExecutor {
   static async execute(
     connector: BaseConnector,
-    inputs: Record<string, any>,
-    context: ExecutionContext
+    config: any,
+    inputs?: Record<string, any>,
+    context?: ExecutionContext
   ): Promise<ExecutionResult> {
     const startTime = Date.now();
     
     try {
-      // Validate inputs
-      const config = connector.getConfig();
-      const inputValidation = ConnectorValidator.validateInputs(inputs, config.inputs);
-      
-      if (!inputValidation.isValid) {
-        return {
-          success: false,
-          outputs: {},
-          error: `Input validation failed: ${inputValidation.errors.join(', ')}`,
-          executionTime: Date.now() - startTime,
-          context,
-        };
-      }
-
-      // Validate connector
-      const isValid = await connector.validate();
-      if (!isValid) {
-        return {
-          success: false,
-          outputs: {},
-          error: 'Connector validation failed',
-          executionTime: Date.now() - startTime,
-          context,
-        };
-      }
-
       // Execute connector
-      const outputs = await connector.execute(inputs);
+      const result: ConnectorResult = await connector.execute(config, inputs);
 
       return {
-        success: true,
-        outputs,
+        success: result.success,
+        outputs: result.data || {},
+        error: result.error,
         executionTime: Date.now() - startTime,
-        context,
+        context: context || {
+          executionId: 'unknown',
+          workflowId: 'unknown',
+          nodeId: 'unknown',
+          timestamp: new Date(),
+        },
       };
     } catch (error) {
       return {
@@ -68,7 +48,12 @@ export class ConnectorExecutor {
         outputs: {},
         error: error instanceof Error ? error.message : 'Unknown error occurred',
         executionTime: Date.now() - startTime,
-        context,
+        context: context || {
+          executionId: 'unknown',
+          workflowId: 'unknown',
+          nodeId: 'unknown',
+          timestamp: new Date(),
+        },
       };
     }
   }

@@ -22,6 +22,7 @@ const UserProfile = React.lazy(() =>
     default: module.UserProfile,
   }))
 );
+const ConnectorDashboard = React.lazy(() => import('./components/connector-dashboard/ConnectorDashboard'));
 
 function App() {
   const { isAuthenticated, logout } = useAuthStore();
@@ -103,6 +104,14 @@ function App() {
             element={
               <ProtectedRoute fallback={<Navigate to="/auth" replace />}>
                 <UserProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/connectors"
+            element={
+              <ProtectedRoute fallback={<Navigate to="/auth" replace />}>
+                <ConnectorDashboard />
               </ProtectedRoute>
             }
           />
