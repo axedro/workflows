@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Grid, List, Settings } from 'lucide-react';
-import { useConnectors, useConnectorStats } from '../../hooks/useConnectors';
+import { useConnectors, useConnectorStats, useDeleteConnector, useTestConnector, Connector } from '../../hooks/useConnectors';
 import { ConnectorWizard } from '../connector-wizard/ConnectorWizard';
 import { ConnectorCard } from './ConnectorCard';
 import { ConnectorList } from './ConnectorList';
@@ -10,6 +10,7 @@ import { ConnectorStats } from './ConnectorStats';
 const ConnectorDashboard: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showWizard, setShowWizard] = useState(false);
+  const [editingConnector, setEditingConnector] = useState<Connector | null>(null);
   const [filters, setFilters] = useState({
     type: '',
     isActive: true,
@@ -18,6 +19,8 @@ const ConnectorDashboard: React.FC = () => {
 
   const { data: connectors = [], isLoading } = useConnectors(filters);
   const { data: stats } = useConnectorStats();
+  const deleteConnector = useDeleteConnector();
+  const testConnector = useTestConnector();
 
   const handleCreateConnector = () => {
     setShowWizard(true);
@@ -25,15 +28,48 @@ const ConnectorDashboard: React.FC = () => {
 
   const handleWizardSuccess = (_connectorId: string) => {
     setShowWizard(false);
+    setEditingConnector(null);
     // The connector will be automatically refetched by React Query
   };
 
   const handleWizardClose = () => {
     setShowWizard(false);
+    setEditingConnector(null);
   };
 
   const handleFiltersChange = (newFilters: any) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
+  };
+
+  const handleEditConnector = (connector: Connector) => {
+    setEditingConnector(connector);
+    setShowWizard(true);
+  };
+
+  const handleDeleteConnector = async (connector: Connector) => {
+    if (window.confirm(`¿Estás seguro de que deseas eliminar el conector "${connector.name}"?`)) {
+      try {
+        await deleteConnector.mutateAsync(connector.id);
+        // Success notification could be added here
+      } catch (error) {
+        console.error('Error deleting connector:', error);
+        alert('Error al eliminar el conector. Por favor, inténtalo de nuevo.');
+      }
+    }
+  };
+
+  const handleTestConnector = async (connector: Connector) => {
+    try {
+      const result = await testConnector.mutateAsync(connector.id);
+      if (result.success) {
+        alert(`✅ Prueba exitosa del conector "${connector.name}"`);
+      } else {
+        alert(`❌ Error en la prueba del conector "${connector.name}": ${result.message}`);
+      }
+    } catch (error) {
+      console.error('Error testing connector:', error);
+      alert('Error al probar el conector. Por favor, inténtalo de nuevo.');
+    }
   };
 
 
@@ -149,30 +185,18 @@ const ConnectorDashboard: React.FC = () => {
                   <ConnectorCard
                     key={connector.id}
                     connector={connector}
-                    onEdit={() => {
-                      // TODO: Implement edit functionality
-                    }}
-                    onDelete={() => {
-                      // TODO: Implement delete functionality
-                    }}
-                    onTest={() => {
-                      // TODO: Implement test functionality
-                    }}
+                    onEdit={() => handleEditConnector(connector)}
+                    onDelete={() => handleDeleteConnector(connector)}
+                    onTest={() => handleTestConnector(connector)}
                   />
                 ))}
               </div>
             ) : (
               <ConnectorList
                 connectors={connectors}
-                onEdit={(_connector) => {
-                  // TODO: Implement edit functionality
-                }}
-                onDelete={(_connector) => {
-                  // TODO: Implement delete functionality
-                }}
-                onTest={(_connector) => {
-                  // TODO: Implement test functionality
-                }}
+                onEdit={handleEditConnector}
+                onDelete={handleDeleteConnector}
+                onTest={handleTestConnector}
               />
             )}
           </div>
@@ -184,6 +208,7 @@ const ConnectorDashboard: React.FC = () => {
         isOpen={showWizard}
         onClose={handleWizardClose}
         onSuccess={handleWizardSuccess}
+        editingConnector={editingConnector}
       />
     </div>
   );

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useCreateConnector, useUpdateConnector } from '../../hooks/useConnectors';
 import { Step1BasicInfo } from './steps/Step1BasicInfo';
 import { Step2SelectType } from './steps/Step2SelectType';
 import { Step3SelectTemplate } from './steps/Step3SelectTemplate';
@@ -37,6 +38,7 @@ interface ConnectorWizardProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (connectorId: string) => void;
+  editingConnector?: any; // Make it optional for now
 }
 
 const STEPS = [
@@ -52,6 +54,7 @@ export const ConnectorWizard: React.FC<ConnectorWizardProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  editingConnector,
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [wizardData, setWizardData] = useState<WizardData>({
@@ -60,6 +63,31 @@ export const ConnectorWizard: React.FC<ConnectorWizardProps> = ({
     configuration: {},
     credentials: {},
   });
+
+  const createConnector = useCreateConnector();
+  const updateConnector = useUpdateConnector();
+
+  // Initialize wizard data when editing a connector
+  useEffect(() => {
+    if (editingConnector) {
+      console.log('🔧 Initializing wizard with editing connector:', editingConnector);
+      setWizardData({
+        name: editingConnector.name || '',
+        description: editingConnector.description || '',
+        type: editingConnector.type,
+        configuration: editingConnector.configuration || {},
+        credentials: {}, // Credentials should be loaded separately for security
+      });
+    } else {
+      // Reset to empty state when creating new connector
+      setWizardData({
+        name: '',
+        description: '',
+        configuration: {},
+        credentials: {},
+      });
+    }
+  }, [editingConnector]);
 
   if (!isOpen) return null;
 
@@ -81,12 +109,32 @@ export const ConnectorWizard: React.FC<ConnectorWizardProps> = ({
 
   const handleFinish = async () => {
     try {
-      // TODO: Implement connector creation with all wizard data
-      console.log('Creating connector with data:', wizardData);
+      console.log('Processing connector with data:', wizardData);
       
-      // Simulate API call
-      const connectorId = 'temp-connector-id';
-      onSuccess(connectorId);
+      const connectorData = {
+        name: wizardData.name,
+        description: wizardData.description,
+        type: wizardData.type!,
+        configuration: wizardData.configuration,
+        isActive: true,
+      };
+
+      let result;
+      if (editingConnector) {
+        // Update existing connector
+        console.log('🔧 Updating connector:', editingConnector.id);
+        result = await updateConnector.mutateAsync({
+          id: editingConnector.id,
+          data: connectorData
+        });
+      } else {
+        // Create new connector
+        console.log('✨ Creating new connector');
+        result = await createConnector.mutateAsync(connectorData);
+      }
+
+      console.log('✅ Connector operation successful:', result);
+      onSuccess(result.id || result.data?.id || 'unknown');
       onClose();
       
       // Reset wizard state
@@ -98,7 +146,8 @@ export const ConnectorWizard: React.FC<ConnectorWizardProps> = ({
         credentials: {},
       });
     } catch (error) {
-      console.error('Error creating connector:', error);
+      console.error('❌ Error processing connector:', error);
+      alert(`Error ${editingConnector ? 'actualizando' : 'creando'} el conector. Por favor, inténtalo de nuevo.`);
     }
   };
 
@@ -123,7 +172,9 @@ export const ConnectorWizard: React.FC<ConnectorWizardProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-4">
-            <h2 className="text-lg font-medium text-gray-900">Crear Nuevo Conector</h2>
+            <h2 className="text-lg font-medium text-gray-900">
+              {editingConnector ? 'Editar Conector' : 'Crear Nuevo Conector'}
+            </h2>
             <div className="flex items-center space-x-2">
               {STEPS.map((step, index) => (
                 <React.Fragment key={step.id}>
@@ -207,7 +258,7 @@ export const ConnectorWizard: React.FC<ConnectorWizardProps> = ({
                 onClick={handleFinish}
                 className="flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
               >
-                Crear Conector
+                {editingConnector ? 'Actualizar Conector' : 'Crear Conector'}
               </button>
             )}
           </div>

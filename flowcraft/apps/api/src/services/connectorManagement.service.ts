@@ -11,7 +11,7 @@ const CreateConnectorSchema = z.object({
   type: z.enum(['http', 'email', 'webhook', 'timer', 'data-transform']),
   description: z.string().optional(),
   configuration: z.record(z.any()),
-  organizationId: z.string().optional(),
+  organizationId: z.string().optional().nullable(),
 });
 
 const UpdateConnectorSchema = z.object({
@@ -67,14 +67,8 @@ export class ConnectorManagementService {
     };
 
     // Handle organization relation if organizationId is provided
-    if (validatedData.organizationId) {
-      createData.organization = {
-        connect: {
-          id: validatedData.organizationId
-        }
-      };
-      delete createData.organizationId; // Remove the direct field
-    }
+    // Keep organizationId as direct field - no need for relation connect
+    createData.organizationId = validatedData.organizationId;
 
     return await prisma.connector.create({
       data: createData,
