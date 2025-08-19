@@ -13,11 +13,11 @@ export const TimerConfiguration: React.FC<TimerConfigurationProps> = ({
   const [activeTab, setActiveTab] = useState<'schedule' | 'intervals' | 'advanced'>('schedule');
 
   const updateField = (field: string, value: any) => {
-    onUpdate({ [field]: value });
+    onUpdate({ ...configuration, [field]: value });
   };
 
   const updateIntervals = (intervals: Array<{ name: string; value: number; unit: string }>) => {
-    onUpdate({ intervals });
+    onUpdate({ ...configuration, intervals });
   };
 
   const addInterval = () => {

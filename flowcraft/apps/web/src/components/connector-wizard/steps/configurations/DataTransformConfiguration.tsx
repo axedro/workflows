@@ -13,11 +13,11 @@ export const DataTransformConfiguration: React.FC<DataTransformConfigurationProp
   const [activeTab, setActiveTab] = useState<'mapping' | 'filtering' | 'aggregation' | 'custom'>('mapping');
 
   const updateField = (field: string, value: any) => {
-    onUpdate({ [field]: value });
+    onUpdate({ ...configuration, [field]: value });
   };
 
   const updateMappings = (mappings: Array<{ from: string; to: string; type: string }>) => {
-    onUpdate({ mappings });
+    onUpdate({ ...configuration, mappings });
   };
 
   const addMapping = () => {
@@ -38,7 +38,7 @@ export const DataTransformConfiguration: React.FC<DataTransformConfigurationProp
   };
 
   const updateFilters = (filters: Array<{ field: string; operator: string; value: string }>) => {
-    onUpdate({ filters });
+    onUpdate({ ...configuration, filters });
   };
 
   const addFilter = () => {

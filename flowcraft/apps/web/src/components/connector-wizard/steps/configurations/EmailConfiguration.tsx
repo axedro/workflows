@@ -13,11 +13,11 @@ export const EmailConfiguration: React.FC<EmailConfigurationProps> = ({
   const [activeTab, setActiveTab] = useState<'smtp' | 'templates' | 'advanced'>('smtp');
 
   const updateField = (field: string, value: any) => {
-    onUpdate({ [field]: value });
+    onUpdate({ ...configuration, [field]: value });
   };
 
   const updateTemplates = (templates: Array<{ name: string; subject: string; body: string }>) => {
-    onUpdate({ templates });
+    onUpdate({ ...configuration, templates });
   };
 
   const addTemplate = () => {
