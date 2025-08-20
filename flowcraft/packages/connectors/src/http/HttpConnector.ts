@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
-import { BaseConnector } from '../base.js';
+import { BaseConnector } from '../base';
 import { ConnectorResult } from '@flowcraft/shared-types';
 
 export interface HttpConnectorConfig {
@@ -178,8 +178,8 @@ export class HttpConnector extends BaseConnector {
    */
   private buildRequestConfig(connectorConfig: any, input?: any): AxiosRequestConfig {
     const config: AxiosRequestConfig = {
-      url: connectorConfig.url || input?.url,
-      method: (connectorConfig.method || input?.method || 'GET').toUpperCase(),
+      url: input?.url || connectorConfig.url,
+      method: (input?.method || connectorConfig.method || 'GET').toUpperCase(),
       timeout: connectorConfig.timeout || 30000,
       headers: {
         'Content-Type': 'application/json',

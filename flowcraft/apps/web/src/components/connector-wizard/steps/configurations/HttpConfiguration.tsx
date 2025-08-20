@@ -17,11 +17,11 @@ export const HttpConfiguration: React.FC<HttpConfigurationProps> = ({
 
   const updateField = (field: string, value: any) => {
     console.log('HttpConfiguration - updateField:', field, value);
-    onUpdate({ [field]: value });
+    onUpdate({ ...configuration, [field]: value });
   };
 
   const updateHeaders = (headers: Record<string, string>) => {
-    onUpdate({ headers });
+    onUpdate({ ...configuration, headers });
   };
 
   const addHeader = () => {

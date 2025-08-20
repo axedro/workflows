@@ -542,12 +542,38 @@ export class ConnectorManagementService {
   }
 
   private async testEmailConnector(connector: Connector) {
+    const config = connector.configuration as any;
+    
+    // Transform frontend config to EmailConnector format
+    const emailConfig = {
+      host: config.smtpHost,
+      port: config.smtpPort || 587,
+      secure: config.secure || false,
+      auth: {
+        user: config.smtpUser,
+        pass: config.smtpPassword,
+      },
+      from: config.defaultFrom || config.smtpUser,
+      to: [config.defaultFrom || config.smtpUser], // Send test email to sender
+      subject: 'FlowCraft Email Connector Test',
+      text: 'This is a test email from your FlowCraft email connector.',
+      html: '<p>This is a test email from your <strong>FlowCraft</strong> email connector.</p>',
+    };
+
+    console.log('🔧 Email config prepared:', {
+      host: emailConfig.host,
+      port: emailConfig.port,
+      secure: emailConfig.secure,
+      auth: { user: emailConfig.auth.user, pass: '***HIDDEN***' },
+      from: emailConfig.from,
+      to: emailConfig.to
+    });
+    
     try {
       const { EmailConnector } = await import('@flowcraft/connectors');
       const emailConnector = new EmailConnector();
-      const config = connector.configuration as any;
       
-      const result = await emailConnector.test(config);
+      const result = await emailConnector.test(emailConfig);
       
       return {
         success: result.success,
@@ -555,6 +581,7 @@ export class ConnectorManagementService {
         details: result.data,
       };
     } catch (error) {
+      console.error('🚨 Email connector test error:', error);
       return {
         success: false,
         message: error instanceof Error ? error.message : 'Email connector test failed',

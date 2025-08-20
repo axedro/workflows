@@ -53,15 +53,15 @@ export const ConnectorCard: React.FC<ConnectorCardProps> = ({
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
       <div className="p-6">
         {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <div className="text-2xl">{getConnectorIcon(connector.type)}</div>
-            <div>
+        <div className="flex items-start justify-between mb-4 gap-3">
+          <div className="flex items-center space-x-3 min-w-0 flex-1">
+            <div className="text-2xl flex-shrink-0">{getConnectorIcon(connector.type)}</div>
+            <div className="min-w-0 flex-1">
               <h3 className="font-medium text-gray-900 truncate">{connector.name}</h3>
-              <p className="text-sm text-gray-500">{getConnectorTypeLabel(connector.type)}</p>
+              <p className="text-sm text-gray-500 truncate">{getConnectorTypeLabel(connector.type)}</p>
             </div>
           </div>
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-1 flex-shrink-0">
             <button
               onClick={onTest}
               className="p-1 text-gray-400 hover:text-green-600 transition-colors"

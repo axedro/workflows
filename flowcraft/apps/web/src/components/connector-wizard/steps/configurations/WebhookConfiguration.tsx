@@ -13,11 +13,11 @@ export const WebhookConfiguration: React.FC<WebhookConfigurationProps> = ({
   const [activeTab, setActiveTab] = useState<'basic' | 'security' | 'advanced'>('basic');
 
   const updateField = (field: string, value: any) => {
-    onUpdate({ [field]: value });
+    onUpdate({ ...configuration, [field]: value });
   };
 
   const updateHeaders = (headers: Record<string, string>) => {
-    onUpdate({ headers });
+    onUpdate({ ...configuration, headers });
   };
 
   const addHeader = () => {

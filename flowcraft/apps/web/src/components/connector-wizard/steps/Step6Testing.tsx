@@ -41,7 +41,15 @@ export const Step6Testing: React.FC<Step6TestingProps> = ({ data, onUpdate, onFi
         configuration: testConfiguration,
       });
 
-      const result = await testConnectorMutation.mutateAsync(temp.id);
+      console.log('🔍 Step6Testing - temp response:', temp);
+      console.log('🔍 Step6Testing - temp.id:', temp.id);
+      console.log('🔍 Step6Testing - temp?.data?.id:', temp?.data?.id);
+      
+      // Handle different response formats
+      const connectorId = temp.id || temp.data?.id || temp;
+      console.log('🔍 Step6Testing - using connectorId:', connectorId);
+
+      const result = await testConnectorMutation.mutateAsync(connectorId);
       
       onUpdate({
         testResult: {
@@ -51,7 +59,7 @@ export const Step6Testing: React.FC<Step6TestingProps> = ({ data, onUpdate, onFi
         }
       });
       // Cleanup temporary connector
-      try { await deleteConnector.mutateAsync(temp.id); } catch {}
+      try { await deleteConnector.mutateAsync(connectorId); } catch {}
     } catch (error) {
       onUpdate({
         testResult: {
