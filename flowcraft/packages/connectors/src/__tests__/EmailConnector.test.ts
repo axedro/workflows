@@ -44,7 +44,7 @@ describe('EmailConnector', () => {
       
       await emailConnector.initialize(validEmailConfig);
       
-      expect(mockedNodemailer.createTransporter).toHaveBeenCalledWith({
+      expect(mockedNodemailer.createTransport).toHaveBeenCalledWith({
         host: 'smtp.gmail.com',
         port: 587,
         secure: false,
@@ -61,7 +61,7 @@ describe('EmailConnector', () => {
       mockTransporter.verify.mockRejectedValue(new Error('Invalid login'));
       
       await expect(emailConnector.initialize(invalidConfig)).rejects.toThrow('Invalid login');
-      expect(mockedNodemailer.createTransporter).toHaveBeenCalled();
+      expect(mockedNodemailer.createTransport).toHaveBeenCalled();
       expect(mockTransporter.verify).toHaveBeenCalled();
     });
 
@@ -228,7 +228,7 @@ describe('EmailConnector', () => {
       const result = await newConnector.execute(validEmailConfig);
       
       expect(result.success).toBe(true);
-      expect(mockedNodemailer.createTransporter).toHaveBeenCalled();
+      expect(mockedNodemailer.createTransport).toHaveBeenCalled();
       expect(mockTransporter.verify).toHaveBeenCalled();
       expect(mockTransporter.sendMail).toHaveBeenCalled();
     });

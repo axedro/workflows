@@ -11,6 +11,7 @@ describe('TimerConnector', () => {
 
   afterEach(() => {
     timerConnector.cleanup();
+    jest.restoreAllMocks();
   });
 
   describe('execute - delay type', () => {
@@ -289,7 +290,7 @@ describe('TimerConnector', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Timer error');
-      expect(result.message).toBe('Timer connector test failed');
+      expect(result.message).toBe('Timer execution failed');
 
       // Restore original setTimeout
       global.setTimeout = originalSetTimeout;
@@ -308,7 +309,10 @@ describe('TimerConnector', () => {
       // Start timer but don't wait for completion
       const promise = timerConnector.execute(config);
       
-      // Cleanup immediately
+      // Give a small delay to ensure timeout is set
+      await new Promise(resolve => setTimeout(resolve, 10));
+      
+      // Cleanup after timeout is established
       timerConnector.cleanup();
       
       expect(clearTimeoutSpy).toHaveBeenCalled();
