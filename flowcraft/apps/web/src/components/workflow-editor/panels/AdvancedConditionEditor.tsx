@@ -52,11 +52,6 @@ const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
   useEffect(() => {
     if (isInitialized) return; // Evitar reinicialización
     
-    console.log('AdvancedConditionEditor - Initializing with conditions from parent:', {
-      conditionsLength: conditions.length,
-      conditions
-    });
-    
     if (conditions.length > 0) {
       // Si ya hay condiciones, convertirlas a un grupo AND
       const rootGroup: ConditionGroup = {
@@ -106,20 +101,14 @@ const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
     }
     
     const flattened = flattenConditions(conditionTree);
-    console.log('AdvancedConditionEditor - Notifying parent of changes:', {
-      conditionTreeLength: conditionTree.length,
-      flattenedLength: flattened.length,
-      flattened,
-      isInitialized
-    });
     onConditionsChange(flattened);
-  }, [conditionTree, isInitialized]);
+  }, [conditionTree, isInitialized, onConditionsChange]);
 
   // Generar ID único
   const generateId = () => `condition_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
   // Agregar nueva condición
-  const addCondition = (parentId?: string) => {
+  const addCondition = useCallback((parentId?: string) => {
     const newCondition: ConditionItem = {
       id: generateId(),
       type: 'condition',
@@ -140,10 +129,10 @@ const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
     } else {
       setConditionTree(prev => [...prev, newCondition]);
     }
-  };
+  }, []);
 
   // Agregar nuevo grupo
-  const addGroup = (parentId?: string) => {
+  const addGroup = useCallback((parentId?: string) => {
     const newGroup: ConditionGroup = {
       id: generateId(),
       type: 'group',
@@ -164,7 +153,7 @@ const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
       setConditionTree(prev => [...prev, newGroup]);
     }
     setExpandedGroups(prev => new Set([...prev, newGroup.id]));
-  };
+  }, []);
 
   // Actualizar nodo en el árbol
   const updateNodeInTree = (

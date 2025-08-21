@@ -38,32 +38,14 @@ interface ActionNodeData extends BaseNodeData {
   };
 }
 
-const ActionNode: React.FC<NodeProps<ActionNodeData>> = ({ data, selected, type }) => {
+const ActionNode: React.FC<NodeProps<ActionNodeData>> = React.memo(({ data, selected, type }) => {
   const isValid = data.validation?.isValid ?? true;
-  
-  // Debug validation data
-  console.log('ActionNode render:', {
-    nodeId: data.label || 'unnamed',
-    isValid,
-    selected,
-    visualState: !isValid ? 
-      (selected ? 'INVALID + SELECTED (red border + blue ring)' : 'INVALID (red border + red ring)') :
-      (selected ? 'VALID + SELECTED (blue border + blue ring)' : 'VALID (blue border)')
-  });
   
   // Usar los puertos que se pasan en data, o obtenerlos del tipo de nodo como fallback
   const nodeType = type as NodeType;
   const inputPorts = data.inputPorts || getNodePorts(nodeType)?.filter(port => port.type === 'input') || [];
   const outputPorts = data.outputPorts || getNodePorts(nodeType)?.filter(port => port.type === 'output') || [];
   const defaultPorts = [...inputPorts, ...outputPorts];
-
-  // Debug logs
-  console.log('ActionNode - nodeType:', nodeType);
-  console.log('ActionNode - data.inputPorts:', data.inputPorts);
-  console.log('ActionNode - data.outputPorts:', data.outputPorts);
-  console.log('ActionNode - inputPorts:', inputPorts);
-  console.log('ActionNode - outputPorts:', outputPorts);
-  console.log('ActionNode - defaultPorts:', defaultPorts);
 
   
   // Configuración específica por tipo de acción
