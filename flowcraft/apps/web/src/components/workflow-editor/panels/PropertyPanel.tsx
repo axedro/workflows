@@ -1033,31 +1033,6 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             )}
           </div>
         );
-                rows={4}
-                disabled={readOnly}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Max Retries
-              </label>
-              <input
-                type="number"
-                value={slackData.maxRetries || 3}
-                onChange={e => handleInputChange('maxRetries', parseInt(e.target.value))}
-                min="0"
-                max="10"
-                disabled={readOnly}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-              />
-            </div>
-                </div>
-              </>
-            )}
-          </div>
-        );
 
       default:
         return null;
