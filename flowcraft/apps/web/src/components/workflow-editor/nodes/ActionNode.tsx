@@ -38,7 +38,7 @@ interface ActionNodeData extends BaseNodeData {
   };
 }
 
-const ActionNode: React.FC<NodeProps<ActionNodeData>> = React.memo(({ data, selected, type }) => {
+const ActionNode: React.FC<NodeProps<ActionNodeData>> = ({ data, selected, type }) => {
   const isValid = data.validation?.isValid ?? true;
   
   // Usar los puertos que se pasan en data, o obtenerlos del tipo de nodo como fallback
