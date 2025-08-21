@@ -4,6 +4,9 @@ import { EditorNode, NodeType, EditorEdge, DataFlow, DataType, DataField, getNod
 import ConnectorValidationService from '../../../services/connectorValidation.service';
 import ConditionEditor from './ConditionEditor';
 import DataConfigPanel from './DataConfigPanel';
+import { ConnectorIntegrationPanel } from './ConnectorIntegrationPanel';
+import { ConnectorWizardModal } from './ConnectorWizardModal';
+import { useConnectorIntegration } from '../../../hooks/useConnectorIntegration';
 
 interface PropertyPanelProps {
   selectedNode: EditorNode | null;
@@ -30,6 +33,27 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
   const [validationWarnings, setValidationWarnings] = useState<Record<string, string[]>>({});
+
+  // Connector integration for connector-compatible nodes
+  const connectorIntegration = useConnectorIntegration({
+    nodeType: selectedNode?.type || NodeType.START,
+    initialConnectorId: selectedNode?.data?.connectorId,
+    onConnectorDataChange: (connectorData: Record<string, any>) => {
+      // Populate node data with connector configuration
+      if (localNode && connectorData) {
+        const updatedNode = {
+          ...localNode,
+          data: {
+            ...localNode.data,
+            ...connectorData,
+            connectorId: connectorIntegration.selectedConnectorId,
+          }
+        };
+        setLocalNode(updatedNode);
+        setHasUnsavedChanges(true);
+      }
+    },
+  });
 
   // Función para generar campos anidados para objetos JSON
   const generateNestedFields = (fields: Record<string, DataField>): Record<string, DataField> => {
@@ -652,8 +676,53 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
 
       case NodeType.HTTP_REQUEST:
         const httpData = localNode.data as any; // Cast to any for now
+        const hasConnector = !!connectorIntegration.selectedConnectorId;
+        
         return (
-          <div className="space-y-3">
+          <div className="space-y-4">
+            {/* Connector Integration Panel */}
+            <ConnectorIntegrationPanel
+              nodeType={NodeType.HTTP_REQUEST}
+              selectedConnectorId={connectorIntegration.selectedConnectorId}
+              onConnectorSelect={(connectorId) => {
+                connectorIntegration.setSelectedConnectorId(connectorId);
+                handleInputChange('connectorId', connectorId);
+              }}
+              onCreateConnector={connectorIntegration.openWizard}
+              onEditConnector={connectorIntegration.openEditWizard}
+            />
+            
+            {hasConnector && (
+              <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                <div className="flex items-center">
+                  <span className="text-green-600 mr-2">✅</span>
+                  <span className="text-sm font-medium text-green-800">
+                    Configuración cargada desde el conector seleccionado
+                  </span>
+                </div>
+                <p className="text-xs text-green-600 mt-1">
+                  La configuración HTTP (método, URL, headers, etc.) se obtiene automáticamente del conector
+                </p>
+              </div>
+            )}
+            
+            {!hasConnector && (
+              <>
+                <hr className="border-gray-200" />
+                
+                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-4">
+                  <div className="flex items-center">
+                    <span className="text-yellow-600 mr-2">⚠️</span>
+                    <span className="text-sm font-medium text-yellow-800">
+                      Configuración Manual
+                    </span>
+                  </div>
+                  <p className="text-xs text-yellow-600 mt-1">
+                    Configura manualmente o selecciona un conector HTTP para obtener la configuración automáticamente
+                  </p>
+                </div>
+                
+                <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Method
@@ -758,13 +827,61 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 undefined
               )}
             </div>
+                </div>
+              </>
+            )}
           </div>
         );
 
       case NodeType.EMAIL:
         const emailData = localNode.data as any; // Cast to any for now
+        const hasEmailConnector = !!connectorIntegration.selectedConnectorId;
+        
         return (
-          <div className="space-y-3">
+          <div className="space-y-4">
+            {/* Connector Integration Panel */}
+            <ConnectorIntegrationPanel
+              nodeType={NodeType.EMAIL}
+              selectedConnectorId={connectorIntegration.selectedConnectorId}
+              onConnectorSelect={(connectorId) => {
+                connectorIntegration.setSelectedConnectorId(connectorId);
+                handleInputChange('connectorId', connectorId);
+              }}
+              onCreateConnector={connectorIntegration.openWizard}
+              onEditConnector={connectorIntegration.openEditWizard}
+            />
+            
+            {hasEmailConnector && (
+              <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                <div className="flex items-center">
+                  <span className="text-green-600 mr-2">✅</span>
+                  <span className="text-sm font-medium text-green-800">
+                    Configuración de email cargada desde el conector
+                  </span>
+                </div>
+                <p className="text-xs text-green-600 mt-1">
+                  Configuración SMTP y credenciales obtenidas automáticamente
+                </p>
+              </div>
+            )}
+            
+            {!hasEmailConnector && (
+              <>
+                <hr className="border-gray-200" />
+                
+                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-4">
+                  <div className="flex items-center">
+                    <span className="text-yellow-600 mr-2">⚠️</span>
+                    <span className="text-sm font-medium text-yellow-800">
+                      Configuración Manual de Email
+                    </span>
+                  </div>
+                  <p className="text-xs text-yellow-600 mt-1">
+                    Configura manualmente o selecciona un conector de Email para obtener la configuración automáticamente
+                  </p>
+                </div>
+                
+                <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 To
@@ -851,13 +968,61 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
               />
             </div>
+                </div>
+              </>
+            )}
           </div>
         );
 
       case NodeType.SLACK:
         const slackData = localNode.data as any; // Cast to any for now
+        const hasSlackConnector = !!connectorIntegration.selectedConnectorId;
+        
         return (
-          <div className="space-y-3">
+          <div className="space-y-4">
+            {/* Connector Integration Panel */}
+            <ConnectorIntegrationPanel
+              nodeType={NodeType.SLACK}
+              selectedConnectorId={connectorIntegration.selectedConnectorId}
+              onConnectorSelect={(connectorId) => {
+                connectorIntegration.setSelectedConnectorId(connectorId);
+                handleInputChange('connectorId', connectorId);
+              }}
+              onCreateConnector={connectorIntegration.openWizard}
+              onEditConnector={connectorIntegration.openEditWizard}
+            />
+            
+            {hasSlackConnector && (
+              <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                <div className="flex items-center">
+                  <span className="text-green-600 mr-2">✅</span>
+                  <span className="text-sm font-medium text-green-800">
+                    Configuración de Slack cargada desde el conector
+                  </span>
+                </div>
+                <p className="text-xs text-green-600 mt-1">
+                  Token de acceso y configuración obtenidos automáticamente
+                </p>
+              </div>
+            )}
+            
+            {!hasSlackConnector && (
+              <>
+                <hr className="border-gray-200" />
+                
+                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-4">
+                  <div className="flex items-center">
+                    <span className="text-yellow-600 mr-2">⚠️</span>
+                    <span className="text-sm font-medium text-yellow-800">
+                      Configuración Manual de Slack
+                    </span>
+                  </div>
+                  <p className="text-xs text-yellow-600 mt-1">
+                    Configura manualmente o selecciona un conector de Slack para obtener la configuración automáticamente
+                  </p>
+                </div>
+                
+                <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Channel
@@ -922,6 +1087,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
               />
             </div>
+                </div>
+              </>
+            )}
           </div>
         );
 
@@ -1108,6 +1276,18 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
           )}
         </div>
       </div>
+
+      {/* Connector Wizard Modal */}
+      <ConnectorWizardModal
+        isOpen={connectorIntegration.isWizardOpen}
+        onClose={connectorIntegration.closeWizard}
+        onConnectorCreated={(connectorId) => {
+          connectorIntegration.setSelectedConnectorId(connectorId);
+          handleInputChange('connectorId', connectorId);
+          connectorIntegration.closeWizard();
+        }}
+        editingConnectorId={connectorIntegration.editingConnectorId}
+      />
     </div>
   );
 };

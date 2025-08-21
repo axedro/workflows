@@ -201,7 +201,28 @@ export class UnifiedValidationService {
     const issues: ValidationIssue[] = [];
     const data = node.data as any;
 
-    // URL validation
+    // Check if connector is being used
+    if (data.connectorId) {
+      // When using a connector, we validate the connector exists and is active
+      // The actual HTTP configuration comes from the connector
+      if (!data.connectorId.trim()) {
+        issues.push({
+          id: `http-connector-empty-${node.id}`,
+          type: 'error',
+          code: 'EMPTY_CONNECTOR_ID',
+          message: 'Connector ID cannot be empty',
+          nodeId: node.id,
+          field: 'connectorId',
+          category: 'field'
+        });
+      }
+      // TODO: Add validation to check if connector exists and is active
+      // This would require access to the connector data, which might need to be passed as a parameter
+      
+      return issues; // Skip manual field validation when using connector
+    }
+
+    // Manual configuration validation (when no connector is selected)
     if (!data.url || typeof data.url !== 'string') {
       issues.push({
         id: `http-url-missing-${node.id}`,
@@ -270,7 +291,26 @@ export class UnifiedValidationService {
     const issues: ValidationIssue[] = [];
     const data = node.data as any;
 
-    // Email address validation
+    // Check if connector is being used
+    if (data.connectorId) {
+      // When using a connector, we validate the connector exists and is active
+      // The actual email configuration comes from the connector
+      if (!data.connectorId.trim()) {
+        issues.push({
+          id: `email-connector-empty-${node.id}`,
+          type: 'error',
+          code: 'EMPTY_CONNECTOR_ID',
+          message: 'Connector ID cannot be empty',
+          nodeId: node.id,
+          field: 'connectorId',
+          category: 'field'
+        });
+      }
+      
+      return issues; // Skip manual field validation when using connector
+    }
+
+    // Manual configuration validation (when no connector is selected)
     if (!data.to || typeof data.to !== 'string') {
       issues.push({
         id: `email-to-missing-${node.id}`,
@@ -319,6 +359,26 @@ export class UnifiedValidationService {
     const issues: ValidationIssue[] = [];
     const data = node.data as any;
 
+    // Check if connector is being used
+    if (data.connectorId) {
+      // When using a connector, we validate the connector exists and is active
+      // The actual Slack configuration comes from the connector
+      if (!data.connectorId.trim()) {
+        issues.push({
+          id: `slack-connector-empty-${node.id}`,
+          type: 'error',
+          code: 'EMPTY_CONNECTOR_ID',
+          message: 'Connector ID cannot be empty',
+          nodeId: node.id,
+          field: 'connectorId',
+          category: 'field'
+        });
+      }
+      
+      return issues; // Skip manual field validation when using connector
+    }
+
+    // Manual configuration validation (when no connector is selected)
     // Channel validation
     if (!data.channel || typeof data.channel !== 'string') {
       issues.push({

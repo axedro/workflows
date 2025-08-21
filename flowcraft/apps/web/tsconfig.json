@@ -15,12 +15,14 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    "types": ["@testing-library/jest-dom"],
     "paths": {
       "reactflow": ["../../node_modules/reactflow"],
       "@flowcraft/shared-types": ["../../packages/shared-types/src"],
       "@flowcraft/ui": ["../../packages/ui/src"]
     }
   },
-  "include": ["src", "src/**/*", "src/**/*.d.ts"],
+  "include": ["src", "src/**/*", "src/**/*.d.ts", "src/types/jest-dom.d.ts"],
+  "exclude": ["src/**/*.test.tsx", "src/**/*.test.ts", "src/__tests__/**/*"],
   "references": [{ "path": "./tsconfig.node.json" }]
 } 

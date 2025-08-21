@@ -127,7 +127,7 @@ export const ConnectorWizard: React.FC<ConnectorWizardProps> = ({
         // Create new connector
         result = await createConnector.mutateAsync(connectorData);
       }
-      onSuccess(result.id || result.data?.id || 'unknown');
+      onSuccess((result as any).id || (result as any).data?.id || 'unknown');
       onClose();
       
       // Reset wizard state
