@@ -415,16 +415,46 @@ export class UnifiedValidationService {
     const issues: ValidationIssue[] = [];
     const data = node.data as any;
 
-    // Condition expression validation
-    if (!data.condition || typeof data.condition !== 'string' || data.condition.trim().length === 0) {
+    // New advanced condition system validation
+    const dataConditions = data.dataConditions || [];
+    
+    // Check if there are any conditions defined
+    if (dataConditions.length === 0) {
       issues.push({
         id: `condition-expression-missing-${node.id}`,
         type: 'error',
         code: 'MISSING_CONDITION',
-        message: 'Condition expression is required',
+        message: 'At least one condition is required',
         nodeId: node.id,
-        field: 'condition',
+        field: 'dataConditions',
         category: 'field'
+      });
+    } else {
+      // Validate each condition
+      dataConditions.forEach((condition: any, index: number) => {
+        if (!condition.field || condition.field.trim() === '') {
+          issues.push({
+            id: `condition-field-missing-${node.id}-${index}`,
+            type: 'error',
+            code: 'MISSING_CONDITION_FIELD',
+            message: `Condition ${index + 1}: Field is required`,
+            nodeId: node.id,
+            field: `dataConditions[${index}].field`,
+            category: 'field'
+          });
+        }
+        
+        if (condition.value === undefined || condition.value === null || condition.value === '') {
+          issues.push({
+            id: `condition-value-missing-${node.id}-${index}`,
+            type: 'error',
+            code: 'MISSING_CONDITION_VALUE',
+            message: `Condition ${index + 1}: Value is required`,
+            nodeId: node.id,
+            field: `dataConditions[${index}].value`,
+            category: 'field'
+          });
+        }
       });
     }
 
