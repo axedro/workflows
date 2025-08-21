@@ -255,11 +255,27 @@ const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
     const fieldValue = previewData[condition.field];
     const conditionValue = condition.value;
 
+    // Obtener el tipo de campo para comparaciones inteligentes
+    const fieldType = availableFields[condition.field]?.type || DataType.STRING;
+
     switch (condition.operator) {
       case ConditionOperator.EQUALS:
-        return fieldValue === conditionValue;
+        // Comparación inteligente basada en el tipo de campo
+        if (fieldType === DataType.NUMBER) {
+          return Number(fieldValue) === Number(conditionValue);
+        } else if (fieldType === DataType.BOOLEAN) {
+          return Boolean(fieldValue) === Boolean(conditionValue);
+        } else {
+          return String(fieldValue) === String(conditionValue);
+        }
       case ConditionOperator.NOT_EQUALS:
-        return fieldValue !== conditionValue;
+        if (fieldType === DataType.NUMBER) {
+          return Number(fieldValue) !== Number(conditionValue);
+        } else if (fieldType === DataType.BOOLEAN) {
+          return Boolean(fieldValue) !== Boolean(conditionValue);
+        } else {
+          return String(fieldValue) !== String(conditionValue);
+        }
       case ConditionOperator.GREATER_THAN:
         return Number(fieldValue) > Number(conditionValue);
       case ConditionOperator.LESS_THAN:
