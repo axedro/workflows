@@ -48,6 +48,11 @@ const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
 
   // Convertir condiciones simples a árbol de condiciones
   useEffect(() => {
+    console.log('AdvancedConditionEditor - Received conditions from parent:', {
+      conditionsLength: conditions.length,
+      conditions
+    });
+    
     if (conditions.length > 0) {
       // Si ya hay condiciones, convertirlas a un grupo AND
       const rootGroup: ConditionGroup = {
@@ -62,7 +67,7 @@ const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
     } else {
       setConditionTree([]);
     }
-  }, []);
+  }, [conditions]);
 
   // Convertir árbol de condiciones a formato simple para el backend
   const flattenConditions = (nodes: ConditionNode[]): DataCondition[] => {
@@ -90,6 +95,11 @@ const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
   // Notificar cambios al componente padre
   useEffect(() => {
     const flattened = flattenConditions(conditionTree);
+    console.log('AdvancedConditionEditor - Notifying parent of changes:', {
+      conditionTreeLength: conditionTree.length,
+      flattenedLength: flattened.length,
+      flattened
+    });
     onConditionsChange(flattened);
   }, [conditionTree]);
 

@@ -639,14 +639,27 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
         const conditionInputSchema = getNodeInputSchema(localNode.id, nodes, edges);
         const availableFields = generateNestedFields(conditionInputSchema);
         
+        console.log('PropertyPanel - Condition node data:', {
+          nodeId: localNode.id,
+          dataConditions: conditionData.dataConditions,
+          hasDataConditions: !!conditionData.dataConditions,
+          dataConditionsLength: conditionData.dataConditions?.length || 0
+        });
+        
         return (
           <div className="space-y-3">
             <AdvancedConditionEditor
+              key={`condition-editor-${localNode.id}-${JSON.stringify(conditionData.dataConditions)}`}
               conditions={conditionData.dataConditions || []}
               availableFields={availableFields}
-              onConditionsChange={(newConditions) => 
-                handleInputChange('dataConditions', newConditions)
-              }
+              onConditionsChange={(newConditions) => {
+                console.log('PropertyPanel - Conditions changed:', {
+                  nodeId: localNode.id,
+                  newConditions,
+                  newConditionsLength: newConditions.length
+                });
+                handleInputChange('dataConditions', newConditions);
+              }}
               className=""
             />
           </div>
