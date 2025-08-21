@@ -102,7 +102,7 @@ const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
     
     const flattened = flattenConditions(conditionTree);
     onConditionsChange(flattened);
-  }, [conditionTree, isInitialized, onConditionsChange]);
+  }, [conditionTree, isInitialized]); // Remover onConditionsChange de las dependencias
 
   // Generar ID único
   const generateId = () => `condition_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

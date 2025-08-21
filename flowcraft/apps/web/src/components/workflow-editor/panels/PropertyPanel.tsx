@@ -645,9 +645,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
               key={`condition-editor-${localNode.id}`}
               conditions={conditionData.dataConditions || []}
               availableFields={availableFields}
-              onConditionsChange={(newConditions) => {
-                handleInputChange('dataConditions', newConditions);
-              }}
+              onConditionsChange={handleInputChange.bind(null, 'dataConditions')}
               className=""
             />
           </div>
