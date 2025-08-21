@@ -418,6 +418,21 @@ export class ExecutionEngine {
         case 'http_request':
           return this.executeHttpRequestNode(node, context);
         
+        case 'email':
+          return this.executeEmailNode(node, context);
+        
+        case 'webhook':
+          return this.executeWebhookNode(node, context);
+        
+        case 'timer':
+          return this.executeTimerNode(node, context);
+        
+        case 'data_transform':
+          return this.executeDataTransformNode(node, context);
+        
+        case 'slack':
+          return this.executeSlackNode(node, context);
+        
         default:
           logger.warn({ nodeType: node.type }, 'Unknown node type, skipping');
           return {
@@ -427,6 +442,412 @@ export class ExecutionEngine {
           };
       }
     } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        duration: Date.now() - startTime
+      };
+    }
+  }
+
+  /**
+   * Execute Email node
+   */
+  private async executeEmailNode(
+    node: EditorNode, 
+    context: ExecutionContext
+  ): Promise<ExecutionResult> {
+    const startTime = Date.now();
+    const nodeData = node.data as any;
+
+    try {
+      // Check if connector is configured
+      if (!nodeData.connectorId) {
+        throw new Error('Email node requires a connector to be selected');
+      }
+
+      // Get connector configuration from database
+      const connector = await prisma.connector.findUnique({
+        where: { id: nodeData.connectorId }
+      });
+
+      if (!connector) {
+        throw new Error(`Connector not found: ${nodeData.connectorId}`);
+      }
+
+      if (!connector.isActive) {
+        throw new Error(`Connector is not active: ${connector.name}`);
+      }
+
+      // Parse connector configuration
+      const connectorConfig = connector.configuration as any;
+      
+      // Validate connector configuration
+      if (!connectorConfig.smtpHost || !connectorConfig.smtpPort) {
+        throw new Error(`Connector ${connector.name} is missing SMTP configuration`);
+      }
+
+      logger.info({ 
+        nodeId: node.id, 
+        connectorId: nodeData.connectorId,
+        connectorName: connector.name,
+        smtpHost: connectorConfig.smtpHost
+      }, 'Executing Email with connector');
+
+      // For now, return success with connector info
+      // TODO: Implement actual email sending logic
+      const result = {
+        connectorId: nodeData.connectorId,
+        connectorName: connector.name,
+        smtpHost: connectorConfig.smtpHost,
+        smtpPort: connectorConfig.smtpPort,
+        success: true,
+        message: 'Email configuration loaded from connector'
+      };
+
+      logger.info({ 
+        nodeId: node.id, 
+        connectorId: nodeData.connectorId,
+        success: result.success 
+      }, 'Email execution completed');
+
+      return {
+        success: result.success,
+        data: result,
+        duration: Date.now() - startTime
+      };
+
+    } catch (error) {
+      logger.error({ 
+        nodeId: node.id, 
+        connectorId: nodeData.connectorId,
+        error: error instanceof Error ? error.message : String(error) 
+      }, 'Email execution failed');
+      
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        duration: Date.now() - startTime
+      };
+    }
+  }
+
+  /**
+   * Execute Webhook node
+   */
+  private async executeWebhookNode(
+    node: EditorNode, 
+    context: ExecutionContext
+  ): Promise<ExecutionResult> {
+    const startTime = Date.now();
+    const nodeData = node.data as any;
+
+    try {
+      // Check if connector is configured
+      if (!nodeData.connectorId) {
+        throw new Error('Webhook node requires a connector to be selected');
+      }
+
+      // Get connector configuration from database
+      const connector = await prisma.connector.findUnique({
+        where: { id: nodeData.connectorId }
+      });
+
+      if (!connector) {
+        throw new Error(`Connector not found: ${nodeData.connectorId}`);
+      }
+
+      if (!connector.isActive) {
+        throw new Error(`Connector is not active: ${connector.name}`);
+      }
+
+      // Parse connector configuration
+      const connectorConfig = connector.configuration as any;
+      
+      // Validate connector configuration
+      if (!connectorConfig.url) {
+        throw new Error(`Connector ${connector.name} is missing URL configuration`);
+      }
+
+      logger.info({ 
+        nodeId: node.id, 
+        connectorId: nodeData.connectorId,
+        connectorName: connector.name,
+        url: connectorConfig.url
+      }, 'Executing Webhook with connector');
+
+      // For now, return success with connector info
+      // TODO: Implement actual webhook logic
+      const result = {
+        connectorId: nodeData.connectorId,
+        connectorName: connector.name,
+        url: connectorConfig.url,
+        method: connectorConfig.method || 'POST',
+        success: true,
+        message: 'Webhook configuration loaded from connector'
+      };
+
+      logger.info({ 
+        nodeId: node.id, 
+        connectorId: nodeData.connectorId,
+        success: result.success 
+      }, 'Webhook execution completed');
+
+      return {
+        success: result.success,
+        data: result,
+        duration: Date.now() - startTime
+      };
+
+    } catch (error) {
+      logger.error({ 
+        nodeId: node.id, 
+        connectorId: nodeData.connectorId,
+        error: error instanceof Error ? error.message : String(error) 
+      }, 'Webhook execution failed');
+      
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        duration: Date.now() - startTime
+      };
+    }
+  }
+
+  /**
+   * Execute Timer node
+   */
+  private async executeTimerNode(
+    node: EditorNode, 
+    context: ExecutionContext
+  ): Promise<ExecutionResult> {
+    const startTime = Date.now();
+    const nodeData = node.data as any;
+
+    try {
+      // Check if connector is configured
+      if (!nodeData.connectorId) {
+        throw new Error('Timer node requires a connector to be selected');
+      }
+
+      // Get connector configuration from database
+      const connector = await prisma.connector.findUnique({
+        where: { id: nodeData.connectorId }
+      });
+
+      if (!connector) {
+        throw new Error(`Connector not found: ${nodeData.connectorId}`);
+      }
+
+      if (!connector.isActive) {
+        throw new Error(`Connector is not active: ${connector.name}`);
+      }
+
+      // Parse connector configuration
+      const connectorConfig = connector.configuration as any;
+      
+      // Validate connector configuration
+      if (!connectorConfig.schedule) {
+        throw new Error(`Connector ${connector.name} is missing schedule configuration`);
+      }
+
+      logger.info({ 
+        nodeId: node.id, 
+        connectorId: nodeData.connectorId,
+        connectorName: connector.name,
+        schedule: connectorConfig.schedule
+      }, 'Executing Timer with connector');
+
+      // For now, return success with connector info
+      // TODO: Implement actual timer logic
+      const result = {
+        connectorId: nodeData.connectorId,
+        connectorName: connector.name,
+        schedule: connectorConfig.schedule,
+        success: true,
+        message: 'Timer configuration loaded from connector'
+      };
+
+      logger.info({ 
+        nodeId: node.id, 
+        connectorId: nodeData.connectorId,
+        success: result.success 
+      }, 'Timer execution completed');
+
+      return {
+        success: result.success,
+        data: result,
+        duration: Date.now() - startTime
+      };
+
+    } catch (error) {
+      logger.error({ 
+        nodeId: node.id, 
+        connectorId: nodeData.connectorId,
+        error: error instanceof Error ? error.message : String(error) 
+      }, 'Timer execution failed');
+      
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        duration: Date.now() - startTime
+      };
+    }
+  }
+
+  /**
+   * Execute Data Transform node
+   */
+  private async executeDataTransformNode(
+    node: EditorNode, 
+    context: ExecutionContext
+  ): Promise<ExecutionResult> {
+    const startTime = Date.now();
+    const nodeData = node.data as any;
+
+    try {
+      // Check if connector is configured
+      if (!nodeData.connectorId) {
+        throw new Error('Data Transform node requires a connector to be selected');
+      }
+
+      // Get connector configuration from database
+      const connector = await prisma.connector.findUnique({
+        where: { id: nodeData.connectorId }
+      });
+
+      if (!connector) {
+        throw new Error(`Connector not found: ${nodeData.connectorId}`);
+      }
+
+      if (!connector.isActive) {
+        throw new Error(`Connector is not active: ${connector.name}`);
+      }
+
+      // Parse connector configuration
+      const connectorConfig = connector.configuration as any;
+      
+      // Validate connector configuration
+      if (!connectorConfig.transformations) {
+        throw new Error(`Connector ${connector.name} is missing transformations configuration`);
+      }
+
+      logger.info({ 
+        nodeId: node.id, 
+        connectorId: nodeData.connectorId,
+        connectorName: connector.name
+      }, 'Executing Data Transform with connector');
+
+      // For now, return success with connector info
+      // TODO: Implement actual data transformation logic
+      const result = {
+        connectorId: nodeData.connectorId,
+        connectorName: connector.name,
+        transformations: connectorConfig.transformations,
+        inputData: context.input,
+        success: true,
+        message: 'Data Transform configuration loaded from connector'
+      };
+
+      logger.info({ 
+        nodeId: node.id, 
+        connectorId: nodeData.connectorId,
+        success: result.success 
+      }, 'Data Transform execution completed');
+
+      return {
+        success: result.success,
+        data: result,
+        duration: Date.now() - startTime
+      };
+
+    } catch (error) {
+      logger.error({ 
+        nodeId: node.id, 
+        connectorId: nodeData.connectorId,
+        error: error instanceof Error ? error.message : String(error) 
+      }, 'Data Transform execution failed');
+      
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        duration: Date.now() - startTime
+      };
+    }
+  }
+
+  /**
+   * Execute Slack node
+   */
+  private async executeSlackNode(
+    node: EditorNode, 
+    context: ExecutionContext
+  ): Promise<ExecutionResult> {
+    const startTime = Date.now();
+    const nodeData = node.data as any;
+
+    try {
+      // Check if connector is configured
+      if (!nodeData.connectorId) {
+        throw new Error('Slack node requires a connector to be selected');
+      }
+
+      // Get connector configuration from database
+      const connector = await prisma.connector.findUnique({
+        where: { id: nodeData.connectorId }
+      });
+
+      if (!connector) {
+        throw new Error(`Connector not found: ${nodeData.connectorId}`);
+      }
+
+      if (!connector.isActive) {
+        throw new Error(`Connector is not active: ${connector.name}`);
+      }
+
+      // Parse connector configuration
+      const connectorConfig = connector.configuration as any;
+      
+      // Validate connector configuration
+      if (!connectorConfig.token) {
+        throw new Error(`Connector ${connector.name} is missing Slack token configuration`);
+      }
+
+      logger.info({ 
+        nodeId: node.id, 
+        connectorId: nodeData.connectorId,
+        connectorName: connector.name
+      }, 'Executing Slack with connector');
+
+      // For now, return success with connector info
+      // TODO: Implement actual Slack API logic
+      const result = {
+        connectorId: nodeData.connectorId,
+        connectorName: connector.name,
+        workspace: connectorConfig.workspace,
+        success: true,
+        message: 'Slack configuration loaded from connector'
+      };
+
+      logger.info({ 
+        nodeId: node.id, 
+        connectorId: nodeData.connectorId,
+        success: result.success 
+      }, 'Slack execution completed');
+
+      return {
+        success: result.success,
+        data: result,
+        duration: Date.now() - startTime
+      };
+
+    } catch (error) {
+      logger.error({ 
+        nodeId: node.id, 
+        connectorId: nodeData.connectorId,
+        error: error instanceof Error ? error.message : String(error) 
+      }, 'Slack execution failed');
+      
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
@@ -472,12 +893,14 @@ export class ExecutionEngine {
   /**
    * Execute HTTP Request node
    */
-  private async executeHttpRequestNode(node: EditorNode, context: ExecutionContext): Promise<ExecutionResult> {
+  private async executeHttpRequestNode(
+    node: EditorNode, 
+    context: ExecutionContext
+  ): Promise<ExecutionResult> {
     const startTime = Date.now();
-    const nodeData = node.data as any;
-    // Abort controller for HTTP request
     const controller = new AbortController();
     const signal = controller.signal;
+    const nodeData = node.data as any;
 
     try {
       // Register controller for this execution
@@ -485,44 +908,68 @@ export class ExecutionEngine {
         ExecutionEngine.activeControllers.set(context.executionId, new Set());
       }
       ExecutionEngine.activeControllers.get(context.executionId)!.add(controller);
+      
       // If already cancelled, abort immediately
       if (ExecutionEngine.cancelledExecutions.has(context.executionId)) {
         controller.abort();
       }
-      // Validate required configuration
-      if (!nodeData.url) {
-        throw new Error('HTTP Request node requires a URL');
+
+      // Check if connector is configured
+      if (!nodeData.connectorId) {
+        throw new Error('HTTP Request node requires a connector to be selected');
       }
 
-      // Build request configuration
+      // Get connector configuration from database
+      const connector = await prisma.connector.findUnique({
+        where: { id: nodeData.connectorId }
+      });
+
+      if (!connector) {
+        throw new Error(`Connector not found: ${nodeData.connectorId}`);
+      }
+
+      if (!connector.isActive) {
+        throw new Error(`Connector is not active: ${connector.name}`);
+      }
+
+      // Parse connector configuration
+      const connectorConfig = connector.configuration as any;
+      
+      // Validate connector configuration
+      if (!connectorConfig.url) {
+        throw new Error(`Connector ${connector.name} is missing URL configuration`);
+      }
+
+      // Build request configuration from connector
       const requestConfig: any = {
-        method: nodeData.method || 'GET',
-        url: nodeData.url,
-        timeout: nodeData.timeout || 30000,
+        method: connectorConfig.method || 'GET',
+        url: connectorConfig.url,
+        timeout: connectorConfig.timeout || 30000,
         headers: {
           'Content-Type': 'application/json',
-          ...nodeData.headers
+          'User-Agent': 'FlowCraft-HTTP-Connector/1.0',
+          ...connectorConfig.headers
         },
         signal
       };
 
       // Add request body for POST, PUT, PATCH methods
       if (['POST', 'PUT', 'PATCH'].includes(requestConfig.method.toUpperCase())) {
-        if (nodeData.body) {
-          requestConfig.data = nodeData.body;
+        if (connectorConfig.body) {
+          requestConfig.data = connectorConfig.body;
         } else if (context.input && Object.keys(context.input).length > 0) {
           requestConfig.data = context.input;
         }
       }
 
-      // Add query parameters
-      if (nodeData.params) {
-        requestConfig.params = nodeData.params;
+      // Add query parameters from connector
+      if (connectorConfig.params) {
+        requestConfig.params = connectorConfig.params;
       }
 
-      // Add authentication if configured
-      if (nodeData.authentication) {
-        const auth = nodeData.authentication;
+      // Add authentication from connector
+      if (connectorConfig.authentication) {
+        const auth = connectorConfig.authentication;
         switch (auth.type) {
           case 'bearer':
             requestConfig.headers.Authorization = `Bearer ${auth.token}`;
@@ -540,9 +987,11 @@ export class ExecutionEngine {
 
       logger.info({ 
         nodeId: node.id, 
+        connectorId: nodeData.connectorId,
+        connectorName: connector.name,
         method: requestConfig.method, 
         url: requestConfig.url 
-      }, 'Executing HTTP request');
+      }, 'Executing HTTP request with connector');
 
       const response = await axios(requestConfig);
 
@@ -552,11 +1001,14 @@ export class ExecutionEngine {
         data: response.data,
         headers: response.headers,
         url: response.config.url,
+        connectorId: nodeData.connectorId,
+        connectorName: connector.name,
         success: response.status >= 200 && response.status < 300
       };
 
       logger.info({ 
         nodeId: node.id, 
+        connectorId: nodeData.connectorId,
         status: response.status, 
         success: result.success 
       }, 'HTTP request completed');
@@ -575,6 +1027,7 @@ export class ExecutionEngine {
       ExecutionEngine.activeControllers.get(context.executionId)?.delete(controller);
       logger.error({ 
         nodeId: node.id, 
+        connectorId: nodeData.connectorId,
         error: error instanceof Error ? error.message : String(error) 
       }, 'HTTP request failed');
 

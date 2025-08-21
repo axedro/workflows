@@ -675,7 +675,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
         );
 
       case NodeType.HTTP_REQUEST:
-        const httpData = localNode.data as any; // Cast to any for now
+        const httpData = localNode.data as any;
         const hasConnector = !!connectorIntegration.selectedConnectorId;
         
         return (
@@ -707,134 +707,35 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             )}
             
             {!hasConnector && (
-              <>
-                <hr className="border-gray-200" />
-                
-                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-4">
-                  <div className="flex items-center">
-                    <span className="text-yellow-600 mr-2">⚠️</span>
-                    <span className="text-sm font-medium text-yellow-800">
-                      Configuración Manual
-                    </span>
-                  </div>
-                  <p className="text-xs text-yellow-600 mt-1">
-                    Configura manualmente o selecciona un conector HTTP para obtener la configuración automáticamente
-                  </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-6 text-center">
+                <div className="text-blue-600 mb-3">
+                  <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
                 </div>
-                
-                <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Method
-              </label>
-              {renderFieldWithValidation(
-                'method',
-                httpData.method || 'GET',
-                (value) => handleInputChange('method', value),
-                'select',
-                undefined,
-                [
-                  { value: 'GET', label: 'GET' },
-                  { value: 'POST', label: 'POST' },
-                  { value: 'PUT', label: 'PUT' },
-                  { value: 'DELETE', label: 'DELETE' },
-                  { value: 'PATCH', label: 'PATCH' }
-                ]
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                URL
-              </label>
-              {renderFieldWithValidation(
-                'url',
-                httpData.url || '',
-                (value) => handleInputChange('url', value),
-                'url',
-                'https://api.example.com/endpoint'
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Headers
-              </label>
-              <textarea
-                value={httpData.headers ? JSON.stringify(httpData.headers, null, 2) : '{\n  "Content-Type": "application/json"\n}'}
-                onChange={e => {
-                  try {
-                    const headers = JSON.parse(e.target.value);
-                    handleInputChange('headers', headers);
-                  } catch (error) {
-                    // Keep the raw text if it's not valid JSON
-                    handleInputChange('headers', e.target.value);
-                  }
-                }}
-                placeholder='{\n  "Content-Type": "application/json",\n  "Authorization": "Bearer token"\n}'
-                rows={4}
-                disabled={readOnly}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Body
-              </label>
-              <textarea
-                value={httpData.body ? JSON.stringify(httpData.body, null, 2) : ''}
-                onChange={e => {
-                  try {
-                    const body = JSON.parse(e.target.value);
-                    handleInputChange('body', body);
-                  } catch (error) {
-                    // Keep the raw text if it's not valid JSON
-                    handleInputChange('body', e.target.value);
-                  }
-                }}
-                placeholder='{\n  "key": "value",\n  "data": "example"\n}'
-                rows={4}
-                disabled={readOnly}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Max Retries
-              </label>
-              {renderFieldWithValidation(
-                'maxRetries',
-                httpData.maxRetries || 3,
-                (value) => handleInputChange('maxRetries', parseInt(value)),
-                'number',
-                undefined,
-                undefined
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Timeout (ms)
-              </label>
-              {renderFieldWithValidation(
-                'timeout',
-                httpData.timeout || 30000,
-                (value) => handleInputChange('timeout', parseInt(value)),
-                'number',
-                undefined,
-                undefined
-              )}
-            </div>
-                </div>
-              </>
+                <h4 className="text-sm font-medium text-blue-900 mb-2">
+                  Conector HTTP Requerido
+                </h4>
+                <p className="text-sm text-blue-700 mb-4">
+                  Para usar este nodo HTTP, necesitas seleccionar o crear un conector HTTP.
+                  Los conectores contienen toda la configuración necesaria (URL, método, headers, etc.).
+                </p>
+                <button
+                  onClick={connectorIntegration.openWizard}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Crear Conector HTTP
+                </button>
+              </div>
             )}
           </div>
         );
 
       case NodeType.EMAIL:
-        const emailData = localNode.data as any; // Cast to any for now
+        const emailData = localNode.data as any;
         const hasEmailConnector = !!connectorIntegration.selectedConnectorId;
         
         return (
@@ -866,116 +767,35 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             )}
             
             {!hasEmailConnector && (
-              <>
-                <hr className="border-gray-200" />
-                
-                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-4">
-                  <div className="flex items-center">
-                    <span className="text-yellow-600 mr-2">⚠️</span>
-                    <span className="text-sm font-medium text-yellow-800">
-                      Configuración Manual de Email
-                    </span>
-                  </div>
-                  <p className="text-xs text-yellow-600 mt-1">
-                    Configura manualmente o selecciona un conector de Email para obtener la configuración automáticamente
-                  </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-6 text-center">
+                <div className="text-blue-600 mb-3">
+                  <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
                 </div>
-                
-                <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                To
-              </label>
-              <textarea
-                value={emailData.to ? JSON.stringify(emailData.to, null, 2) : ''}
-                onChange={e => {
-                  try {
-                    const to = JSON.parse(e.target.value);
-                    handleInputChange('to', to);
-                  } catch (error) {
-                    // Keep the raw text if it's not valid JSON
-                    handleInputChange('to', e.target.value);
-                  }
-                }}
-                placeholder='[\n  "recipient@example.com",\n  "another@example.com"\n]'
-                rows={3}
-                disabled={readOnly}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                CC
-              </label>
-              <textarea
-                value={emailData.cc ? JSON.stringify(emailData.cc, null, 2) : ''}
-                onChange={e => {
-                  try {
-                    const cc = JSON.parse(e.target.value);
-                    handleInputChange('cc', cc);
-                  } catch (error) {
-                    handleInputChange('cc', e.target.value);
-                  }
-                }}
-                placeholder='[\n  "cc@example.com"\n]'
-                rows={2}
-                disabled={readOnly}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Subject
-              </label>
-              <input
-                type="text"
-                value={emailData.subject || ''}
-                onChange={e => handleInputChange('subject', e.target.value)}
-                placeholder="Email subject"
-                disabled={readOnly}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Body
-              </label>
-              <textarea
-                value={emailData.emailBody || ''}
-                onChange={e => handleInputChange('emailBody', e.target.value)}
-                placeholder="Email body content..."
-                rows={6}
-                disabled={readOnly}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-                data-field="emailBody"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Max Retries
-              </label>
-              <input
-                type="number"
-                value={emailData.maxRetries || 3}
-                onChange={e => handleInputChange('maxRetries', parseInt(e.target.value))}
-                min="0"
-                max="10"
-                disabled={readOnly}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-              />
-            </div>
-                </div>
-              </>
+                <h4 className="text-sm font-medium text-blue-900 mb-2">
+                  Conector Email Requerido
+                </h4>
+                <p className="text-sm text-blue-700 mb-4">
+                  Para usar este nodo Email, necesitas seleccionar o crear un conector Email.
+                  Los conectores contienen toda la configuración SMTP necesaria.
+                </p>
+                <button
+                  onClick={connectorIntegration.openWizard}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Crear Conector Email
+                </button>
+              </div>
             )}
           </div>
         );
 
       case NodeType.SLACK:
-        const slackData = localNode.data as any; // Cast to any for now
+        const slackData = localNode.data as any;
         const hasSlackConnector = !!connectorIntegration.selectedConnectorId;
         
         return (
@@ -1007,66 +827,212 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             )}
             
             {!hasSlackConnector && (
-              <>
-                <hr className="border-gray-200" />
-                
-                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-4">
-                  <div className="flex items-center">
-                    <span className="text-yellow-600 mr-2">⚠️</span>
-                    <span className="text-sm font-medium text-yellow-800">
-                      Configuración Manual de Slack
-                    </span>
-                  </div>
-                  <p className="text-xs text-yellow-600 mt-1">
-                    Configura manualmente o selecciona un conector de Slack para obtener la configuración automáticamente
-                  </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-6 text-center">
+                <div className="text-blue-600 mb-3">
+                  <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
                 </div>
-                
-                <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Channel
-              </label>
-              <input
-                type="text"
-                value={slackData.channel || ''}
-                onChange={e => handleInputChange('channel', e.target.value)}
-                placeholder="#general"
-                disabled={readOnly}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-              />
-            </div>
+                <h4 className="text-sm font-medium text-blue-900 mb-2">
+                  Conector Slack Requerido
+                </h4>
+                <p className="text-sm text-blue-700 mb-4">
+                  Para usar este nodo Slack, necesitas seleccionar o crear un conector Slack.
+                  Los conectores contienen toda la configuración necesaria (token, workspace, etc.).
+                </p>
+                <button
+                  onClick={connectorIntegration.openWizard}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Crear Conector Slack
+                </button>
+              </div>
+            )}
+          </div>
+        );
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Message
-              </label>
-              <textarea
-                value={slackData.message || ''}
-                onChange={e => handleInputChange('message', e.target.value)}
-                placeholder="Your Slack message here..."
-                rows={4}
-                disabled={readOnly}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-                data-field="message"
-              />
-            </div>
+      case NodeType.WEBHOOK:
+        const webhookData = localNode.data as any;
+        const hasWebhookConnector = !!connectorIntegration.selectedConnectorId;
+        
+        return (
+          <div className="space-y-4">
+            {/* Connector Integration Panel */}
+            <ConnectorIntegrationPanel
+              nodeType={NodeType.WEBHOOK}
+              selectedConnectorId={connectorIntegration.selectedConnectorId}
+              onConnectorSelect={(connectorId) => {
+                connectorIntegration.setSelectedConnectorId(connectorId);
+                handleInputChange('connectorId', connectorId);
+              }}
+              onCreateConnector={connectorIntegration.openWizard}
+              onEditConnector={connectorIntegration.openEditWizard}
+            />
+            
+            {hasWebhookConnector && (
+              <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                <div className="flex items-center">
+                  <span className="text-green-600 mr-2">✅</span>
+                  <span className="text-sm font-medium text-green-800">
+                    Configuración de Webhook cargada desde el conector
+                  </span>
+                </div>
+                <p className="text-xs text-green-600 mt-1">
+                  URL y configuración de webhook obtenidos automáticamente
+                </p>
+              </div>
+            )}
+            
+            {!hasWebhookConnector && (
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-6 text-center">
+                <div className="text-blue-600 mb-3">
+                  <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <h4 className="text-sm font-medium text-blue-900 mb-2">
+                  Conector Webhook Requerido
+                </h4>
+                <p className="text-sm text-blue-700 mb-4">
+                  Para usar este nodo Webhook, necesitas seleccionar o crear un conector Webhook.
+                  Los conectores contienen toda la configuración necesaria (URL, método, headers, etc.).
+                </p>
+                <button
+                  onClick={connectorIntegration.openWizard}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Crear Conector Webhook
+                </button>
+              </div>
+            )}
+          </div>
+        );
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Attachments
-              </label>
-              <textarea
-                value={slackData.attachments ? JSON.stringify(slackData.attachments, null, 2) : ''}
-                onChange={e => {
-                  try {
-                    const attachments = JSON.parse(e.target.value);
-                    handleInputChange('attachments', attachments);
-                  } catch (error) {
-                    handleInputChange('attachments', e.target.value);
-                  }
-                }}
-                placeholder='[\n  {\n    "title": "Attachment Title",\n    "text": "Attachment text",\n    "color": "good"\n  }\n]'
+      case NodeType.TIMER:
+        const timerData = localNode.data as any;
+        const hasTimerConnector = !!connectorIntegration.selectedConnectorId;
+        
+        return (
+          <div className="space-y-4">
+            {/* Connector Integration Panel */}
+            <ConnectorIntegrationPanel
+              nodeType={NodeType.TIMER}
+              selectedConnectorId={connectorIntegration.selectedConnectorId}
+              onConnectorSelect={(connectorId) => {
+                connectorIntegration.setSelectedConnectorId(connectorId);
+                handleInputChange('connectorId', connectorId);
+              }}
+              onCreateConnector={connectorIntegration.openWizard}
+              onEditConnector={connectorIntegration.openEditWizard}
+            />
+            
+            {hasTimerConnector && (
+              <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                <div className="flex items-center">
+                  <span className="text-green-600 mr-2">✅</span>
+                  <span className="text-sm font-medium text-green-800">
+                    Configuración de Timer cargada desde el conector
+                  </span>
+                </div>
+                <p className="text-xs text-green-600 mt-1">
+                  Programación y configuración de timer obtenidos automáticamente
+                </p>
+              </div>
+            )}
+            
+            {!hasTimerConnector && (
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-6 text-center">
+                <div className="text-blue-600 mb-3">
+                  <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <h4 className="text-sm font-medium text-blue-900 mb-2">
+                  Conector Timer Requerido
+                </h4>
+                <p className="text-sm text-blue-700 mb-4">
+                  Para usar este nodo Timer, necesitas seleccionar o crear un conector Timer.
+                  Los conectores contienen toda la configuración de programación necesaria.
+                </p>
+                <button
+                  onClick={connectorIntegration.openWizard}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Crear Conector Timer
+                </button>
+              </div>
+            )}
+          </div>
+        );
+
+      case NodeType.DATA_TRANSFORM:
+        const transformData = localNode.data as any;
+        const hasTransformConnector = !!connectorIntegration.selectedConnectorId;
+        
+        return (
+          <div className="space-y-4">
+            {/* Connector Integration Panel */}
+            <ConnectorIntegrationPanel
+              nodeType={NodeType.DATA_TRANSFORM}
+              selectedConnectorId={connectorIntegration.selectedConnectorId}
+              onConnectorSelect={(connectorId) => {
+                connectorIntegration.setSelectedConnectorId(connectorId);
+                handleInputChange('connectorId', connectorId);
+              }}
+              onCreateConnector={connectorIntegration.openWizard}
+              onEditConnector={connectorIntegration.openEditWizard}
+            />
+            
+            {hasTransformConnector && (
+              <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                <div className="flex items-center">
+                  <span className="text-green-600 mr-2">✅</span>
+                  <span className="text-sm font-medium text-green-800">
+                    Configuración de Data Transform cargada desde el conector
+                  </span>
+                </div>
+                <p className="text-xs text-green-600 mt-1">
+                  Reglas de transformación y mapeo obtenidos automáticamente
+                </p>
+              </div>
+            )}
+            
+            {!hasTransformConnector && (
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-6 text-center">
+                <div className="text-blue-600 mb-3">
+                  <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <h4 className="text-sm font-medium text-blue-900 mb-2">
+                  Conector Data Transform Requerido
+                </h4>
+                <p className="text-sm text-blue-700 mb-4">
+                  Para usar este nodo Data Transform, necesitas seleccionar o crear un conector Data Transform.
+                  Los conectores contienen todas las reglas de transformación y mapeo necesarias.
+                </p>
+                <button
+                  onClick={connectorIntegration.openWizard}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Crear Conector Data Transform
+                </button>
+              </div>
+            )}
+          </div>
+        );
                 rows={4}
                 disabled={readOnly}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
