@@ -47,7 +47,11 @@ const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   // Convertir condiciones simples a árbol de condiciones - solo al montar el componente
+  const [isInitialized, setIsInitialized] = useState(false);
+  
   useEffect(() => {
+    if (isInitialized) return; // Evitar reinicialización
+    
     console.log('AdvancedConditionEditor - Initializing with conditions from parent:', {
       conditionsLength: conditions.length,
       conditions
@@ -67,7 +71,9 @@ const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
     } else {
       setConditionTree([]);
     }
-  }, []); // Solo se ejecuta al montar el componente
+    
+    setIsInitialized(true);
+  }, [conditions, isInitialized]); // Depender de conditions pero controlar con isInitialized
 
   // Convertir árbol de condiciones a formato simple para el backend
   const flattenConditions = (nodes: ConditionNode[]): DataCondition[] => {
@@ -94,8 +100,8 @@ const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
 
   // Notificar cambios al componente padre - solo cuando hay cambios reales
   useEffect(() => {
-    // No notificar en el montaje inicial
-    if (conditionTree.length === 0 && conditions.length === 0) {
+    // No notificar hasta que esté inicializado
+    if (!isInitialized) {
       return;
     }
     
@@ -103,10 +109,11 @@ const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
     console.log('AdvancedConditionEditor - Notifying parent of changes:', {
       conditionTreeLength: conditionTree.length,
       flattenedLength: flattened.length,
-      flattened
+      flattened,
+      isInitialized
     });
     onConditionsChange(flattened);
-  }, [conditionTree, conditions.length]);
+  }, [conditionTree, isInitialized]);
 
   // Generar ID único
   const generateId = () => `condition_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
