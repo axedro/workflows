@@ -163,19 +163,44 @@ const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
 
   // Eliminar nodo del árbol
   const removeNode = (nodeId: string) => {
-    const removeFromNodes = (nodes: ConditionNode[]): ConditionNode[] => {
-      return nodes.filter(node => {
+    // Encontrar el nodo para mostrar información en la confirmación
+    const findNode = (nodes: ConditionNode[]): ConditionNode | null => {
+      for (const node of nodes) {
         if (node.id === nodeId) {
-          return false;
+          return node;
         }
         if (node.type === 'group') {
-          return { ...node, children: removeFromNodes(node.children) };
+          const found = findNode(node.children);
+          if (found) return found;
         }
-        return true;
-      });
+      }
+      return null;
     };
 
-    setConditionTree(prev => removeFromNodes(prev));
+    const nodeToRemove = findNode(conditionTree);
+    const nodeType = nodeToRemove?.type === 'group' ? 'group' : 'condition';
+    const nodeName = nodeToRemove?.type === 'group' 
+      ? `Group (${(nodeToRemove as ConditionGroup).operator})`
+      : `Condition ${(nodeToRemove as ConditionItem).field || 'unnamed'}`;
+
+    // Confirmar antes de eliminar
+    if (window.confirm(`¿Estás seguro de que quieres eliminar este ${nodeType}?\n\n${nodeName}\n\nEsta acción no se puede deshacer.`)) {
+      const removeFromNodes = (nodes: ConditionNode[]): ConditionNode[] => {
+        return nodes.filter(node => {
+          if (node.id === nodeId) {
+            return false;
+          }
+          if (node.type === 'group') {
+            // Actualizar los hijos del grupo recursivamente
+            const updatedChildren = removeFromNodes(node.children);
+            return { ...node, children: updatedChildren };
+          }
+          return true;
+        });
+      };
+
+      setConditionTree(prev => removeFromNodes(prev));
+    }
   };
 
   // Actualizar nodo
@@ -383,6 +408,7 @@ const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
             <button
               onClick={() => removeNode(condition.id)}
               className="text-red-500 hover:text-red-700 p-1"
+              title="Delete condition"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -521,6 +547,7 @@ const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
             <button
               onClick={() => removeNode(group.id)}
               className="text-red-500 hover:text-red-700 p-1"
+              title="Delete group"
             >
               <Trash2 className="w-4 h-4" />
             </button>
