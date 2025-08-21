@@ -185,6 +185,8 @@ const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
 
   // Eliminar nodo del árbol
   const removeNode = (nodeId: string) => {
+    console.log('AdvancedConditionEditor - removeNode called with nodeId:', nodeId);
+    
     // Encontrar el nodo para mostrar información en la confirmación
     const findNode = (nodes: ConditionNode[]): ConditionNode | null => {
       for (const node of nodes) {
@@ -200,28 +202,42 @@ const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
     };
 
     const nodeToRemove = findNode(conditionTree);
+    console.log('AdvancedConditionEditor - nodeToRemove:', nodeToRemove);
+    
     const nodeType = nodeToRemove?.type === 'group' ? 'group' : 'condition';
     const nodeName = nodeToRemove?.type === 'group' 
       ? `Group (${(nodeToRemove as ConditionGroup).operator})`
       : `Condition ${(nodeToRemove as ConditionItem).field || 'unnamed'}`;
 
+    console.log('AdvancedConditionEditor - About to remove:', { nodeType, nodeName });
+
     // Confirmar antes de eliminar
     if (window.confirm(`¿Estás seguro de que quieres eliminar este ${nodeType}?\n\n${nodeName}\n\nEsta acción no se puede deshacer.`)) {
       const removeFromNodes = (nodes: ConditionNode[]): ConditionNode[] => {
-        return nodes.filter(node => {
+        console.log('AdvancedConditionEditor - removeFromNodes called with nodes:', nodes);
+        
+        const result = nodes.filter(node => {
           if (node.id === nodeId) {
+            console.log('AdvancedConditionEditor - Found node to remove:', node);
             return false;
           }
           if (node.type === 'group') {
             // Actualizar los hijos del grupo recursivamente
             const updatedChildren = removeFromNodes(node.children);
-            return { ...node, children: updatedChildren };
+            node.children = updatedChildren;
           }
           return true;
         });
+        
+        console.log('AdvancedConditionEditor - removeFromNodes result:', result);
+        return result;
       };
 
-      setConditionTree(prev => removeFromNodes(prev));
+      setConditionTree(prev => {
+        const newTree = removeFromNodes(prev);
+        console.log('AdvancedConditionEditor - New condition tree after removal:', newTree);
+        return newTree;
+      });
     }
   };
 
