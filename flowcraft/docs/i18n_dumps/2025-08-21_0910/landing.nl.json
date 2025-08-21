@@ -1,0 +1,62 @@
+{
+  "hero": {
+    "title": "Automatiseer je Workflows met FlowCraft",
+    "subtitle": "Maak, voer uit en monitor complexe workflows met ons intuïtieve visuele platform.",
+    "cta_primary": "Gratis Beginnen",
+    "cta_secondary": "Demo Bekijken"
+  },
+  "features": {
+    "title": "Waarom FlowCraft Kiezen?",
+    "subtitle": "Verhoog je productiviteit met geavanceerde automatiseringstools",
+    "visual_editor": {
+      "title": "Intuïtieve Visuele Editor",
+      "description": "Maak complexe workflows met onze drag-and-drop editor zonder code"
+    },
+    "integrations": {
+      "title": "200+ Integraties",
+      "description": "Verbind met al je favoriete tools en cloudservices"
+    },
+    "monitoring": {
+      "title": "Real-time Monitoring",
+      "description": "Volg je workflow voortgang met gedetailleerde metrics en alerts"
+    },
+    "scalable": {
+      "title": "Enterprise Schaalbaarheid",
+      "description": "Van startups tot Fortune 500 bedrijven, FlowCraft groeit met je mee"
+    },
+    "security": {
+      "title": "Enterprise-grade Beveiliging",
+      "description": "Je data wordt beschermd met bank-niveau encryptie"
+    },
+    "automation": "Slimme Automatisering",
+    "collaboration": "Team Samenwerking",
+    "custom_connectors": {
+      "title": "Aangepaste Connectors",
+      "description": "Maak je eigen connectors voor specifieke behoeften"
+    }
+  },
+  "cta": {
+    "title": "Klaar om te Beginnen?",
+    "subtitle": "Doe mee met duizenden gebruikers die al hun workflows automatiseren",
+    "button": "Nu Beginnen"
+  },
+  "footer": {
+    "product": "Product",
+    "features": "Functies",
+    "integrations": "Integraties",
+    "pricing": "Prijzen",
+    "company": "Bedrijf",
+    "about": "Over",
+    "careers": "Carrières",
+    "contact": "Contact",
+    "resources": "Bronnen",
+    "documentation": "Documentatie",
+    "tutorials": "Tutorials",
+    "blog": "Blog",
+    "api": "API",
+    "support": "Ondersteuning",
+    "privacy": "Privacy",
+    "copyright": "© 2024 FlowCraft. Alle rechten voorbehouden.",
+    "description": "Visueel workflow automatisering platform"
+  }
+}

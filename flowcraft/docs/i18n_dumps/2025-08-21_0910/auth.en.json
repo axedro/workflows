@@ -1,0 +1,38 @@
+{
+  "login": {
+    "title": "Sign In"
+  },
+  "register": {
+    "title": "Create Account"
+  },
+  "email": "Email",
+  "email_placeholder": "Enter your email address",
+  "password": "Password",
+  "password_placeholder": "Enter your password",
+  "name": "Name",
+  "name_placeholder": "Enter your full name",
+  "confirm_password": "Confirm Password",
+  "confirm_password_placeholder": "Confirm your password",
+  "organization_name": "Organization Name",
+  "organization_placeholder": "Enter your organization name",
+  "forgot_password": "Forgot your password?",
+  "have_account": "Already have an account?",
+  "no_account": "Don't have an account?",
+  "sign_in": "Sign In",
+  "sign_up": "Sign Up",
+  "signin_button": "Sign In",
+  "register_button": "Create Account",
+  "signing_in": "Signing in...",
+  "creating_account": "Creating account...",
+  "validation": {
+    "name_min_length": "Name must be at least 2 characters long",
+    "password_min_length": "Password must be at least 8 characters long",
+    "passwords_no_match": "Passwords do not match"
+  },
+  "reset_email_failed": "Failed to send reset email",
+  "check_email": "Check your email",
+  "reset_email_sent": "A reset link has been sent to your email",
+  "back_to_login": "Back to login",
+  "sending": "Sending...",
+  "send_reset_link": "Send reset link"
+}

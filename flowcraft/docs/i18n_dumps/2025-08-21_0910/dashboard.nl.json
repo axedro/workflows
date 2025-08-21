@@ -1,0 +1,27 @@
+{
+  "title": "Dashboard",
+  "welcome": "Welkom bij FlowCraft",
+  "stats": {
+    "workflows": "Workflows",
+    "executions": "Uitvoeringen",
+    "connectors": "Connectors"
+  },
+  "quick_actions": {
+    "title": "Snelle Acties",
+    "create_workflow": "Workflow Maken",
+    "create_workflow_desc": "Maak een nieuwe workflow vanaf nul",
+    "import_workflow": "Workflow Importeren",
+    "import_workflow_desc": "Importeer workflow van JSON bestand",
+    "manage_connectors": "Connectors Beheren",
+    "manage_connectors_desc": "Configureer connectors en APIs",
+    "view_analytics": "Analytics Bekijken",
+    "view_analytics_desc": "Analyseer workflow prestaties"
+  },
+  "recent_workflows": {
+    "title": "Recente Workflows",
+    "view_all": "Alles Bekijken",
+    "no_description": "Geen beschrijving",
+    "empty": "Geen workflows gemaakt",
+    "create_first": "Eerste Workflow Maken"
+  }
+}

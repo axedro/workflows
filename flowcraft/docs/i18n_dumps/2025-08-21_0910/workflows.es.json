@@ -1,0 +1,237 @@
+{
+  "create": {
+    "title": "Crear Nuevo Workflow",
+    "name_label": "Nombre del Workflow",
+    "name_placeholder": "Ingresa el nombre del workflow",
+    "description_label": "Descripción",
+    "description_placeholder": "Describe el propósito de este workflow",
+    "create_button": "Crear Workflow",
+    "checking_name": "Verificando disponibilidad...",
+    "name_available": "Nombre disponible",
+    "name_suggestions": "Sugerencias"
+  },
+  "import": {
+    "title": "Importar Workflow",
+    "file_label": "Archivo JSON",
+    "file_help": "Selecciona un archivo JSON de workflow para importar",
+    "preview_title": "Vista Previa",
+    "name": "Nombre",
+    "description": "Descripción",
+    "nodes": "Nodos",
+    "edges": "Conexiones",
+    "import_button": "Importar",
+    "importing": "Importando...",
+    "errors": {
+      "invalid_format": "Formato de archivo inválido. El archivo debe contener name, nodes y edges.",
+      "parse_failed": "Error al parsear el archivo JSON",
+      "read_failed": "Error al leer el archivo",
+      "create_failed": "Error al crear el workflow"
+    }
+  },
+  "export": {
+    "title": "Exportar Workflow",
+    "name_label": "Nombre del archivo",
+    "name_placeholder": "Nombre del archivo de exportación",
+    "include_metadata": "Incluir metadatos",
+    "metadata_help": "Incluye información adicional como autor, tags y dificultad",
+    "summary_title": "Resumen del Workflow",
+    "nodes": "Nodos",
+    "edges": "Conexiones",
+    "version": "Versión",
+    "status": "Estado",
+    "export_button": "Exportar",
+    "exporting": "Exportando..."
+  },
+  "errors": {
+    "name_required": "El nombre es requerido",
+    "name_too_long": "El nombre no puede tener más de 255 caracteres",
+    "name_already_exists": "Ya existe un workflow con este nombre",
+    "description_too_long": "La descripción no puede tener más de 1000 caracteres",
+    "create_failed": "Error al crear el workflow"
+  },
+  "back_to_dashboard": "Volver al Dashboard",
+  "untitled_workflow": "Workflow sin título",
+  "workflow_description_placeholder": "Describe el propósito de este workflow...",
+  "no_description": "Sin descripción",
+  "saving": "Guardando...",
+  "last_saved": "Último guardado",
+  "not_saved": "No guardado",
+  "execution": {
+    "progress": "Progreso",
+    "truncated": "Datos truncados",
+    "status": {
+      "title": "Estado de Ejecución"
+    },
+    "tabs": {
+      "status": "Estado y Logs",
+      "nodeData": "Datos del Nodo",
+      "dataFlow": "Flujo de Datos",
+      "summary": "Resumen"
+    },
+    "nodeData": {
+      "title": "Datos del Nodo",
+      "input": "Entrada",
+      "output": "Salida",
+      "performance": "Rendimiento",
+      "metadata": "Metadatos",
+      "inputData": "Datos de Entrada",
+      "outputData": "Datos de Salida"
+    },
+    "started": "Iniciado",
+    "completed": "Completado",
+    "duration": "Duración",
+    "logs": "Logs de Ejecución",
+    "noLogs": "No hay logs disponibles",
+    "error": "Error",
+    "errorLoading": "Error al cargar el estado de ejecución",
+    "notFound": "Ejecución no encontrada",
+    "cancel": "Cancelar",
+    "cancelled": "Ejecución cancelada exitosamente",
+    "cancelError": "Error al cancelar la ejecución",
+    "resume": "Reanudar",
+    "resumed": "Ejecución reanudada exitosamente",
+    "resumeError": "Error al reanudar la ejecución"
+  },
+  "title": "title",
+  "welcome": "welcome",
+  "stats": {
+    "workflows": "stats.workflows",
+    "executions": "stats.executions",
+    "connectors": "stats.connectors"
+  },
+  "quick_actions": {
+    "title": "quick_actions.title",
+    "create_workflow": "quick_actions.create_workflow",
+    "create_workflow_desc": "quick_actions.create_workflow_desc",
+    "import_workflow": "quick_actions.import_workflow",
+    "import_workflow_desc": "quick_actions.import_workflow_desc",
+    "manage_connectors": "quick_actions.manage_connectors",
+    "manage_connectors_desc": "quick_actions.manage_connectors_desc",
+    "view_analytics": "quick_actions.view_analytics",
+    "view_analytics_desc": "quick_actions.view_analytics_desc"
+  },
+  "recent_workflows": {
+    "title": "recent_workflows.title",
+    "view_all": "recent_workflows.view_all",
+    "no_description": "recent_workflows.no_description",
+    "empty": "recent_workflows.empty",
+    "create_first": "recent_workflows.create_first"
+  },
+  "common": {
+    "autoscroll": "common.autoscroll",
+    "search": "common.search",
+    "copied": "common.copied",
+    "copy": "common.copy"
+  },
+  "reset_email_failed": "reset_email_failed",
+  "check_email": "check_email",
+  "reset_email_sent": "reset_email_sent",
+  "back_to_login": "back_to_login",
+  "forgot_password": "forgot_password",
+  "email": "email",
+  "email_placeholder": "email_placeholder",
+  "sending": "sending",
+  "send_reset_link": "send_reset_link",
+  "nav": {
+    "home": "nav.home",
+    "features": "nav.features",
+    "pricing": "nav.pricing",
+    "docs": "nav.docs"
+  },
+  "welcome_user": "welcome_user",
+  "dashboard": "dashboard",
+  "logout": "logout",
+  "sign_in": "sign_in",
+  "get_started": "get_started",
+  "hero": {
+    "title": "hero.title",
+    "subtitle": "hero.subtitle",
+    "cta_primary": "hero.cta_primary",
+    "cta_secondary": "hero.cta_secondary"
+  },
+  "features": {
+    "title": "features.title",
+    "subtitle": "features.subtitle",
+    "visual_editor": {
+      "title": "features.visual_editor.title",
+      "description": "features.visual_editor.description"
+    },
+    "integrations": {
+      "title": "features.integrations.title",
+      "description": "features.integrations.description"
+    },
+    "monitoring": {
+      "title": "features.monitoring.title",
+      "description": "features.monitoring.description"
+    },
+    "scalable": {
+      "title": "features.scalable.title",
+      "description": "features.scalable.description"
+    },
+    "custom_connectors": {
+      "title": "features.custom_connectors.title",
+      "description": "features.custom_connectors.description"
+    },
+    "security": {
+      "title": "features.security.title",
+      "description": "features.security.description"
+    }
+  },
+  "cta": {
+    "title": "cta.title",
+    "subtitle": "cta.subtitle"
+  },
+  "footer": {
+    "description": "footer.description",
+    "product": "footer.product",
+    "features": "footer.features",
+    "pricing": "footer.pricing",
+    "integrations": "footer.integrations",
+    "api": "footer.api",
+    "resources": "footer.resources",
+    "documentation": "footer.documentation",
+    "tutorials": "footer.tutorials",
+    "blog": "footer.blog",
+    "support": "footer.support",
+    "company": "footer.company",
+    "about": "footer.about",
+    "careers": "footer.careers",
+    "contact": "footer.contact",
+    "privacy": "footer.privacy",
+    "copyright": "footer.copyright"
+  },
+  "login": {
+    "title": "login.title"
+  },
+  "password": "password",
+  "password_placeholder": "password_placeholder",
+  "signing_in": "signing_in",
+  "no_account": "no_account",
+  "sign_up": "sign_up",
+  "close": "close",
+  "validation": {
+    "name_min_length": "validation.name_min_length",
+    "password_min_length": "validation.password_min_length",
+    "passwords_no_match": "validation.passwords_no_match"
+  },
+  "register": {
+    "title": "register.title"
+  },
+  "name": "name",
+  "name_placeholder": "name_placeholder",
+  "organization_name": "organization_name",
+  "organization_placeholder": "organization_placeholder",
+  "confirm_password": "confirm_password",
+  "confirm_password_placeholder": "confirm_password_placeholder",
+  "creating_account": "creating_account",
+  "have_account": "have_account",
+  "default_author": "default_author",
+  "difficulty": {
+    "beginner": "difficulty.beginner"
+  },
+  "fit_to_view_shortcut": "fit_to_view_shortcut",
+  "export_workflow": "export_workflow",
+  "search": "search",
+  "all": "all",
+  "no_nodes_found": "no_nodes_found"
+}

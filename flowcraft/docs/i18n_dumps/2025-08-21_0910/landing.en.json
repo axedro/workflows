@@ -1,0 +1,62 @@
+{
+  "hero": {
+    "title": "Automate Your Workflows with FlowCraft",
+    "subtitle": "Create, execute, and monitor complex workflows with our intuitive visual platform.",
+    "cta_primary": "Start Building Free",
+    "cta_secondary": "Watch Demo"
+  },
+  "features": {
+    "title": "Why Choose FlowCraft?",
+    "subtitle": "Power your productivity with advanced automation tools",
+    "visual_editor": {
+      "title": "Intuitive Visual Editor",
+      "description": "Create complex workflows with our drag-and-drop editor without any coding"
+    },
+    "integrations": {
+      "title": "200+ Integrations",
+      "description": "Connect with all your favorite tools and cloud services"
+    },
+    "monitoring": {
+      "title": "Real-time Monitoring",
+      "description": "Track your workflow progress with detailed metrics and alerts"
+    },
+    "scalable": {
+      "title": "Enterprise Scalability",
+      "description": "From startups to Fortune 500 companies, FlowCraft grows with you"
+    },
+    "security": {
+      "title": "Enterprise-grade Security",
+      "description": "Your data is protected with bank-level encryption"
+    },
+    "automation": "Smart Automation",
+    "collaboration": "Team Collaboration",
+    "custom_connectors": {
+      "title": "Custom Connectors",
+      "description": "Create your own connectors for specific needs"
+    }
+  },
+  "cta": {
+    "title": "Ready to Get Started?",
+    "subtitle": "Join thousands of users already automating their workflows",
+    "button": "Get Started Now"
+  },
+  "footer": {
+    "product": "Product",
+    "features": "Features",
+    "integrations": "Integrations",
+    "pricing": "Pricing",
+    "company": "Company",
+    "about": "About",
+    "careers": "Careers",
+    "contact": "Contact",
+    "resources": "Resources",
+    "documentation": "Documentation",
+    "tutorials": "Tutorials",
+    "blog": "Blog",
+    "api": "API",
+    "support": "Support",
+    "privacy": "Privacy",
+    "copyright": "© 2024 FlowCraft. All rights reserved.",
+    "description": "Visual workflow automation platform"
+  }
+}

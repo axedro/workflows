@@ -1,0 +1,38 @@
+{
+  "login": {
+    "title": "Inloggen"
+  },
+  "register": {
+    "title": "Account Aanmaken"
+  },
+  "email": "E-mail",
+  "email_placeholder": "Voer je e-mailadres in",
+  "password": "Wachtwoord",
+  "password_placeholder": "Voer je wachtwoord in",
+  "name": "Naam",
+  "name_placeholder": "Voer je volledige naam in",
+  "confirm_password": "Bevestig Wachtwoord",
+  "confirm_password_placeholder": "Bevestig je wachtwoord",
+  "organization_name": "Organisatienaam",
+  "organization_placeholder": "Voer je organisatienaam in",
+  "forgot_password": "Wachtwoord vergeten?",
+  "have_account": "Heb je al een account?",
+  "no_account": "Heb je geen account?",
+  "sign_in": "Inloggen",
+  "sign_up": "Registreren",
+  "signin_button": "Inloggen",
+  "register_button": "Account Aanmaken",
+  "signing_in": "Inloggen...",
+  "creating_account": "Account aanmaken...",
+  "validation": {
+    "name_min_length": "Naam moet minimaal 2 tekens lang zijn",
+    "password_min_length": "Wachtwoord moet minimaal 8 tekens lang zijn",
+    "passwords_no_match": "Wachtwoorden komen niet overeen"
+  },
+  "reset_email_failed": "Reset e-mail verzenden mislukt",
+  "check_email": "Controleer je e-mail",
+  "reset_email_sent": "Er is een reset-link naar je e-mail verzonden",
+  "back_to_login": "Terug naar login",
+  "sending": "Verzenden...",
+  "send_reset_link": "Reset-link verzenden"
+}

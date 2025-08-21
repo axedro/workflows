@@ -1,0 +1,106 @@
+{
+  "hero": {
+    "title": "Automate Your Workflows with FlowCraft",
+    "subtitle": "Create, execute, and monitor complex workflows with our intuitive visual platform.",
+    "cta_primary": "Start Building Free",
+    "cta_secondary": "Watch Demo"
+  },
+  "features": {
+    "title": "Why Choose FlowCraft?",
+    "subtitle": "Power your productivity with advanced automation tools",
+    "visual_editor": {
+      "title": "Intuitive Visual Editor",
+      "description": "Create complex workflows with our drag-and-drop editor without any coding"
+    },
+    "integrations": {
+      "title": "200+ Integrations",
+      "description": "Connect with all your favorite tools and cloud services"
+    },
+    "monitoring": {
+      "title": "Real-time Monitoring",
+      "description": "Track your workflow progress with detailed metrics and alerts"
+    },
+    "scalable": {
+      "title": "Enterprise Scalability",
+      "description": "From startups to Fortune 500 companies, FlowCraft grows with you"
+    },
+    "security": {
+      "title": "Enterprise-grade Security",
+      "description": "Your data is protected with bank-level encryption"
+    },
+    "automation": "Smart Automation",
+    "collaboration": "Team Collaboration",
+    "custom_connectors": {
+      "title": "Custom Connectors",
+      "description": "Create your own connectors for specific needs"
+    }
+  },
+  "cta": {
+    "title": "Ready to Get Started?",
+    "subtitle": "Join thousands of users already automating their workflows",
+    "button": "Get Started Now"
+  },
+  "footer": {
+    "product": "Product",
+    "features": "Features",
+    "integrations": "Integrations",
+    "pricing": "Pricing",
+    "company": "Company",
+    "about": "About",
+    "careers": "Careers",
+    "contact": "Contact",
+    "resources": "Resources",
+    "documentation": "Documentation",
+    "tutorials": "Tutorials",
+    "blog": "Blog",
+    "api": "API",
+    "support": "Support",
+    "privacy": "Privacy",
+    "copyright": "© 2024 FlowCraft. All rights reserved.",
+    "description": "Visual workflow automation platform"
+  },
+  "auto": {
+    "const_navigate_usenavigate_const_t_usetranslation_": "{\n  const navigate = useNavigate();\n  const { t } = useTranslation('landing');\n\n  return (",
+    "hero_section": "{/* Hero Section */}",
+    "t_hero_title": "{t('hero.title')}",
+    "t_hero_subtitle": "{t('hero.subtitle')}",
+    "navigate_auth_mode_register_classname_px_8_py_3_te": "navigate('/auth?mode=register')}\n              className=\"px-8 py-3 text-lg\"\n            >\n              {t('hero.cta_primary')}",
+    "features_section": "{/* Features Section */}",
+    "t_features_title": "{t('features.title')}",
+    "t_features_subtitle": "{t('features.subtitle')}",
+    "visual_workflow_editor": "{/* Visual Workflow Editor */}",
+    "t_features_visual_editor_title": "{t('features.visual_editor.title')}",
+    "t_features_visual_editor_description": "{t('features.visual_editor.description')}",
+    "200_integrations": "{/* 200+ Integrations */}",
+    "t_features_integrations_title": "{t('features.integrations.title')}",
+    "t_features_integrations_description": "{t('features.integrations.description')}",
+    "real_time_monitoring": "{/* Real-time Monitoring */}",
+    "t_features_monitoring_title": "{t('features.monitoring.title')}",
+    "t_features_monitoring_description": "{t('features.monitoring.description')}",
+    "scalable_architecture": "{/* Scalable Architecture */}",
+    "t_features_scalable_title": "{t('features.scalable.title')}",
+    "t_features_scalable_description": "{t('features.scalable.description')}",
+    "custom_connectors": "{/* Custom Connectors */}",
+    "t_features_custom_connectors_title": "{t('features.custom_connectors.title')}",
+    "t_features_custom_connectors_description": "{t('features.custom_connectors.description')}",
+    "enterprise_security": "{/* Enterprise Security */}",
+    "t_features_security_title": "{t('features.security.title')}",
+    "t_features_security_description": "{t('features.security.description')}",
+    "cta_section": "{/* CTA Section */}",
+    "t_cta_title": "{t('cta.title')}",
+    "footer": "{/* Footer */}",
+    "flowcraft": "FlowCraft",
+    "t_footer_features": "{t('footer.features')}",
+    "t_footer_pricing": "{t('footer.pricing')}",
+    "t_footer_integrations": "{t('footer.integrations')}",
+    "t_footer_api": "{t('footer.api')}",
+    "t_footer_documentation": "{t('footer.documentation')}",
+    "t_footer_tutorials": "{t('footer.tutorials')}",
+    "t_footer_blog": "{t('footer.blog')}",
+    "t_footer_support": "{t('footer.support')}",
+    "t_footer_about": "{t('footer.about')}",
+    "t_footer_careers": "{t('footer.careers')}",
+    "t_footer_contact": "{t('footer.contact')}",
+    "t_footer_privacy": "{t('footer.privacy')}"
+  }
+}

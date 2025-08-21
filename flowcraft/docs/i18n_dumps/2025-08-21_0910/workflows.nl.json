@@ -1,0 +1,237 @@
+{
+  "create": {
+    "title": "Nieuwe Workflow Maken",
+    "name_label": "Workflow Naam",
+    "name_placeholder": "Voer workflow naam in",
+    "description_label": "Beschrijving",
+    "description_placeholder": "Beschrijf het doel van deze workflow",
+    "create_button": "Workflow Maken",
+    "checking_name": "Beschikbaarheid controleren...",
+    "name_available": "Naam beschikbaar",
+    "name_suggestions": "Suggesties"
+  },
+  "import": {
+    "title": "Workflow Importeren",
+    "file_label": "JSON Bestand",
+    "file_help": "Selecteer een workflow JSON bestand om te importeren",
+    "preview_title": "Voorvertoning",
+    "name": "Naam",
+    "description": "Beschrijving",
+    "nodes": "Knooppunten",
+    "edges": "Verbindingen",
+    "import_button": "Importeren",
+    "importing": "Importeren...",
+    "errors": {
+      "invalid_format": "Ongeldig bestandsformaat. Bestand moet naam, knooppunten en verbindingen bevatten.",
+      "parse_failed": "Fout bij het parsen van JSON bestand",
+      "read_failed": "Fout bij het lezen van bestand",
+      "create_failed": "Fout bij het maken van workflow"
+    }
+  },
+  "export": {
+    "title": "Workflow Exporteren",
+    "name_label": "Bestandsnaam",
+    "name_placeholder": "Export bestandsnaam",
+    "include_metadata": "Metadaten opnemen",
+    "metadata_help": "Neem aanvullende informatie op zoals auteur, tags en moeilijkheidsgraad",
+    "summary_title": "Workflow Samenvatting",
+    "nodes": "Knooppunten",
+    "edges": "Verbindingen",
+    "version": "Versie",
+    "status": "Status",
+    "export_button": "Exporteren",
+    "exporting": "Exporteren..."
+  },
+  "errors": {
+    "name_required": "Naam is vereist",
+    "name_too_long": "Naam kan niet langer zijn dan 255 tekens",
+    "name_already_exists": "Er bestaat al een workflow met deze naam",
+    "description_too_long": "Beschrijving kan niet langer zijn dan 1000 tekens",
+    "create_failed": "Fout bij het maken van workflow"
+  },
+  "back_to_dashboard": "Terug naar Dashboard",
+  "untitled_workflow": "Workflow zonder titel",
+  "workflow_description_placeholder": "Beschrijf het doel van deze workflow...",
+  "no_description": "Geen beschrijving",
+  "saving": "Opslaan...",
+  "last_saved": "Laatst opgeslagen",
+  "not_saved": "Niet opgeslagen",
+  "execution": {
+    "progress": "Voortgang",
+    "truncated": "Gegevens afgekapt",
+    "status": {
+      "title": "Uitvoeringsstatus"
+    },
+    "tabs": {
+      "status": "Status & Logs",
+      "nodeData": "Knooppuntgegevens",
+      "dataFlow": "Gegevensstroom",
+      "summary": "Samenvatting"
+    },
+    "nodeData": {
+      "title": "Knooppuntgegevens",
+      "input": "Invoer",
+      "output": "Uitvoer",
+      "performance": "Prestaties",
+      "metadata": "Metagegevens",
+      "inputData": "Invoergegevens",
+      "outputData": "Uitvoergegevens"
+    },
+    "started": "Gestart",
+    "completed": "Voltooid",
+    "duration": "Duur",
+    "logs": "Uitvoeringslogs",
+    "noLogs": "Geen logs beschikbaar",
+    "error": "Fout",
+    "errorLoading": "Fout bij het laden van uitvoeringsstatus",
+    "notFound": "Uitvoering niet gevonden",
+    "cancel": "Annuleren",
+    "cancelled": "Uitvoering succesvol geannuleerd",
+    "cancelError": "Fout bij annuleren van uitvoering",
+    "resume": "Hervatten",
+    "resumed": "Uitvoering succesvol hervat",
+    "resumeError": "Fout bij hervatten van uitvoering"
+  },
+  "title": "title",
+  "welcome": "welcome",
+  "stats": {
+    "workflows": "stats.workflows",
+    "executions": "stats.executions",
+    "connectors": "stats.connectors"
+  },
+  "quick_actions": {
+    "title": "quick_actions.title",
+    "create_workflow": "quick_actions.create_workflow",
+    "create_workflow_desc": "quick_actions.create_workflow_desc",
+    "import_workflow": "quick_actions.import_workflow",
+    "import_workflow_desc": "quick_actions.import_workflow_desc",
+    "manage_connectors": "quick_actions.manage_connectors",
+    "manage_connectors_desc": "quick_actions.manage_connectors_desc",
+    "view_analytics": "quick_actions.view_analytics",
+    "view_analytics_desc": "quick_actions.view_analytics_desc"
+  },
+  "recent_workflows": {
+    "title": "recent_workflows.title",
+    "view_all": "recent_workflows.view_all",
+    "no_description": "recent_workflows.no_description",
+    "empty": "recent_workflows.empty",
+    "create_first": "recent_workflows.create_first"
+  },
+  "common": {
+    "autoscroll": "common.autoscroll",
+    "search": "common.search",
+    "copied": "common.copied",
+    "copy": "common.copy"
+  },
+  "reset_email_failed": "reset_email_failed",
+  "check_email": "check_email",
+  "reset_email_sent": "reset_email_sent",
+  "back_to_login": "back_to_login",
+  "forgot_password": "forgot_password",
+  "email": "email",
+  "email_placeholder": "email_placeholder",
+  "sending": "sending",
+  "send_reset_link": "send_reset_link",
+  "nav": {
+    "home": "nav.home",
+    "features": "nav.features",
+    "pricing": "nav.pricing",
+    "docs": "nav.docs"
+  },
+  "welcome_user": "welcome_user",
+  "dashboard": "dashboard",
+  "logout": "logout",
+  "sign_in": "sign_in",
+  "get_started": "get_started",
+  "hero": {
+    "title": "hero.title",
+    "subtitle": "hero.subtitle",
+    "cta_primary": "hero.cta_primary",
+    "cta_secondary": "hero.cta_secondary"
+  },
+  "features": {
+    "title": "features.title",
+    "subtitle": "features.subtitle",
+    "visual_editor": {
+      "title": "features.visual_editor.title",
+      "description": "features.visual_editor.description"
+    },
+    "integrations": {
+      "title": "features.integrations.title",
+      "description": "features.integrations.description"
+    },
+    "monitoring": {
+      "title": "features.monitoring.title",
+      "description": "features.monitoring.description"
+    },
+    "scalable": {
+      "title": "features.scalable.title",
+      "description": "features.scalable.description"
+    },
+    "custom_connectors": {
+      "title": "features.custom_connectors.title",
+      "description": "features.custom_connectors.description"
+    },
+    "security": {
+      "title": "features.security.title",
+      "description": "features.security.description"
+    }
+  },
+  "cta": {
+    "title": "cta.title",
+    "subtitle": "cta.subtitle"
+  },
+  "footer": {
+    "description": "footer.description",
+    "product": "footer.product",
+    "features": "footer.features",
+    "pricing": "footer.pricing",
+    "integrations": "footer.integrations",
+    "api": "footer.api",
+    "resources": "footer.resources",
+    "documentation": "footer.documentation",
+    "tutorials": "footer.tutorials",
+    "blog": "footer.blog",
+    "support": "footer.support",
+    "company": "footer.company",
+    "about": "footer.about",
+    "careers": "footer.careers",
+    "contact": "footer.contact",
+    "privacy": "footer.privacy",
+    "copyright": "footer.copyright"
+  },
+  "login": {
+    "title": "login.title"
+  },
+  "password": "password",
+  "password_placeholder": "password_placeholder",
+  "signing_in": "signing_in",
+  "no_account": "no_account",
+  "sign_up": "sign_up",
+  "close": "close",
+  "validation": {
+    "name_min_length": "validation.name_min_length",
+    "password_min_length": "validation.password_min_length",
+    "passwords_no_match": "validation.passwords_no_match"
+  },
+  "register": {
+    "title": "register.title"
+  },
+  "name": "name",
+  "name_placeholder": "name_placeholder",
+  "organization_name": "organization_name",
+  "organization_placeholder": "organization_placeholder",
+  "confirm_password": "confirm_password",
+  "confirm_password_placeholder": "confirm_password_placeholder",
+  "creating_account": "creating_account",
+  "have_account": "have_account",
+  "default_author": "default_author",
+  "difficulty": {
+    "beginner": "difficulty.beginner"
+  },
+  "fit_to_view_shortcut": "fit_to_view_shortcut",
+  "export_workflow": "export_workflow",
+  "search": "search",
+  "all": "all",
+  "no_nodes_found": "no_nodes_found"
+}

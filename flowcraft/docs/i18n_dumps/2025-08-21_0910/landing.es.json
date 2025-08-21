@@ -1,0 +1,62 @@
+{
+  "hero": {
+    "title": "Automatiza tus Flujos de Trabajo con FlowCraft",
+    "subtitle": "Crea, ejecuta y monitorea flujos de trabajo complejos con nuestra plataforma visual intuitiva.",
+    "cta_primary": "Comenzar Gratis",
+    "cta_secondary": "Ver Demo"
+  },
+  "features": {
+    "title": "¿Por qué elegir FlowCraft?",
+    "subtitle": "Potencia tu productividad con herramientas avanzadas de automatización",
+    "visual_editor": {
+      "title": "Editor Visual Intuitivo",
+      "description": "Crea workflows complejos con nuestro editor drag-and-drop sin necesidad de código"
+    },
+    "integrations": {
+      "title": "200+ Integraciones",
+      "description": "Conecta con todas tus herramientas favoritas y servicios en la nube"
+    },
+    "monitoring": {
+      "title": "Monitoreo en Tiempo Real",
+      "description": "Sigue el progreso de tus workflows con métricas detalladas y alertas"
+    },
+    "scalable": {
+      "title": "Escalabilidad Empresarial",
+      "description": "Desde startups hasta empresas Fortune 500, FlowCraft crece contigo"
+    },
+    "security": {
+      "title": "Seguridad de Grado Empresarial",
+      "description": "Tus datos están protegidos con encriptación de nivel bancario"
+    },
+    "automation": "Automatización Inteligente",
+    "collaboration": "Colaboración en Equipo",
+    "custom_connectors": {
+      "title": "Conectores Personalizados",
+      "description": "Crea tus propios conectores para necesidades específicas"
+    }
+  },
+  "cta": {
+    "title": "¿Listo para comenzar?",
+    "subtitle": "Únete a miles de usuarios que ya están automatizando sus flujos de trabajo",
+    "button": "Comenzar Ahora"
+  },
+  "footer": {
+    "product": "Producto",
+    "features": "Características",
+    "integrations": "Integraciones",
+    "pricing": "Precios",
+    "company": "Empresa",
+    "about": "Acerca de",
+    "careers": "Carreras",
+    "contact": "Contacto",
+    "resources": "Recursos",
+    "documentation": "Documentación",
+    "tutorials": "Tutoriales",
+    "blog": "Blog",
+    "api": "API",
+    "support": "Soporte",
+    "privacy": "Privacidad",
+    "copyright": "© 2024 FlowCraft. Todos los derechos reservados.",
+    "description": "Plataforma de automatización de flujos de trabajo visual"
+  }
+}
