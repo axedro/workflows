@@ -1,43 +1,269 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Plus,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+  FolderPlus,
+  Folder,
+  FileText,
+  X,
+  Check,
+  AlertCircle
+} from 'lucide-react';
 import { DataCondition, ConditionOperator, DataField, DataType } from '@flowcraft/shared-types';
-import { Plus, Minus, FolderOpen, FolderClosed, Eye, EyeOff, Settings, Copy, Trash2 } from 'lucide-react';
 
-// Advanced condition group interface
+// Tipos para condiciones avanzadas
 export interface ConditionGroup {
   id: string;
-  name: string;
+  type: 'group';
   operator: 'AND' | 'OR';
-  conditions: DataCondition[];
-  groups: ConditionGroup[];
+  children: (ConditionGroup | DataCondition)[];
   enabled: boolean;
   description?: string;
-  collapsed?: boolean;
 }
 
-// Advanced condition structure
-export interface AdvancedConditionStructure {
-  rootGroup: ConditionGroup;
-  availableFields: Record<string, DataField>;
+export interface ConditionItem extends DataCondition {
+  type: 'condition';
 }
+
+export type ConditionNode = ConditionGroup | ConditionItem;
 
 interface AdvancedConditionEditorProps {
-  conditionStructure: AdvancedConditionStructure;
-  onConditionStructureChange: (structure: AdvancedConditionStructure) => void;
+  conditions: DataCondition[];
+  availableFields: Record<string, DataField>;
+  onConditionsChange: (conditions: DataCondition[]) => void;
   className?: string;
-  showDataPreview?: boolean;
-  sampleData?: Record<string, any>;
 }
 
-// Component for individual condition
-const ConditionItem: React.FC<{
-  condition: DataCondition;
-  availableFields: Record<string, DataField>;
-  onUpdate: (updates: Partial<DataCondition>) => void;
-  onRemove: () => void;
-  onDuplicate: () => void;
-  isEvaluated: boolean;
-  evaluationResult: boolean;
-}> = ({ condition, availableFields, onUpdate, onRemove, onDuplicate, isEvaluated, evaluationResult }) => {
+const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
+  conditions,
+  availableFields,
+  onConditionsChange,
+  className = ''
+}) => {
+  const [conditionTree, setConditionTree] = useState<ConditionNode[]>([]);
+  const [previewData, setPreviewData] = useState<Record<string, any>>({});
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+
+  // Convertir condiciones simples a árbol de condiciones
+  useEffect(() => {
+    if (conditions.length > 0) {
+      // Si ya hay condiciones, convertirlas a un grupo AND
+      const rootGroup: ConditionGroup = {
+        id: 'root',
+        type: 'group',
+        operator: 'AND',
+        children: conditions.map(cond => ({ ...cond, type: 'condition' as const })),
+        enabled: true
+      };
+      setConditionTree([rootGroup]);
+      setExpandedGroups(new Set(['root']));
+    } else {
+      setConditionTree([]);
+    }
+  }, []);
+
+  // Convertir árbol de condiciones a formato simple para el backend
+  const flattenConditions = (nodes: ConditionNode[]): DataCondition[] => {
+    const result: DataCondition[] = [];
+
+    const processNode = (node: ConditionNode) => {
+      if (node.type === 'condition') {
+        result.push({
+          id: node.id,
+          field: node.field,
+          operator: node.operator,
+          value: node.value,
+          enabled: node.enabled,
+          description: node.description
+        });
+      } else if (node.type === 'group') {
+        node.children.forEach(processNode);
+      }
+    };
+
+    nodes.forEach(processNode);
+    return result;
+  };
+
+  // Notificar cambios al componente padre
+  useEffect(() => {
+    const flattened = flattenConditions(conditionTree);
+    onConditionsChange(flattened);
+  }, [conditionTree]);
+
+  // Generar ID único
+  const generateId = () => `condition_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+  // Agregar nueva condición
+  const addCondition = (parentId?: string) => {
+    const newCondition: ConditionItem = {
+      id: generateId(),
+      type: 'condition',
+      field: '',
+      operator: ConditionOperator.EQUALS,
+      value: '',
+      enabled: true,
+      description: ''
+    };
+
+    if (parentId) {
+      setConditionTree(prev => updateNodeInTree(prev, parentId, (node) => {
+        if (node.type === 'group') {
+          return { ...node, children: [...node.children, newCondition] };
+        }
+        return node;
+      }));
+    } else {
+      setConditionTree(prev => [...prev, newCondition]);
+    }
+  };
+
+  // Agregar nuevo grupo
+  const addGroup = (parentId?: string) => {
+    const newGroup: ConditionGroup = {
+      id: generateId(),
+      type: 'group',
+      operator: 'AND',
+      children: [],
+      enabled: true,
+      description: ''
+    };
+
+    if (parentId) {
+      setConditionTree(prev => updateNodeInTree(prev, parentId, (node) => {
+        if (node.type === 'group') {
+          return { ...node, children: [...node.children, newGroup] };
+        }
+        return node;
+      }));
+    } else {
+      setConditionTree(prev => [...prev, newGroup]);
+    }
+    setExpandedGroups(prev => new Set([...prev, newGroup.id]));
+  };
+
+  // Actualizar nodo en el árbol
+  const updateNodeInTree = (
+    nodes: ConditionNode[],
+    targetId: string,
+    updater: (node: ConditionNode) => ConditionNode
+  ): ConditionNode[] => {
+    return nodes.map(node => {
+      if (node.id === targetId) {
+        return updater(node);
+      }
+      if (node.type === 'group') {
+        return { ...node, children: updateNodeInTree(node.children, targetId, updater) };
+      }
+      return node;
+    });
+  };
+
+  // Eliminar nodo del árbol
+  const removeNode = (nodeId: string) => {
+    const removeFromNodes = (nodes: ConditionNode[]): ConditionNode[] => {
+      return nodes.filter(node => {
+        if (node.id === nodeId) {
+          return false;
+        }
+        if (node.type === 'group') {
+          return { ...node, children: removeFromNodes(node.children) };
+        }
+        return true;
+      });
+    };
+
+    setConditionTree(prev => removeFromNodes(prev));
+  };
+
+  // Actualizar nodo
+  const updateNode = (nodeId: string, updates: Partial<ConditionNode>) => {
+    setConditionTree(prev => updateNodeInTree(prev, nodeId, (node) => ({ ...node, ...updates })));
+  };
+
+  // Toggle expansión de grupo
+  const toggleGroupExpansion = (groupId: string) => {
+    setExpandedGroups(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupId)) {
+        newSet.delete(groupId);
+      } else {
+        newSet.add(groupId);
+      }
+      return newSet;
+    });
+  };
+
+  // Evaluar condición individual
+  const evaluateCondition = (condition: ConditionItem): boolean => {
+    if (!condition.field || !condition.enabled) return true;
+
+    const fieldValue = previewData[condition.field];
+    const conditionValue = condition.value;
+
+    switch (condition.operator) {
+      case ConditionOperator.EQUALS:
+        return fieldValue === conditionValue;
+      case ConditionOperator.NOT_EQUALS:
+        return fieldValue !== conditionValue;
+      case ConditionOperator.GREATER_THAN:
+        return Number(fieldValue) > Number(conditionValue);
+      case ConditionOperator.LESS_THAN:
+        return Number(fieldValue) < Number(conditionValue);
+      case ConditionOperator.GREATER_EQUAL:
+        return Number(fieldValue) >= Number(conditionValue);
+      case ConditionOperator.LESS_EQUAL:
+        return Number(fieldValue) <= Number(conditionValue);
+      case ConditionOperator.CONTAINS:
+        return String(fieldValue).includes(String(conditionValue));
+      case ConditionOperator.NOT_CONTAINS:
+        return !String(fieldValue).includes(String(conditionValue));
+      case ConditionOperator.STARTS_WITH:
+        return String(fieldValue).startsWith(String(conditionValue));
+      case ConditionOperator.ENDS_WITH:
+        return String(fieldValue).endsWith(String(conditionValue));
+      case ConditionOperator.IS_EMPTY:
+        return !fieldValue || String(fieldValue).length === 0;
+      case ConditionOperator.IS_NOT_EMPTY:
+        return fieldValue && String(fieldValue).length > 0;
+      case ConditionOperator.IS_NULL:
+        return fieldValue === null || fieldValue === undefined;
+      case ConditionOperator.IS_NOT_NULL:
+        return fieldValue !== null && fieldValue !== undefined;
+      default:
+        return true;
+    }
+  };
+
+  // Evaluar grupo de condiciones
+  const evaluateGroup = (group: ConditionGroup): boolean => {
+    if (!group.enabled) return true;
+
+    const results = group.children.map(child =>
+      child.type === 'condition' ? evaluateCondition(child) : evaluateGroup(child)
+    );
+
+    if (group.operator === 'AND') {
+      return results.every(result => result);
+    } else {
+      return results.some(result => result);
+    }
+  };
+
+  // Evaluar todo el árbol
+  const evaluateTree = (): boolean => {
+    if (conditionTree.length === 0) return true;
+
+    const results = conditionTree.map(node =>
+      node.type === 'condition' ? evaluateCondition(node) : evaluateGroup(node)
+    );
+
+    return results.every(result => result);
+  };
+
+  // Obtener operadores por tipo de campo
   const getOperatorsForType = (fieldType: DataType): ConditionOperator[] => {
     switch (fieldType) {
       case DataType.STRING:
@@ -90,351 +316,15 @@ const ConditionItem: React.FC<{
     }
   };
 
+  // Obtener tipo de campo
   const getFieldType = (fieldName: string): DataType => {
     return availableFields[fieldName]?.type || DataType.STRING;
   };
 
-  return (
-    <div className="border border-gray-200 rounded-lg p-3 bg-white hover:shadow-sm transition-shadow">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            checked={condition.enabled}
-            onChange={(e) => onUpdate({ enabled: e.target.checked })}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          />
-          <span className="text-sm font-medium text-gray-700">Condition</span>
-        </div>
-        <div className="flex items-center space-x-1">
-          <button
-            onClick={onDuplicate}
-            className="p-1 text-gray-400 hover:text-gray-600 rounded"
-            title="Duplicate condition"
-          >
-            <Copy className="w-3 h-3" />
-          </button>
-          <button
-            onClick={onRemove}
-            className="p-1 text-red-400 hover:text-red-600 rounded"
-            title="Remove condition"
-          >
-            <Trash2 className="w-3 h-3" />
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        {/* Field */}
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Field</label>
-          <select
-            value={condition.field}
-            onChange={(e) => onUpdate({ field: e.target.value })}
-            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-          >
-            <option value="">Select field</option>
-            {Object.keys(availableFields).map(fieldName => (
-              <option key={fieldName} value={fieldName}>
-                {fieldName} ({availableFields[fieldName].type})
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Operator */}
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Operator</label>
-          <select
-            value={condition.operator}
-            onChange={(e) => onUpdate({ operator: e.target.value as ConditionOperator })}
-            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-          >
-            {condition.field && getOperatorsForType(getFieldType(condition.field)).map(operator => (
-              <option key={operator} value={operator}>
-                {operator.replace('_', ' ')}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Value */}
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Value</label>
-          <input
-            type="text"
-            value={condition.value}
-            onChange={(e) => onUpdate({ value: e.target.value })}
-            placeholder="Enter value"
-            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-        </div>
-
-        {/* Result */}
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Result</label>
-          <div className={`px-2 py-1 rounded text-xs font-medium text-center ${
-            isEvaluated
-              ? evaluationResult
-                ? 'bg-green-100 text-green-800'
-                : 'bg-red-100 text-red-800'
-              : 'bg-gray-100 text-gray-600'
-          }`}>
-            {isEvaluated ? (evaluationResult ? 'True' : 'False') : 'Pending'}
-          </div>
-        </div>
-      </div>
-
-      {/* Description */}
-      {condition.description && (
-        <div className="mt-2">
-          <input
-            type="text"
-            value={condition.description}
-            onChange={(e) => onUpdate({ description: e.target.value })}
-            placeholder="Optional description"
-            className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Component for condition group
-const ConditionGroupItem: React.FC<{
-  group: ConditionGroup;
-  availableFields: Record<string, DataField>;
-  onUpdate: (groupId: string, updates: Partial<ConditionGroup>) => void;
-  onAddCondition: (groupId: string) => void;
-  onAddGroup: (parentGroupId: string) => void;
-  onRemoveGroup: (groupId: string) => void;
-  onDuplicateGroup: (groupId: string) => void;
-  onConditionUpdate: (groupId: string, conditionId: string, updates: Partial<DataCondition>) => void;
-  onConditionRemove: (groupId: string, conditionId: string) => void;
-  onConditionDuplicate: (groupId: string, conditionId: string) => void;
-  sampleData?: Record<string, any>;
-  level?: number;
-}> = ({
-  group,
-  availableFields,
-  onUpdate,
-  onAddCondition,
-  onAddGroup,
-  onRemoveGroup,
-  onDuplicateGroup,
-  onConditionUpdate,
-  onConditionRemove,
-  onConditionDuplicate,
-  sampleData,
-  level = 0
-}) => {
-  const [isCollapsed, setIsCollapsed] = useState(group.collapsed || false);
-
-  // Evaluate condition
-  const evaluateCondition = (condition: DataCondition): boolean => {
-    if (!condition.field || !condition.enabled || !sampleData) return true;
-
-    const fieldValue = sampleData[condition.field];
-    const conditionValue = condition.value;
-
-    switch (condition.operator) {
-      case ConditionOperator.EQUALS:
-        return fieldValue === conditionValue;
-      case ConditionOperator.NOT_EQUALS:
-        return fieldValue !== conditionValue;
-      case ConditionOperator.GREATER_THAN:
-        return Number(fieldValue) > Number(conditionValue);
-      case ConditionOperator.LESS_THAN:
-        return Number(fieldValue) < Number(conditionValue);
-      case ConditionOperator.GREATER_EQUAL:
-        return Number(fieldValue) >= Number(conditionValue);
-      case ConditionOperator.LESS_EQUAL:
-        return Number(fieldValue) <= Number(conditionValue);
-      case ConditionOperator.CONTAINS:
-        return String(fieldValue).includes(String(conditionValue));
-      case ConditionOperator.NOT_CONTAINS:
-        return !String(fieldValue).includes(String(conditionValue));
-      case ConditionOperator.STARTS_WITH:
-        return String(fieldValue).startsWith(String(conditionValue));
-      case ConditionOperator.ENDS_WITH:
-        return String(fieldValue).endsWith(String(conditionValue));
-      case ConditionOperator.IS_EMPTY:
-        return !fieldValue || String(fieldValue).length === 0;
-      case ConditionOperator.IS_NOT_EMPTY:
-        return fieldValue && String(fieldValue).length > 0;
-      case ConditionOperator.IS_NULL:
-        return fieldValue === null || fieldValue === undefined;
-      case ConditionOperator.IS_NOT_NULL:
-        return fieldValue !== null && fieldValue !== undefined;
-      default:
-        return true;
-    }
-  };
-
-  // Evaluate group
-  const evaluateGroup = (group: ConditionGroup): boolean => {
-    if (!group.enabled) return true;
-
-    const conditionResults = group.conditions
-      .filter(c => c.enabled)
-      .map(evaluateCondition);
-
-    const groupResults = group.groups
-      .filter(g => g.enabled)
-      .map(evaluateGroup);
-
-    const allResults = [...conditionResults, ...groupResults];
-
-    if (allResults.length === 0) return true;
-
-    return group.operator === 'AND' 
-      ? allResults.every(result => result)
-      : allResults.some(result => result);
-  };
-
-  const groupResult = evaluateGroup(group);
-
-  return (
-    <div className={`border border-gray-300 rounded-lg ${level > 0 ? 'ml-4' : ''}`}>
-      {/* Group Header */}
-      <div className={`flex items-center justify-between p-3 ${
-        groupResult ? 'bg-green-50 border-b border-green-200' : 'bg-red-50 border-b border-red-200'
-      }`}>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1 text-gray-500 hover:text-gray-700"
-          >
-            {isCollapsed ? <FolderClosed className="w-4 h-4" /> : <FolderOpen className="w-4 h-4" />}
-          </button>
-          
-          <input
-            type="checkbox"
-            checked={group.enabled}
-            onChange={(e) => onUpdate(group.id, { enabled: e.target.checked })}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          />
-          
-          <input
-            type="text"
-            value={group.name}
-            onChange={(e) => onUpdate(group.id, { name: e.target.value })}
-            className="text-sm font-medium bg-transparent border-none focus:outline-none focus:ring-0"
-            placeholder="Group name"
-          />
-          
-          <select
-            value={group.operator}
-            onChange={(e) => onUpdate(group.id, { operator: e.target.value as 'AND' | 'OR' })}
-            className="text-xs border border-gray-300 rounded px-2 py-1"
-          >
-            <option value="AND">AND</option>
-            <option value="OR">OR</option>
-          </select>
-          
-          <div className={`px-2 py-1 rounded text-xs font-medium ${
-            groupResult ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'
-          }`}>
-            {groupResult ? 'True' : 'False'}
-          </div>
-        </div>
-        
-        <div className="flex items-center space-x-1">
-          <button
-            onClick={() => onAddCondition(group.id)}
-            className="p-1 text-blue-500 hover:text-blue-700 rounded"
-            title="Add condition"
-          >
-            <Plus className="w-3 h-3" />
-          </button>
-          <button
-            onClick={() => onAddGroup(group.id)}
-            className="p-1 text-green-500 hover:text-green-700 rounded"
-            title="Add group"
-          >
-            <FolderOpen className="w-3 h-3" />
-          </button>
-          <button
-            onClick={() => onDuplicateGroup(group.id)}
-            className="p-1 text-gray-400 hover:text-gray-600 rounded"
-            title="Duplicate group"
-          >
-            <Copy className="w-3 h-3" />
-          </button>
-          <button
-            onClick={() => onRemoveGroup(group.id)}
-            className="p-1 text-red-400 hover:text-red-600 rounded"
-            title="Remove group"
-          >
-            <Trash2 className="w-3 h-3" />
-          </button>
-        </div>
-      </div>
-
-      {/* Group Content */}
-      {!isCollapsed && (
-        <div className="p-3 space-y-3">
-          {/* Conditions */}
-          {group.conditions.map((condition) => (
-            <ConditionItem
-              key={condition.id}
-              condition={condition}
-              availableFields={availableFields}
-              onUpdate={(updates) => onConditionUpdate(group.id, condition.id, updates)}
-              onRemove={() => onConditionRemove(group.id, condition.id)}
-              onDuplicate={() => onConditionDuplicate(group.id, condition.id)}
-              isEvaluated={!!sampleData}
-              evaluationResult={evaluateCondition(condition)}
-            />
-          ))}
-
-          {/* Nested Groups */}
-          {group.groups.map((nestedGroup) => (
-            <ConditionGroupItem
-              key={nestedGroup.id}
-              group={nestedGroup}
-              availableFields={availableFields}
-              onUpdate={onUpdate}
-              onAddCondition={onAddCondition}
-              onAddGroup={onAddGroup}
-              onRemoveGroup={onRemoveGroup}
-              onDuplicateGroup={onDuplicateGroup}
-              onConditionUpdate={onConditionUpdate}
-              onConditionRemove={onConditionRemove}
-              onConditionDuplicate={onConditionDuplicate}
-              sampleData={sampleData}
-              level={level + 1}
-            />
-          ))}
-
-          {/* Empty state */}
-          {group.conditions.length === 0 && group.groups.length === 0 && (
-            <div className="text-center py-4 text-gray-500 text-sm">
-              No conditions or groups. Add a condition or group to get started.
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Main Advanced Condition Editor Component
-export const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = ({
-  conditionStructure,
-  onConditionStructureChange,
-  className = '',
-  showDataPreview = true,
-  sampleData
-}) => {
-  const [localStructure, setLocalStructure] = useState<AdvancedConditionStructure>(conditionStructure);
-  const [previewData, setPreviewData] = useState<Record<string, any>>(sampleData || {});
-
-  // Generate sample data for preview
-  const generateSampleData = () => {
+  // Generar datos de preview
+  const generatePreviewData = () => {
     const data: Record<string, any> = {};
-    Object.entries(localStructure.availableFields).forEach(([fieldName, field]) => {
+    Object.entries(availableFields).forEach(([fieldName, field]) => {
       switch (field.type) {
         case DataType.STRING:
           data[fieldName] = field.example || 'example string';
@@ -456,218 +346,226 @@ export const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = (
   };
 
   useEffect(() => {
-    if (!sampleData) {
-      generateSampleData();
-    }
-  }, [localStructure.availableFields, sampleData]);
+    generatePreviewData();
+  }, [availableFields]);
 
-  // Helper functions for managing groups and conditions
-  const addCondition = (groupId: string) => {
-    const newCondition: DataCondition = {
-      id: `condition_${Date.now()}_${Math.random()}`,
-      field: '',
-      operator: ConditionOperator.EQUALS,
-      value: '',
-      enabled: true,
-      description: ''
-    };
+  // Renderizar condición individual
+  const renderCondition = (condition: ConditionItem, depth: number = 0) => {
+    const isExpanded = true; // Las condiciones siempre están expandidas
+    const result = evaluateCondition(condition);
 
-    const addConditionToGroup = (group: ConditionGroup): ConditionGroup => {
-      if (group.id === groupId) {
-        return { ...group, conditions: [...group.conditions, newCondition] };
-      }
-      return {
-        ...group,
-        groups: group.groups.map(addConditionToGroup)
-      };
-    };
+    return (
+      <div key={condition.id} className="border border-gray-200 rounded-lg bg-white">
+        <div
+          className="flex items-center justify-between p-3"
+          style={{ paddingLeft: `${depth * 20 + 12}px` }}
+        >
+          <div className="flex items-center space-x-2">
+            <FileText className="w-4 h-4 text-blue-500" />
+            <span className="text-sm font-medium text-gray-900">Condition</span>
+            <div className={`px-2 py-1 rounded text-xs font-medium ${
+              result ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`}>
+              {result ? 'True' : 'False'}
+            </div>
+          </div>
 
-    const updatedStructure = {
-      ...localStructure,
-      rootGroup: addConditionToGroup(localStructure.rootGroup)
-    };
+          <div className="flex items-center space-x-2">
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={condition.enabled}
+                onChange={(e) => updateNode(condition.id, { enabled: e.target.checked })}
+                className="mr-2"
+              />
+              <span className="text-sm text-gray-600">Enabled</span>
+            </label>
+            <button
+              onClick={() => removeNode(condition.id)}
+              className="text-red-500 hover:text-red-700 p-1"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
 
-    setLocalStructure(updatedStructure);
-    onConditionStructureChange(updatedStructure);
+        {isExpanded && (
+          <div className="px-3 pb-3">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              {/* Campo */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Field</label>
+                <select
+                  value={condition.field}
+                  onChange={(e) => updateNode(condition.id, { field: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select a field</option>
+                  {Object.keys(availableFields).map(fieldName => (
+                    <option key={fieldName} value={fieldName}>
+                      {fieldName} ({availableFields[fieldName].type})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Operador */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Operator</label>
+                <select
+                  value={condition.operator}
+                  onChange={(e) => updateNode(condition.id, { operator: e.target.value as ConditionOperator })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {condition.field && getOperatorsForType(getFieldType(condition.field)).map(operator => (
+                    <option key={operator} value={operator}>
+                      {operator.replace('_', ' ')}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Valor */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Value</label>
+                <input
+                  type="text"
+                  value={condition.value}
+                  onChange={(e) => updateNode(condition.id, { value: e.target.value })}
+                  placeholder="Enter value"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Preview del valor */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Preview</label>
+                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm">
+                  {condition.field ? previewData[condition.field] : 'No field selected'}
+                </div>
+              </div>
+            </div>
+
+            {/* Descripción */}
+            <div className="mt-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <input
+                type="text"
+                value={condition.description || ''}
+                onChange={(e) => updateNode(condition.id, { description: e.target.value })}
+                placeholder="Optional description"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
-  const addGroup = (parentGroupId: string) => {
-    const newGroup: ConditionGroup = {
-      id: `group_${Date.now()}_${Math.random()}`,
-      name: `Group ${Date.now()}`,
-      operator: 'AND',
-      conditions: [],
-      groups: [],
-      enabled: true,
-      collapsed: false
-    };
+  // Renderizar grupo de condiciones
+  const renderGroup = (group: ConditionGroup, depth: number = 0) => {
+    const isExpanded = expandedGroups.has(group.id);
+    const result = evaluateGroup(group);
 
-    const addGroupToParent = (group: ConditionGroup): ConditionGroup => {
-      if (group.id === parentGroupId) {
-        return { ...group, groups: [...group.groups, newGroup] };
-      }
-      return {
-        ...group,
-        groups: group.groups.map(addGroupToParent)
-      };
-    };
+    return (
+      <div key={group.id} className="border border-gray-200 rounded-lg bg-gray-50">
+        <div
+          className="flex items-center justify-between p-3"
+          style={{ paddingLeft: `${depth * 20 + 12}px` }}
+        >
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => toggleGroupExpansion(group.id)}
+              className="p-1 hover:bg-gray-200 rounded"
+            >
+              {isExpanded ? (
+                <ChevronDown className="w-4 h-4 text-gray-600" />
+              ) : (
+                <ChevronRight className="w-4 h-4 text-gray-600" />
+              )}
+            </button>
+            <Folder className="w-4 h-4 text-purple-500" />
+            <span className="text-sm font-medium text-gray-900">Group ({group.operator})</span>
+            <div className={`px-2 py-1 rounded text-xs font-medium ${
+              result ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`}>
+              {result ? 'True' : 'False'}
+            </div>
+          </div>
 
-    const updatedStructure = {
-      ...localStructure,
-      rootGroup: addGroupToParent(localStructure.rootGroup)
-    };
+          <div className="flex items-center space-x-2">
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={group.enabled}
+                onChange={(e) => updateNode(group.id, { enabled: e.target.checked })}
+                className="mr-2"
+              />
+              <span className="text-sm text-gray-600">Enabled</span>
+            </label>
+            <button
+              onClick={() => addCondition(group.id)}
+              className="text-blue-500 hover:text-blue-700 p-1"
+              title="Add condition"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => addGroup(group.id)}
+              className="text-purple-500 hover:text-purple-700 p-1"
+              title="Add group"
+            >
+              <FolderPlus className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => removeNode(group.id)}
+              className="text-red-500 hover:text-red-700 p-1"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
 
-    setLocalStructure(updatedStructure);
-    onConditionStructureChange(updatedStructure);
-  };
+        {isExpanded && (
+          <div className="px-3 pb-3">
+            {/* Configuración del grupo */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Operator</label>
+                <select
+                  value={group.operator}
+                  onChange={(e) => updateNode(group.id, { operator: e.target.value as 'AND' | 'OR' })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="AND">AND (All conditions must be true)</option>
+                  <option value="OR">OR (Any condition can be true)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <input
+                  type="text"
+                  value={group.description || ''}
+                  onChange={(e) => updateNode(group.id, { description: e.target.value })}
+                  placeholder="Group description"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
 
-  const updateGroup = (groupId: string, updates: Partial<ConditionGroup>) => {
-    const updateGroupById = (group: ConditionGroup): ConditionGroup => {
-      if (group.id === groupId) {
-        return { ...group, ...updates };
-      }
-      return {
-        ...group,
-        groups: group.groups.map(updateGroupById)
-      };
-    };
-
-    const updatedStructure = {
-      ...localStructure,
-      rootGroup: updateGroupById(localStructure.rootGroup)
-    };
-
-    setLocalStructure(updatedStructure);
-    onConditionStructureChange(updatedStructure);
-  };
-
-  const removeGroup = (groupId: string) => {
-    const removeGroupById = (group: ConditionGroup): ConditionGroup => {
-      return {
-        ...group,
-        groups: group.groups.filter(g => g.id !== groupId).map(removeGroupById)
-      };
-    };
-
-    const updatedStructure = {
-      ...localStructure,
-      rootGroup: removeGroupById(localStructure.rootGroup)
-    };
-
-    setLocalStructure(updatedStructure);
-    onConditionStructureChange(updatedStructure);
-  };
-
-  const duplicateGroup = (groupId: string) => {
-    const duplicateGroupById = (group: ConditionGroup): ConditionGroup => {
-      if (group.id === groupId) {
-        const duplicatedGroup: ConditionGroup = {
-          ...group,
-          id: `group_${Date.now()}_${Math.random()}`,
-          name: `${group.name} (Copy)`,
-          conditions: group.conditions.map(c => ({
-            ...c,
-            id: `condition_${Date.now()}_${Math.random()}`
-          })),
-          groups: group.groups.map(g => ({
-            ...g,
-            id: `group_${Date.now()}_${Math.random()}`
-          }))
-        };
-        return { ...group, groups: [...group.groups, duplicatedGroup] };
-      }
-      return {
-        ...group,
-        groups: group.groups.map(duplicateGroupById)
-      };
-    };
-
-    const updatedStructure = {
-      ...localStructure,
-      rootGroup: duplicateGroupById(localStructure.rootGroup)
-    };
-
-    setLocalStructure(updatedStructure);
-    onConditionStructureChange(updatedStructure);
-  };
-
-  const updateCondition = (groupId: string, conditionId: string, updates: Partial<DataCondition>) => {
-    const updateConditionInGroup = (group: ConditionGroup): ConditionGroup => {
-      if (group.id === groupId) {
-        return {
-          ...group,
-          conditions: group.conditions.map(c =>
-            c.id === conditionId ? { ...c, ...updates } : c
-          )
-        };
-      }
-      return {
-        ...group,
-        groups: group.groups.map(updateConditionInGroup)
-      };
-    };
-
-    const updatedStructure = {
-      ...localStructure,
-      rootGroup: updateConditionInGroup(localStructure.rootGroup)
-    };
-
-    setLocalStructure(updatedStructure);
-    onConditionStructureChange(updatedStructure);
-  };
-
-  const removeCondition = (groupId: string, conditionId: string) => {
-    const removeConditionFromGroup = (group: ConditionGroup): ConditionGroup => {
-      if (group.id === groupId) {
-        return {
-          ...group,
-          conditions: group.conditions.filter(c => c.id !== conditionId)
-        };
-      }
-      return {
-        ...group,
-        groups: group.groups.map(removeConditionFromGroup)
-      };
-    };
-
-    const updatedStructure = {
-      ...localStructure,
-      rootGroup: removeConditionFromGroup(localStructure.rootGroup)
-    };
-
-    setLocalStructure(updatedStructure);
-    onConditionStructureChange(updatedStructure);
-  };
-
-  const duplicateCondition = (groupId: string, conditionId: string) => {
-    const duplicateConditionInGroup = (group: ConditionGroup): ConditionGroup => {
-      if (group.id === groupId) {
-        const condition = group.conditions.find(c => c.id === conditionId);
-        if (condition) {
-          const duplicatedCondition: DataCondition = {
-            ...condition,
-            id: `condition_${Date.now()}_${Math.random()}`,
-            description: condition.description ? `${condition.description} (Copy)` : 'Copy'
-          };
-          return {
-            ...group,
-            conditions: [...group.conditions, duplicatedCondition]
-          };
-        }
-      }
-      return {
-        ...group,
-        groups: group.groups.map(duplicateConditionInGroup)
-      };
-    };
-
-    const updatedStructure = {
-      ...localStructure,
-      rootGroup: duplicateConditionInGroup(localStructure.rootGroup)
-    };
-
-    setLocalStructure(updatedStructure);
-    onConditionStructureChange(updatedStructure);
+            {/* Hijos del grupo */}
+            <div className="space-y-2">
+              {group.children.map(child =>
+                child.type === 'condition'
+                  ? renderCondition(child, depth + 1)
+                  : renderGroup(child, depth + 1)
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -677,53 +575,62 @@ export const AdvancedConditionEditor: React.FC<AdvancedConditionEditorProps> = (
         <h3 className="text-lg font-semibold text-gray-900">Advanced Condition Editor</h3>
         <div className="flex items-center space-x-2">
           <button
-            onClick={() => addCondition(localStructure.rootGroup.id)}
-            className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm"
+            onClick={() => addCondition()}
+            className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors flex items-center space-x-1"
           >
-            <Plus className="w-3 h-3 mr-1 inline" />
-            Add Condition
+            <Plus className="w-4 h-4" />
+            <span>Add Condition</span>
           </button>
           <button
-            onClick={() => addGroup(localStructure.rootGroup.id)}
-            className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors text-sm"
+            onClick={() => addGroup()}
+            className="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors flex items-center space-x-1"
           >
-            <FolderOpen className="w-3 h-3 mr-1 inline" />
-            Add Group
+            <FolderPlus className="w-4 h-4" />
+            <span>Add Group</span>
           </button>
         </div>
       </div>
 
-      {/* Main Condition Structure */}
-      <div className="space-y-3">
-        <ConditionGroupItem
-          group={localStructure.rootGroup}
-          availableFields={localStructure.availableFields}
-          onUpdate={updateGroup}
-          onAddCondition={addCondition}
-          onAddGroup={addGroup}
-          onRemoveGroup={removeGroup}
-          onDuplicateGroup={duplicateGroup}
-          onConditionUpdate={updateCondition}
-          onConditionRemove={removeCondition}
-          onConditionDuplicate={duplicateCondition}
-          sampleData={previewData}
-        />
+      {/* Árbol de condiciones */}
+      <div className="space-y-2">
+        {conditionTree.map(node =>
+          node.type === 'condition'
+            ? renderCondition(node)
+            : renderGroup(node)
+        )}
+
+        {conditionTree.length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+            <p>No conditions defined. Click "Add Condition" or "Add Group" to get started.</p>
+          </div>
+        )}
       </div>
 
-      {/* Data Preview */}
-      {showDataPreview && (
+      {/* Preview de evaluación */}
+      {conditionTree.length > 0 && (
         <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="font-medium text-gray-900">Data Preview</h4>
-            <button
-              onClick={generateSampleData}
-              className="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors text-xs"
-            >
-              Regenerate
-            </button>
-          </div>
-          <div className="bg-white border border-gray-200 rounded p-3">
-            <pre className="text-xs overflow-auto max-h-32">{JSON.stringify(previewData, null, 2)}</pre>
+          <h4 className="font-medium text-gray-900 mb-3">Evaluation Preview</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h5 className="text-sm font-medium text-gray-700 mb-2">Sample Data</h5>
+              <div className="bg-white border border-gray-200 rounded p-3 text-sm">
+                <pre className="whitespace-pre-wrap">{JSON.stringify(previewData, null, 2)}</pre>
+              </div>
+            </div>
+            <div>
+              <h5 className="text-sm font-medium text-gray-700 mb-2">Overall Result</h5>
+              <div className={`px-4 py-3 rounded-md text-lg font-medium text-center ${
+                evaluateTree()
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {evaluateTree() ? 'ALL CONDITIONS PASS' : 'SOME CONDITIONS FAIL'}
+              </div>
+              <div className="mt-2 text-sm text-gray-600">
+                Complex condition evaluation with nested groups
+              </div>
+            </div>
           </div>
         </div>
       )}

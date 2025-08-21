@@ -3,6 +3,7 @@ import { EditorNode, NodeType, EditorEdge, DataFlow, DataType, DataField, getNod
 
 import ConnectorValidationService from '../../../services/connectorValidation.service';
 import ConditionEditor from './ConditionEditor';
+import AdvancedConditionEditor from './AdvancedConditionEditor';
 import DataConfigPanel from './DataConfigPanel';
 import { ConnectorIntegrationPanel } from './ConnectorIntegrationPanel';
 import { ConnectorWizardModal } from './ConnectorWizardModal';
@@ -640,7 +641,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
         
         return (
           <div className="space-y-3">
-            <ConditionEditor
+            <AdvancedConditionEditor
               conditions={conditionData.dataConditions || []}
               availableFields={availableFields}
               onConditionsChange={(newConditions) => 
