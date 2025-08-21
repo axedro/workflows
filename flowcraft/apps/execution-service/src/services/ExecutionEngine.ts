@@ -564,16 +564,24 @@ export class ExecutionEngine {
       // Parse connector configuration
       const connectorConfig = connector.configuration as any;
       
-      // Validate connector configuration
-      if (!connectorConfig.url) {
-        throw new Error(`Connector ${connector.name} is missing URL configuration`);
+      // Build URL from connector configuration
+      let url: string;
+      if (connectorConfig.url) {
+        // Direct URL configuration
+        url = connectorConfig.url;
+      } else if (connectorConfig.baseUrl) {
+        // Base URL + endpoint configuration
+        const endpoint = connectorConfig.endpoint || '';
+        url = connectorConfig.baseUrl + endpoint;
+      } else {
+        throw new Error(`Connector ${connector.name} is missing URL configuration (needs either 'url' or 'baseUrl')`);
       }
 
       logger.info({ 
         nodeId: node.id, 
         connectorId: nodeData.connectorId,
         connectorName: connector.name,
-        url: connectorConfig.url
+        url: url
       }, 'Executing Webhook with connector');
 
       // For now, return success with connector info
@@ -581,7 +589,7 @@ export class ExecutionEngine {
       const result = {
         connectorId: nodeData.connectorId,
         connectorName: connector.name,
-        url: connectorConfig.url,
+        url: url,
         method: connectorConfig.method || 'POST',
         success: true,
         message: 'Webhook configuration loaded from connector'
@@ -935,15 +943,23 @@ export class ExecutionEngine {
       // Parse connector configuration
       const connectorConfig = connector.configuration as any;
       
-      // Validate connector configuration
-      if (!connectorConfig.url) {
-        throw new Error(`Connector ${connector.name} is missing URL configuration`);
+      // Build URL from connector configuration
+      let url: string;
+      if (connectorConfig.url) {
+        // Direct URL configuration
+        url = connectorConfig.url;
+      } else if (connectorConfig.baseUrl) {
+        // Base URL + endpoint configuration
+        const endpoint = connectorConfig.endpoint || '';
+        url = connectorConfig.baseUrl + endpoint;
+      } else {
+        throw new Error(`Connector ${connector.name} is missing URL configuration (needs either 'url' or 'baseUrl')`);
       }
 
       // Build request configuration from connector
       const requestConfig: any = {
         method: connectorConfig.method || 'GET',
-        url: connectorConfig.url,
+        url: url,
         timeout: connectorConfig.timeout || 30000,
         headers: {
           'Content-Type': 'application/json',
