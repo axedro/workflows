@@ -42,6 +42,7 @@ const isConnectorCompatible = (connectorType: string, nodeType: NodeType): boole
     'webhook': [NodeType.WEBHOOK],
     'timer': [NodeType.TIMER],
     'data-transform': [NodeType.DATA_TRANSFORM],
+    'slack': [NodeType.SLACK],
   };
 
   return compatibilityMap[connectorType]?.includes(nodeType) ?? false;

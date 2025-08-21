@@ -23,6 +23,13 @@ const CONNECTOR_TYPES = [
     category: 'Comunicación'
   },
   {
+    id: 'slack',
+    name: 'Slack',
+    description: 'Enviar mensajes y notificaciones a canales de Slack',
+    icon: '💬',
+    category: 'Comunicación'
+  },
+  {
     id: 'webhook',
     name: 'Webhook',
     description: 'Recibir eventos y notificaciones de servicios externos',

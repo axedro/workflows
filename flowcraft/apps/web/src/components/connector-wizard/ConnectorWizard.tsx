@@ -14,7 +14,7 @@ export interface WizardData {
   description: string;
   
   // Step 2: Type Selection
-  type?: 'http' | 'email' | 'webhook' | 'timer' | 'data-transform';
+  type?: 'http' | 'email' | 'slack' | 'webhook' | 'timer' | 'data-transform';
   
   // Step 3: Template Selection
   templateId?: string;

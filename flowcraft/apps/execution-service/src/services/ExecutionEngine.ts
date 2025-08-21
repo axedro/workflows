@@ -817,8 +817,8 @@ export class ExecutionEngine {
       const connectorConfig = connector.configuration as any;
       
       // Validate connector configuration
-      if (!connectorConfig.token) {
-        throw new Error(`Connector ${connector.name} is missing Slack token configuration`);
+      if (!connectorConfig.botToken) {
+        throw new Error(`Connector ${connector.name} is missing Slack bot token configuration`);
       }
 
       logger.info({ 
@@ -828,11 +828,12 @@ export class ExecutionEngine {
       }, 'Executing Slack with connector');
 
       // For now, return success with connector info
-      // TODO: Implement actual Slack API logic
+      // TODO: Implement actual Slack API logic using the SlackConnector
       const result = {
         connectorId: nodeData.connectorId,
         connectorName: connector.name,
-        workspace: connectorConfig.workspace,
+        defaultChannel: connectorConfig.defaultChannel,
+        botToken: connectorConfig.botToken ? '***' : undefined, // Hide token in logs
         success: true,
         message: 'Slack configuration loaded from connector'
       };

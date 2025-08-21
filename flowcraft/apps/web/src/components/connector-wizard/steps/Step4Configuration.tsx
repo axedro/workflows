@@ -3,6 +3,7 @@ import { Settings, Code, Database, Globe } from 'lucide-react';
 import type { WizardData } from '../ConnectorWizard';
 import { HttpConfiguration } from './configurations/HttpConfiguration';
 import { EmailConfiguration } from './configurations/EmailConfiguration';
+import { SlackConfiguration } from './configurations/SlackConfiguration';
 import { WebhookConfiguration } from './configurations/WebhookConfiguration';
 import { TimerConfiguration } from './configurations/TimerConfiguration';
 import { DataTransformConfiguration } from './configurations/DataTransformConfiguration';
@@ -40,6 +41,13 @@ export const Step4Configuration: React.FC<Step4ConfigurationProps> = ({
       case 'email':
         return (
           <EmailConfiguration
+            configuration={data.configuration}
+            onUpdate={(config) => onUpdate({ configuration: config })}
+          />
+        );
+      case 'slack':
+        return (
+          <SlackConfiguration
             configuration={data.configuration}
             onUpdate={(config) => onUpdate({ configuration: config })}
           />

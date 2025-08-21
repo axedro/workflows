@@ -13,6 +13,7 @@ export * from './email';
 export * from './webhook';
 export * from './timer';
 export * from './data-transform';
+export * from './slack';
 
 // Export registration functions
 export * from './register'; 

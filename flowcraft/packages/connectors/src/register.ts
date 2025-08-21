@@ -4,6 +4,7 @@ import { EmailConnector } from './email';
 import { WebhookConnector } from './webhook';
 import { TimerConnector } from './timer';
 import { DataTransformConnector } from './data-transform';
+import { SlackConnector } from './slack';
 import { ConnectorConfig } from '@flowcraft/shared-types';
 
 // HTTP Connector Configuration
@@ -71,6 +72,19 @@ const dataTransformConfig: ConnectorConfig = {
   configSchema: {},
 };
 
+// Slack Connector Configuration
+const slackConfig: ConnectorConfig = {
+  id: 'slack',
+  name: 'Slack',
+  description: 'Enviar mensajes y notificaciones a canales de Slack',
+  version: '1.0.0',
+  category: 'Comunicación',
+  icon: '💬',
+  inputs: [],
+  outputs: [],
+  configSchema: {},
+};
+
 /**
  * Register all connectors in the ConnectorRegistry
  */
@@ -91,6 +105,9 @@ export function registerAllConnectors(): void {
 
   // Register Data Transform Connector
   registry.register('data-transform', DataTransformConnector, dataTransformConfig);
+
+  // Register Slack Connector
+  registry.register('slack', SlackConnector, slackConfig);
 
   console.log('✅ All connectors registered successfully');
   console.log(`📦 Registered connectors: ${registry.getAllIds().join(', ')}`);
