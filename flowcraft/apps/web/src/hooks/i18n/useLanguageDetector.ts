@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 // Type declarations for Vite
@@ -26,8 +26,12 @@ export const SUPPORTED_LANGUAGES: LanguageInfo[] = [
 ];
 
 export function useLanguageDetector() {
-  const [detectedLanguage] = useState<string>('es');
   const { i18n } = useTranslation();
+  const initialLang =
+    (typeof window !== 'undefined' && (localStorage.getItem('i18nextLng') || '')) ||
+    i18n.language ||
+    'es';
+  const [currentLanguage, setCurrentLanguage] = useState<string>(initialLang);
 
   // Detect browser language
   const detectBrowserLanguage = (): string => {
@@ -63,6 +67,12 @@ export function useLanguageDetector() {
 
       // Change language in i18next
       await i18n.changeLanguage(code);
+      // Persist selection
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('i18nextLng', code);
+        document.documentElement.lang = code;
+      }
+      setCurrentLanguage(code);
 
       // TODO: Update user preference in backend if authenticated
       // This would typically involve calling an API endpoint
@@ -72,8 +82,25 @@ export function useLanguageDetector() {
     }
   };
 
+  // Sync state with i18n changes
+  useEffect(() => {
+    const handler = (lng?: string) => {
+      const code = lng || i18n.language || 'es';
+      setCurrentLanguage(code);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('i18nextLng', code);
+        document.documentElement.lang = code;
+      }
+    };
+    handler(i18n.language);
+    i18n.on('languageChanged', handler);
+    return () => {
+      i18n.off('languageChanged', handler);
+    };
+  }, [i18n]);
+
   return {
-    currentLanguage: detectedLanguage,
+    currentLanguage,
     availableLanguages: SUPPORTED_LANGUAGES,
     isLoading: false,
     error: null,

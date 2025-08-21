@@ -59,7 +59,7 @@ export const Header: React.FC = () => {
 
           {/* Language Selector and Auth buttons */}
           <div className="flex items-center space-x-4">
-            <LanguageSelector variant="compact" />
+            <LanguageSelector variant="dropdown" showLabel />
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-600">
